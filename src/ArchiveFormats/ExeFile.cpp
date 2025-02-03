@@ -11,9 +11,9 @@ struct PeHeader {
 	uint16_t mCharacteristics;
 };
 
-bool ExeFile::SignatureCheck(unsigned char byte1, unsigned char byte2) {
-    if (byte1 == 0x4D && byte2 == 0x5A) {
-        return true;
-    }
+bool ExeFile::SignatureCheck(unsigned char *buffer, long size) {
+	uint32_t pe_offset = *based_pointer<uint32_t>(buffer, 0x3C);
+	printf("%04x\n", pe_offset);
+
     return false;
 }

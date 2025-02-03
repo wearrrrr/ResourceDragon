@@ -1,11 +1,13 @@
-#include <stdint.h>
-#include <cstring>
+#include <cstdint>
 #include <string>
-#include <vector>
-#include <span>
+
+template<typename T = void>
+static T* based_pointer(void* base, size_t offset) {
+    return (T*)(uintptr_t(base) + offset);
+}
 
 class ExeFile {
     public:
-        static bool SignatureCheck(unsigned char byte1, unsigned char byte2);
+        static bool SignatureCheck(unsigned char *buffer, long size);
 
 };

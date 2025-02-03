@@ -1,18 +1,14 @@
 #include "ArchiveFormat.h"
-#include <span>
-#include <iostream>
 
 uint32_t ArchiveFormat::open(const char *path)
 {
     printf("Loading %s...\n", path);
 
-    std::ifstream input(path, std::ifstream::binary);
-
-    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(path);
 
     printf("Loaded!\n");
 
-    bool signature_check = ExeFile::SignatureCheck(buffer[0], buffer[1]);
+    bool signature_check = ExeFile::SignatureCheck(buffer, size);
 
     printf("Signature check: %s\n", signature_check ? "true" : "false");
 
