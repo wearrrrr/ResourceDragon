@@ -12,8 +12,13 @@ struct PeHeader {
 };
 
 bool ExeFile::SignatureCheck(unsigned char *buffer, long size) {
+	uint16_t mz_signature = *based_pointer<uint16_t>(buffer, 0x0);
 	uint32_t pe_offset = *based_pointer<uint32_t>(buffer, 0x3C);
-	printf("%04x\n", pe_offset);
+	uint32_t pe_signature = *based_pointer<uint32_t>(buffer, pe_offset);
+	
+	// printf("%04x\n", pe_offset);
+	// printf("%04x\n", pe_signature);
 
-    return false;
+	// MZ and PE in hex (reversed because endianness yayy)
+    return mz_signature == 0x5A4D && pe_signature == 0x4550;
 }

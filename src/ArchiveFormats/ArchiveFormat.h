@@ -25,5 +25,5 @@ class ArchiveFormat {
         string tag = "?????";
         string description = "????? Resource Archive";
 
-        uint32_t open(const char *path);
+        std::pair<unsigned char*, long> open(const char *path);
 };
