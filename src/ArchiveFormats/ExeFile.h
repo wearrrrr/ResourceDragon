@@ -6,6 +6,6 @@
 
 class ExeFile {
     public:
-        static bool SignatureCheck(std::vector<unsigned char> buffer);
+        static bool SignatureCheck(unsigned char byte1, unsigned char byte2);
 
 };

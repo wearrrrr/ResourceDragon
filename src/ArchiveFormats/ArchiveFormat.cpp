@@ -12,7 +12,7 @@ uint32_t ArchiveFormat::open(const char *path)
 
     printf("Loaded!\n");
 
-    bool signature_check = ExeFile::SignatureCheck(buffer);
+    bool signature_check = ExeFile::SignatureCheck(buffer[0], buffer[1]);
 
     printf("Signature check: %s\n", signature_check ? "true" : "false");
 
