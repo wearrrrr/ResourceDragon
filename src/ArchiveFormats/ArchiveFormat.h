@@ -24,6 +24,12 @@ class ArchiveFormat {
     public:
         string tag = "?????";
         string description = "????? Resource Archive";
+        uint32_t sig = 0x00000000;
 
-        std::pair<unsigned char*, long> open(const char *path);
+        auto open(const char *path) {
+            printf("Loading %s...\n", path);
+            auto buffer = read_file_to_buffer<unsigned char>(path);
+            printf("Loaded!\n");
+            return buffer;
+        };
 };
