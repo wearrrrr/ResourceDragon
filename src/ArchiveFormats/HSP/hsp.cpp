@@ -1,5 +1,21 @@
 #include "hsp.h"
 
+long FindString(void* section_base, size_t section_size, const std::vector<unsigned char>& pattern) 
+{
+    if (!section_base || pattern.empty() || section_size < pattern.size())
+        return -1;
+
+    unsigned char* data = static_cast<unsigned char*>(section_base);
+    size_t pattern_size = pattern.size();
+
+    for (size_t i = 0; i <= section_size - pattern_size; ++i) {
+        if (std::memcmp(&data[i], pattern.data(), pattern_size) == 0)
+            return static_cast<long>(i);
+    }
+
+    return -1;
+}
+
 uint32_t HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 {
     bool is_pe = ExeFile::SignatureCheck(buffer);
@@ -40,7 +56,7 @@ uint32_t HSPArchive::FindExeKey(unsigned char *buffer, uint32_t dpmx_offset)
 
     for (auto section : sections) {
         if (!strncmp(section.mName, ".rdata", 8)) {
-            sec_rdata = true;
+                key_pos = *based_pointer<long>(buffer + section.mPointerToRawData, 0);
             break;
         } else if (!strncmp(section.mName, ".data", 8)) {
             sec_data = true;
@@ -48,14 +64,13 @@ uint32_t HSPArchive::FindExeKey(unsigned char *buffer, uint32_t dpmx_offset)
         }
     }
 
-    if (sec_rdata) {
-        // key_pos = 
-    }
-
     printf("rdata: %d data: %d\n", sec_rdata, sec_data);
 
     printf("0x%x\n", base_offset);
     printf("%s\n", offset_str.c_str());
+    printf("key pos: 0x%x\n", key_pos);
+
+
 
     return 0;
 }

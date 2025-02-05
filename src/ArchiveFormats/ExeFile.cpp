@@ -72,10 +72,10 @@ unsigned char* ExeFile::DumpDataFromSection(unsigned char *buffer, std::string t
             unsigned char* extracted_data = new unsigned char[size];
             std::memcpy(extracted_data, buffer + section_offset, size);
 
-			FILE* file = fopen("dump.bin", "wb");
+			// FILE* file = fopen("dump.bin", "wb");
 
-			fwrite(extracted_data, 1, size, file);
-			fclose(file);
+			// fwrite(extracted_data, 1, size, file);
+			// fclose(file);
 
             return extracted_data;
         }
