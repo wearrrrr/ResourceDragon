@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdexcept>
 
 #include "ExeFile.h"
 
@@ -32,6 +33,10 @@ class ArchiveFormat {
             printf("Loaded!\n");
             return buffer;
         };
+
+        ExeFile* createExeFile(unsigned char* buffer) {
+            return new ExeFile(buffer);
+        }
 
         // If file count is negative or greater than 0x40000, then it's probably not a valid archive 
         // Taken directly from GARbro GameRes->ArchiveFormat.cs

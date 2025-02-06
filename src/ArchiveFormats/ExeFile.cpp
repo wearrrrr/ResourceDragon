@@ -69,36 +69,6 @@ Pe32SectionHeader *ExeFile::GetSectionHeader(unsigned char *buffer, std::string 
     return nullptr;
 }
 
-unsigned char* ExeFile::DumpDataFromSection(unsigned char *buffer, std::string target_section) {
-    printf("Attempting to dump section '%s'\n", target_section.c_str());
-
-    std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
-
-    for (const auto &section : sections) {
-        if (!strncmp(section.mName, target_section.c_str(), 8)) {
-            printf("Found section! Dumping...\n");
-
-            uint32_t size = section.mSizeOfRawData;
-            uint32_t section_offset = section.mPointerToRawData;
-
-            printf("Section offset in file: 0x%x\n", section_offset);
-            printf("Section size: 0x%x\n", size);
-            unsigned char* extracted_data = new unsigned char[size];
-            std::memcpy(extracted_data, buffer + section_offset, size);
-
-			// FILE* file = fopen("dump.bin", "wb");
-
-			// fwrite(extracted_data, 1, size, file);
-			// fclose(file);
-
-            return extracted_data;
-        }
-    }
-
-    printf("Section '%s' not found!\n", target_section.c_str());
-    return nullptr;
-}
-
 bool ExeFile::ContainsSection(unsigned char *buffer, std::string section_name)
 {
     std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
