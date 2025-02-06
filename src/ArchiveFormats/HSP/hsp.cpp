@@ -48,7 +48,9 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     if (!IsSaneFileCount(file_count)) return nullptr;
 
-    uint32_t index_offset = *based_pointer<uint32_t>(buffer + dpmx_offset, 0x10 + 0xC);
+    uint32_t c_offset = *based_pointer<uint32_t>(buffer, dpmx_offset + 0xC);
+
+    uint32_t index_offset = *based_pointer<uint32_t>(buffer + dpmx_offset, 0x10 + c_offset);
 
     printf("DPMX Offset: 0x%x\n", dpmx_offset);
 
