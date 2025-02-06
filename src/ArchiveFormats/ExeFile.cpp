@@ -45,14 +45,28 @@ std::vector<Pe32SectionHeader> ExeFile::ParseSectionHeaders(unsigned char *buffe
             buffer, section_headers_offset + (i * sizeof(Pe32SectionHeader))
         );
 		info.push_back(*section);
-        printf("Section %d: Name = %.8s, VirtualSize = 0x%x, RawSize = 0x%x, RawDataPtr = 0x%x\n",
-               i,
-               section->mName,
-               section->mVirtualSize,
-               section->mSizeOfRawData,
-               section->mPointerToRawData);
+        // printf("Section %d: Name = %.8s, VirtualSize = 0x%x, RawSize = 0x%x, RawDataPtr = 0x%x\n",
+        //        i,
+        //        section->mName,
+        //        section->mVirtualSize,
+        //        section->mSizeOfRawData,
+        //        section->mPointerToRawData);
     }
 	return info;
+}
+
+Pe32SectionHeader *ExeFile::GetSectionHeader(unsigned char *buffer, std::string target_section)
+{
+    std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
+
+    for (auto &section : sections) {
+        if (!strncmp(section.mName, target_section.c_str(), 8)) {
+            return &section;
+        }
+    }
+
+
+    return nullptr;
 }
 
 unsigned char* ExeFile::DumpDataFromSection(unsigned char *buffer, std::string target_section) {
@@ -60,7 +74,7 @@ unsigned char* ExeFile::DumpDataFromSection(unsigned char *buffer, std::string t
 
     std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
 
-    for (const auto& section : sections) {
+    for (const auto &section : sections) {
         if (!strncmp(section.mName, target_section.c_str(), 8)) {
             printf("Found section! Dumping...\n");
 
@@ -83,4 +97,17 @@ unsigned char* ExeFile::DumpDataFromSection(unsigned char *buffer, std::string t
 
     printf("Section '%s' not found!\n", target_section.c_str());
     return nullptr;
+}
+
+bool ExeFile::ContainsSection(unsigned char *buffer, std::string section_name)
+{
+    std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
+
+    for (const auto &section : sections) {
+        if (!strncmp(section.mName, section_name.c_str(), 8)) {
+            return true;
+        }
+    }
+
+    return false;
 }

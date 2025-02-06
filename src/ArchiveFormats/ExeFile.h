@@ -79,6 +79,8 @@ class ExeFile {
 		static Pe32OptionalHeader GetPEOptionalHeader(unsigned char *buffer);
         static bool SignatureCheck(unsigned char *buffer);
 		static std::vector<Pe32SectionHeader> ParseSectionHeaders(unsigned char *buffer);
+		static Pe32SectionHeader* GetSectionHeader(unsigned char *buffer, std::string target_section);
 		static unsigned char* DumpDataFromSection(unsigned char *buffer, std::string target_section);
+		static bool ContainsSection(unsigned char *buffer, std::string section_name);
 
 };
