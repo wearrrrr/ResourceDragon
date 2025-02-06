@@ -45,17 +45,15 @@ std::vector<Pe32SectionHeader> ExeFile::ParseSectionHeaders(unsigned char *buffe
             buffer, section_headers_offset + (i * sizeof(Pe32SectionHeader))
         );
 		info.push_back(*section);
-        // printf("Section %d: Name = %.8s, VirtualSize = 0x%x, RawSize = 0x%x, RawDataPtr = 0x%x\n",
-        //        i,
-        //        section->mName,
-        //        section->mVirtualSize,
-        //        section->mSizeOfRawData,
-        //        section->mPointerToRawData);
     }
 	return info;
 }
 
-Pe32SectionHeader *ExeFile::GetSectionHeader(unsigned char *buffer, std::string target_section)
+Pe32SectionHeader* ExeFile::GetSectionHeader(std::string target_section) {
+    return &this->sections[target_section];
+}
+
+Pe32SectionHeader* ExeFile::GetSectionHeader(unsigned char *buffer, std::string target_section)
 {
     std::vector<Pe32SectionHeader> sections = ParseSectionHeaders(buffer);
 
@@ -67,6 +65,10 @@ Pe32SectionHeader *ExeFile::GetSectionHeader(unsigned char *buffer, std::string 
 
 
     return nullptr;
+}
+
+bool ExeFile::ContainsSection(std::string section_name) {
+    return this->sections.count(section_name);
 }
 
 bool ExeFile::ContainsSection(unsigned char *buffer, std::string section_name)

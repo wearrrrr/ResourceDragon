@@ -21,9 +21,11 @@ long FindString(unsigned char* section_base, size_t section_size, const std::vec
 
 DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 {
+
+    ExeFile *exe = nullptr;
+
     uint32_t dpmx_offset;
     uint32_t arc_key;
-
     bool is_pe = false;
 
     if (ExeFile::SignatureCheck(buffer)) {
@@ -31,13 +33,15 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     }
 
     // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.
+    // This needs more testing to see if I can get away with adding 0x90 to the sig, since that seems to be something different between them.
     int iter = 0;
     if (is_pe) {
+        exe = ConvertToExeFile(buffer);
         for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
             if (std::memcmp(&buffer[i], &sig, sizeof(sig)) == 0) {
                 if (iter > 0) {
                     dpmx_offset = i;
-                    arc_key = FindExeKey(buffer, dpmx_offset);
+                    arc_key = FindExeKey(exe, dpmx_offset);
 
                     printf("Arc Key: 0x%x\n", arc_key);
                     break;
@@ -57,7 +61,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     return new DPMArchive();
 }
 
-uint32_t HSPArchive::FindExeKey(unsigned char *buffer, uint32_t dpmx_offset)
+uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
     std::vector<unsigned char> offset_bytes(offset_str.begin(), offset_str.end());
@@ -65,23 +69,22 @@ uint32_t HSPArchive::FindExeKey(unsigned char *buffer, uint32_t dpmx_offset)
     uint32_t key_pos = -1;
     uint32_t found_section_offset = 0x0;
 
-    if (ExeFile::ContainsSection(buffer, ".rdata")) {
-        Pe32SectionHeader section = *ExeFile::GetSectionHeader(buffer, ".rdata");
-        uint32_t base = section.mPointerToRawData;
-        uint32_t size = section.mSizeOfRawData;
+    if (exe->ContainsSection(".rdata")) {
+        Pe32SectionHeader *section = exe->GetSectionHeader(".rdata");
+        uint32_t base = section->mPointerToRawData;
+        uint32_t size = section->mSizeOfRawData;
 
-        printf("Searching %s: base=0x%08x size=0x%x\n", section.mName, base, size);
+        printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
 
-        key_pos = FindString(based_pointer<unsigned char>(buffer, base), size, offset_bytes);
-        if (key_pos == -1) printf("Couldn't find in %s!\n", section.mName);
+        key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
     }
-    if (key_pos == -1 && ExeFile::ContainsSection(buffer, ".data")) {
-        Pe32SectionHeader section = *ExeFile::GetSectionHeader(buffer, ".data");
-        uint32_t base = section.mPointerToRawData;
-        uint32_t size = section.mSizeOfRawData;
+    if (key_pos == -1 && exe->ContainsSection(".data")) {
+        Pe32SectionHeader *section = exe->GetSectionHeader(exe->raw_contents, ".data");
+        uint32_t base = section->mPointerToRawData;
+        uint32_t size = section->mSizeOfRawData;
         found_section_offset = base;
-        printf("Searching %s: base=0x%08x size=0x%x\n", section.mName, base, size);
-        key_pos = FindString(based_pointer<unsigned char>(buffer, base), size, offset_bytes);
+        printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
+        key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
     }
     printf("DPMX Offset: 0x%x\n", dpmx_offset);
     printf("Key Position: 0x%x\n", found_section_offset + key_pos);
@@ -89,6 +92,6 @@ uint32_t HSPArchive::FindExeKey(unsigned char *buffer, uint32_t dpmx_offset)
     if (key_pos == -1) return DefaultKey;
 
     // Get the actual key value at key_pos + 0x17
-    uint32_t* key_ptr = based_pointer<uint32_t>(buffer, found_section_offset + key_pos + 0x17);
+    uint32_t* key_ptr = based_pointer<uint32_t>(exe->raw_contents, found_section_offset + key_pos + 0x17);
     return *key_ptr;
 }

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <bit>
 #include <vector>
+#include <map>
 
 struct PeHeader {
 	uint32_t mMagic; // PE\0\0 or 0x00004550
@@ -76,11 +77,16 @@ static inline constexpr uint32_t PackUInt(uint8_t c1, uint8_t c2 = 0, uint8_t c3
 class ExeFile {
     public:
 		unsigned char* raw_contents;
-		std::vector<Pe32SectionHeader> sections;
+		std::map<std::string, Pe32SectionHeader> sections;
 		ExeFile(unsigned char *buffer) {
 			raw_contents = buffer;
-			sections = ParseSectionHeaders(buffer);
+			for (auto &section : ParseSectionHeaders(buffer)) {
+				sections.insert({section.mName, section});
+			}
 		}
+
+		bool ContainsSection(std::string section_name);
+		Pe32SectionHeader* GetSectionHeader(std::string target_section);
 
         static PeHeader GetPEHeader(unsigned char* buffer);
 		static Pe32OptionalHeader GetPEOptionalHeader(unsigned char *buffer);

@@ -34,7 +34,7 @@ class ArchiveFormat {
             return buffer;
         };
 
-        ExeFile* createExeFile(unsigned char* buffer) {
+        ExeFile* ConvertToExeFile(unsigned char* buffer) {
             return new ExeFile(buffer);
         }
 
