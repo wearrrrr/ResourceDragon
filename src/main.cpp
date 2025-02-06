@@ -6,7 +6,7 @@ int main() {
 
     auto [buffer, size] = arc->open("./eXceed3.exe");
 
-    uint32_t attempt = arc->TryOpen(buffer, size);
+    DPMArchive *attempt = arc->TryOpen(buffer, size);
 
     // printf("0x%x\n", attempt);
 

@@ -1,5 +1,17 @@
 #include "../ArchiveFormat.h"
 
+class DPMArchive {
+    public:
+        uint8_t seed_1;
+        uint8_t seed_2;
+        DPMArchive() {
+            
+        };
+        DPMArchive(uint32_t arc_key, size_t dpm_size) {
+            seed_1 = ((((arc_key >> 16) & 0xFF) * (arc_key & 0xFF) / 3) ^ dpm_size);
+        }
+};
+
 class HSPArchive : public ArchiveFormat {
     public:
         string tag = "HSP";
@@ -11,7 +23,7 @@ class HSPArchive : public ArchiveFormat {
             sig = 0x584D5044; // "DPMX"
         };
 
-        uint32_t TryOpen(unsigned char *buffer, uint32_t size);
+        DPMArchive* TryOpen(unsigned char *buffer, uint32_t size);
         
         uint32_t FindExeKey(unsigned char *buffer, uint32_t dpmx_offset);
 };
