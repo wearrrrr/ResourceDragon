@@ -77,22 +77,21 @@ static inline constexpr uint32_t PackUInt(uint8_t c1, uint8_t c2 = 0, uint8_t c3
 class ExeFile {
     public:
 		unsigned char* raw_contents;
+		PeHeader header;
+		Pe32OptionalHeader opt_header;
 		std::map<std::string, Pe32SectionHeader> sections;
 		ExeFile(unsigned char *buffer) {
 			raw_contents = buffer;
-			for (auto &section : ParseSectionHeaders(buffer)) {
-				sections.insert({section.mName, section});
-			}
+			sections = ParseSectionHeaders();
+			header = GetPEHeader();
+			opt_header = GetPEOptionalHeader();
 		}
 
 		bool ContainsSection(std::string section_name);
+		PeHeader GetPEHeader();
+		Pe32OptionalHeader GetPEOptionalHeader();
 		Pe32SectionHeader* GetSectionHeader(std::string target_section);
+		std::map<std::string, Pe32SectionHeader> ParseSectionHeaders();
 
-        static PeHeader GetPEHeader(unsigned char* buffer);
-		static Pe32OptionalHeader GetPEOptionalHeader(unsigned char *buffer);
         static bool SignatureCheck(unsigned char *buffer);
-		static std::vector<Pe32SectionHeader> ParseSectionHeaders(unsigned char *buffer);
-		static Pe32SectionHeader* GetSectionHeader(unsigned char *buffer, std::string target_section);
-		static bool ContainsSection(unsigned char *buffer, std::string section_name);
-
 };

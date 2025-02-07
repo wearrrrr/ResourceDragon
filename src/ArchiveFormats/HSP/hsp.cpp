@@ -79,7 +79,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
     }
     if (key_pos == -1 && exe->ContainsSection(".data")) {
-        Pe32SectionHeader *section = exe->GetSectionHeader(exe->raw_contents, ".data");
+        Pe32SectionHeader *section = exe->GetSectionHeader(".data");
         uint32_t base = section->mPointerToRawData;
         uint32_t size = section->mSizeOfRawData;
         found_section_offset = base;
