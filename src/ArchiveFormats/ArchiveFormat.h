@@ -34,7 +34,11 @@ class ArchiveFormat {
             return buffer;
         };
 
-        ExeFile* ConvertToExeFile(unsigned char* buffer) {
+        uint32_t ReadUint32(unsigned char *buffer, uint32_t offset) {
+            return *based_pointer<uint32_t>(buffer, offset);
+        }
+
+        ExeFile* ConvertToExeFile(unsigned char *buffer) {
             return new ExeFile(buffer);
         }
 

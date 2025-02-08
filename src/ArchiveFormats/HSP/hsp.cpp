@@ -61,6 +61,12 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     if (!IsSaneFileCount(file_count)) return nullptr;
     printf("File Count: 0x%x\n", file_count);
 
+    uint32_t index_offset = (dpmx_offset + 0x10) + ReadUint32(exe->raw_contents, dpmx_offset + 0xC);
+    uint32_t data_size = size - (index_offset + 32 * file_count);
+
+    printf("index_offset: 0x%x\n", index_offset);
+    printf("data size: 0x%x\n", data_size);
+
     return new DPMArchive();
 }
 
