@@ -38,7 +38,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     if (is_pe) {
         exe = ConvertToExeFile(buffer);
         for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
-            if (std::memcmp(&buffer[i], &sig, sizeof(sig)) == 0) {
+            if (std::memcmp(&exe->raw_contents[i], &sig, sizeof(sig)) == 0) {
                 if (iter > 0) {
                     dpmx_offset = i;
                     arc_key = FindExeKey(exe, dpmx_offset);
@@ -48,6 +48,9 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
                 }
                 iter++;
             }
+        }
+        if (iter == 0) {
+            printf("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
         }
     } else {
         throw std::invalid_argument("Extracting from non-exe targets is currently not supported!");
