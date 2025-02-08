@@ -20,7 +20,7 @@ class HSPArchive : public ArchiveFormat {
         uint32_t DefaultKey = 0xAC52AE58;
 
         HSPArchive() {
-            sig = 0x584D5044; // "DPMX"
+            sig = PackUInt('D', 'P', 'M', 'X');
         };
 
         DPMArchive* TryOpen(unsigned char *buffer, uint32_t size);
