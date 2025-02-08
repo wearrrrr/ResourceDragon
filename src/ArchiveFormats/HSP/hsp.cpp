@@ -1,8 +1,8 @@
 #include "hsp.h"
 
-long FindString(unsigned char* section_base, size_t section_size, const std::vector<unsigned char>& pattern, int step = 1)
+uint32_t FindString(unsigned char* section_base, size_t section_size, const std::vector<unsigned char>& pattern, int step = 1)
 {
-    if (step <= 0) return -1; // Step must be positive
+    if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
 
     unsigned char* data = section_base;
@@ -11,11 +11,11 @@ long FindString(unsigned char* section_base, size_t section_size, const std::vec
 
     for (size_t i = 0; i <= max_offset; i += step) {
         if (std::memcmp(&data[i], pattern.data(), pattern_size) == 0) {
-            return (long)(i); // Found match, return offset
+            return i;
         }
     }
 
-    return -1; // Not found
+    return -1;
 }
 
 

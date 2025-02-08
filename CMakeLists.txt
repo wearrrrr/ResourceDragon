@@ -18,4 +18,5 @@ add_executable(ResourceDragon
     
 )
 
+set_target_properties(ResourceDragon PROPERTIES LINK_FLAGS_RELEASE -s)
 target_compile_options(ResourceDragon PRIVATE -O3)
