@@ -61,6 +61,17 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     return new DPMArchive();
 }
 
+auto FindKeyFromSection(ExeFile* exe, std::string section_name, std::vector<unsigned char> offset_bytes) {
+    Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
+    uint32_t base = section->mPointerToRawData;
+    uint32_t size = section->mSizeOfRawData;
+    printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
+
+    uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
+
+    return std::make_pair(possible_key_pos, base);
+}
+
 uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
@@ -70,21 +81,19 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     uint32_t found_section_offset = 0x0;
 
     if (exe->ContainsSection(".rdata")) {
-        Pe32SectionHeader *section = exe->GetSectionHeader(".rdata");
-        uint32_t base = section->mPointerToRawData;
-        uint32_t size = section->mSizeOfRawData;
-
-        printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
-
-        key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
+        
+        auto [search, base] = FindKeyFromSection(exe, ".rdata", offset_bytes);
+        if (search != -1) {
+            key_pos = search;
+            found_section_offset = base;
+        }
     }
     if (key_pos == -1 && exe->ContainsSection(".data")) {
-        Pe32SectionHeader *section = exe->GetSectionHeader(".data");
-        uint32_t base = section->mPointerToRawData;
-        uint32_t size = section->mSizeOfRawData;
-        found_section_offset = base;
-        printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
-        key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
+        auto [search, base] = FindKeyFromSection(exe, ".data", offset_bytes);
+        if (search != -1) {
+            key_pos = search;
+            found_section_offset = base;
+        }
     }
     printf("DPMX Offset: 0x%x\n", dpmx_offset);
     printf("Key Position: 0x%x\n", found_section_offset + key_pos);
