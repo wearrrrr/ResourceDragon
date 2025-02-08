@@ -5,7 +5,7 @@ uint32_t GetPEOffset(unsigned char *buffer) {
 }
 
 PeHeader ExeFile::GetPEHeader() {
-    uint32_t pe_offset = *based_pointer<uint32_t>(raw_contents, 0x3C);
+    uint32_t pe_offset = GetPEOffset(raw_contents);
 
     return *based_pointer<PeHeader>(raw_contents, pe_offset);
 }
@@ -23,8 +23,7 @@ bool ExeFile::SignatureCheck(unsigned char *buffer)
 	uint32_t pe_offset = GetPEOffset(buffer);
 	uint32_t pe_signature = *based_pointer<uint32_t>(buffer, pe_offset);
 
-	// MZ and PE in hex (reversed because endianness yayy)
-    return mz_signature == 0x5A4D && pe_signature == 0x4550;
+    return mz_signature == PackUInt('M', 'Z') && pe_signature == PackUInt('P', 'E');
 }
 
 std::map<std::string, Pe32SectionHeader> ExeFile::ParseSectionHeaders() {

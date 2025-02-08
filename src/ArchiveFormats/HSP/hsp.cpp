@@ -101,6 +101,6 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     if (key_pos == -1) return DefaultKey;
 
     // Get the actual key value at key_pos + 0x17
-    uint32_t* key_ptr = based_pointer<uint32_t>(exe->raw_contents, found_section_offset + key_pos + 0x17);
+    uint32_t* key_ptr = based_pointer<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
     return *key_ptr;
 }
