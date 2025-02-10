@@ -120,12 +120,10 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
     std::vector<unsigned char> offset_bytes(offset_str.begin(), offset_str.end());
-    
     uint32_t key_pos = -1;
     uint32_t found_section_offset = 0x0;
 
     if (exe->ContainsSection(".rdata")) {
-        
         auto [search, base] = FindKeyFromSection(exe, ".rdata", offset_bytes);
         if (search != -1) {
             key_pos = search;
@@ -139,12 +137,14 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
             found_section_offset = base;
         }
     }
+
     printf("DPMX Offset: 0x%x\n", dpmx_offset);
     printf("Key Position: 0x%x\n", found_section_offset + key_pos);
 
-    if (key_pos == -1) return DefaultKey;
-
-    // Get the actual key value at key_pos + 0x17
-    uint32_t* key_ptr = based_pointer<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
-    return *key_ptr;
+    if (key_pos == -1) {
+        printf("Failed to find key! Returning default key...\n");
+        return DefaultKey;
+    };
+    // ptr to where the exe key is held
+    return *based_pointer<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
 }
