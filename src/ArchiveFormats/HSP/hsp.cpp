@@ -93,7 +93,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
         entries.push_back(entry);
     }
 
-    DPMEntry first_entry = entries.at(0);
+    DPMEntry first_entry = entries.at(1);
 
     printf("First entry name: %s\n", first_entry.name.c_str());
     printf("First entry size: 0x%x\n", first_entry.size);
