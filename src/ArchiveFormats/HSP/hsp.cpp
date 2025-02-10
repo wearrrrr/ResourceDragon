@@ -1,6 +1,6 @@
 #include "hsp.h"
 
-uint32_t FindString(unsigned char* section_base, size_t section_size, const std::vector<unsigned char>& pattern, int step = 1)
+uint32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
 {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
@@ -16,6 +16,13 @@ uint32_t FindString(unsigned char* section_base, size_t section_size, const std:
     }
 
     return -1;
+}
+
+std::string ReadString(unsigned char *buffer, uint32_t offset, size_t read_amount) {
+    std::string constructed = "";
+    constructed.append(based_pointer<char>(buffer, offset));
+
+    return constructed;
 }
 
 
@@ -66,6 +73,19 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     printf("index_offset: 0x%x\n", index_offset);
     printf("data size: 0x%x\n", data_size);
+    dpmx_offset = *based_pointer<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
+
+    std::string first_entry_str = ReadString(exe->raw_contents, index_offset, 0x10);
+
+    // for (int i = 0; i < file_count; i++) {
+    //     char *string = *based_pointer<char*>(exe->raw_contents, index_offset);
+
+    //     printf("0x%x\n", string);
+    // }
+
+    printf("%s\n", first_entry_str.c_str());
+
+    printf("DPMX: 0x%x\n", dpmx_offset);
 
     return new DPMArchive();
 }
