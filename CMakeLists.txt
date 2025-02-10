@@ -8,6 +8,8 @@ project(ResourceDragon VERSION 0.1)
 add_executable(ResourceDragon 
     src/main.cpp
 
+    src/GameRes/Entry.h
+
     src/ArchiveFormats/ExeFile.h
     src/ArchiveFormats/ExeFile.cpp
     src/ArchiveFormats/ArchiveFormat.h

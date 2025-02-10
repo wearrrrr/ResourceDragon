@@ -74,20 +74,35 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     printf("index_offset: 0x%x\n", index_offset);
     printf("data size: 0x%x\n", data_size);
     dpmx_offset = *based_pointer<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
+    
+    std::vector<DPMEntry> entries;
+    entries.reserve(file_count);
 
-    std::string first_entry_str = ReadString(exe->raw_contents, index_offset, 0x10);
+    for (int i = 0; i < file_count; i++) {
+        std::string file_name =  ReadString(exe->raw_contents, index_offset, 0x10);
+        index_offset += 0x14;
 
-    // for (int i = 0; i < file_count; i++) {
-    //     char *string = *based_pointer<char*>(exe->raw_contents, index_offset);
+        DPMEntry entry;
+        entry.name = file_name;
+        entry.key = *based_pointer<uint32_t>(exe->raw_contents, index_offset);
+        entry.offset = *based_pointer<uint32_t>(exe->raw_contents, index_offset + 0x4) + dpmx_offset;
+        entry.size = *based_pointer<uint32_t>(exe->raw_contents, index_offset + 0x8);
 
-    //     printf("0x%x\n", string);
-    // }
+        index_offset += 0xC;
 
-    printf("%s\n", first_entry_str.c_str());
+        entries.push_back(entry);
+    }
+
+    DPMEntry first_entry = entries.at(0);
+
+    printf("First entry name: %s\n", first_entry.name.c_str());
+    printf("First entry size: 0x%x\n", first_entry.size);
+    printf("First entry offset: 0x%x\n", first_entry.offset);
+    printf("First entry key: 0x%x\n", first_entry.key);
 
     printf("DPMX: 0x%x\n", dpmx_offset);
 
-    return new DPMArchive();
+    return new DPMArchive(entries, arc_key, data_size);
 }
 
 auto FindKeyFromSection(ExeFile* exe, std::string section_name, std::vector<unsigned char> offset_bytes) {
