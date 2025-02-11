@@ -73,7 +73,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     printf("index_offset: 0x%x\n", index_offset);
     printf("data size: 0x%x\n", data_size);
-    dpmx_offset = *based_pointer<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
+    dpmx_offset += *based_pointer<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
     
     std::vector<DPMEntry> entries;
     entries.reserve(file_count);
@@ -92,15 +92,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
         entries.push_back(entry);
     }
-
     DPMEntry first_entry = entries.at(1);
-
-    printf("First entry name: %s\n", first_entry.name.c_str());
-    printf("First entry size: 0x%x\n", first_entry.size);
-    printf("First entry offset: 0x%x\n", first_entry.offset);
-    printf("First entry key: 0x%x\n", first_entry.key);
-
-    printf("DPMX: 0x%x\n", dpmx_offset);
 
     return new DPMArchive(entries, arc_key, data_size);
 }
