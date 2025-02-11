@@ -1,9 +1,8 @@
 #include "../ArchiveFormat.h"
 #include "../../GameRes/Entry.h"
 
-class DPMEntry : public Entry {
-    public:
-        uint32_t key;
+struct DPMEntry : Entry {
+    uint32_t key;
 };
 
 // TODO: Make generic ArchiveFile class to inherit from, so that I don't have to set variables on this class directly.
