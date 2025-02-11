@@ -50,16 +50,16 @@ struct Pe32OptionalHeader {
 };
 
 struct Pe32SectionHeader {
-	char mName[8];
-	uint32_t mVirtualSize;
-	uint32_t mVirtualAddress;
-	uint32_t mSizeOfRawData;
-	uint32_t mPointerToRawData;
-	uint32_t mPointerToRelocations;
-	uint32_t mPointerToLinenumbers;
-	uint16_t mNumberOfRelocations;
-	uint16_t mNumberOfLinenumbers;
-	uint32_t mCharacteristics;
+	char name[8];
+	uint32_t virtualSize;
+	uint32_t virtualAddress;
+	uint32_t sizeOfRawData;
+	uint32_t pointerToRawData;
+	uint32_t pointerToRelocations;
+	uint32_t pointerToLinenumbers;
+	uint16_t numberOfRelocations;
+	uint16_t numberOfLinenumbers;
+	uint32_t characteristics;
 };
 
 template<typename T = void>

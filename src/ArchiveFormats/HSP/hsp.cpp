@@ -18,13 +18,6 @@ uint32_t FindString(unsigned char *section_base, size_t section_size, const std:
     return -1;
 }
 
-std::string ReadString(unsigned char *buffer, uint32_t offset, size_t read_amount) {
-    std::string constructed = "";
-    constructed.append(based_pointer<char>(buffer, offset));
-
-    return constructed;
-}
-
 
 DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 {
@@ -99,9 +92,9 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
 auto FindKeyFromSection(ExeFile* exe, std::string section_name, std::vector<unsigned char> offset_bytes) {
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
-    uint32_t base = section->mPointerToRawData;
-    uint32_t size = section->mSizeOfRawData;
-    printf("Searching %s: base=0x%08x size=0x%x\n", section->mName, base, size);
+    uint32_t base = section->pointerToRawData;
+    uint32_t size = section->sizeOfRawData;
+    printf("Searching %s: base=0x%08x size=0x%x\n", section->name, base, size);
 
     uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
 

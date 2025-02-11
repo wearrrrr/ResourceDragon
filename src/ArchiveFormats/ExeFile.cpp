@@ -38,7 +38,7 @@ std::map<std::string, Pe32SectionHeader> ExeFile::ParseSectionHeaders() {
         Pe32SectionHeader *section = based_pointer<Pe32SectionHeader>(
             raw_contents, section_headers_offset + (i * sizeof(Pe32SectionHeader))
         );
-		info.insert({std::string(section->mName), *section});
+		info.insert({std::string(section->name), *section});
     }
 	return info;
 }
