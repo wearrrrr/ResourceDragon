@@ -63,7 +63,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
         throw std::invalid_argument("Extracting from non-exe targets is currently not supported!");
     }
 
-    uint32_t file_count = *based_pointer<uint32_t>(buffer, dpmx_offset + 8);
+    uint32_t file_count = ReadUint32(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
     printf("File Count: 0x%x\n", file_count);
@@ -73,7 +73,7 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     printf("index_offset: 0x%x\n", index_offset);
     printf("data size: 0x%x\n", data_size);
-    dpmx_offset += *based_pointer<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
+    dpmx_offset += ReadUint32(exe->raw_contents, dpmx_offset + 0x4);
     
     std::vector<DPMEntry> entries;
     entries.reserve(file_count);
@@ -84,9 +84,9 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
         DPMEntry entry;
         entry.name = file_name;
-        entry.key = *based_pointer<uint32_t>(exe->raw_contents, index_offset);
-        entry.offset = *based_pointer<uint32_t>(exe->raw_contents, index_offset + 0x4) + dpmx_offset;
-        entry.size = *based_pointer<uint32_t>(exe->raw_contents, index_offset + 0x8);
+        entry.key = ReadUint32(exe->raw_contents, index_offset);
+        entry.offset = ReadUint32(exe->raw_contents, index_offset + 0x4) + dpmx_offset;
+        entry.size = ReadUint32(exe->raw_contents, index_offset + 0x8);
 
         index_offset += 0xC;
 
@@ -138,5 +138,5 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         return DefaultKey;
     };
     // ptr to where the exe key is held
-    return *based_pointer<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
+    return ReadUint32(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
 }
