@@ -17,14 +17,17 @@ int main() {
         return 1;
     }
 
+    fs::remove_all("decrypt/");
     fs::create_directory("decrypt");
 
     for (int i = 0; i < opened_arc->entries.size(); i++) {
         DPMEntry entry = opened_arc->entries.at(i);
         unsigned char *data = new unsigned char[entry.size];
         std::memcpy(data, buffer + entry.offset, entry.size);
-        opened_arc->DecryptEntry(data, entry.size, entry.key);
-
+        printf("Entry Key: 0x%x\n", entry.key);
+        if (entry.key) {
+            opened_arc->DecryptEntry(data, entry.size, entry.key);
+        }
         std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
         outFile.write((const char*)data, entry.size);
         outFile.close();
