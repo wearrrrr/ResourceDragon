@@ -24,7 +24,7 @@ int main() {
         DPMEntry entry = opened_arc->entries.at(i);
         unsigned char *data = new unsigned char[entry.size];
         std::memcpy(data, buffer + entry.offset, entry.size);
-        printf("Entry Key: 0x%x\n", entry.key);
+
         if (entry.key) {
             opened_arc->DecryptEntry(data, entry.size, entry.key);
         }
