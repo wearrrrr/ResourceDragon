@@ -64,8 +64,6 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     uint32_t index_offset = (dpmx_offset + 0x10) + ReadUint32(exe->raw_contents, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
 
-    printf("index_offset: 0x%x\n", index_offset);
-    printf("data size: 0x%x\n", data_size);
     dpmx_offset += ReadUint32(exe->raw_contents, dpmx_offset + 0x4);
     
     std::vector<DPMEntry> entries;
@@ -86,6 +84,8 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
         entries.push_back(entry);
     }
     DPMEntry first_entry = entries.at(1);
+
+    printf("Opened archive successfully!\n");
 
     return new DPMArchive(entries, arc_key, data_size);
 }
@@ -123,13 +123,21 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         }
     }
 
-    printf("DPMX Offset: 0x%x\n", dpmx_offset);
-    printf("Key Position: 0x%x\n", found_section_offset + key_pos);
-
     if (key_pos == -1) {
         printf("Failed to find key! Returning default key...\n");
         return DefaultKey;
     };
-    // ptr to where the exe key is held
+
     return ReadUint32(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
+}
+
+const char* DPMArchive::OpenStream(DPMEntry entry, unsigned char *buffer) {
+    unsigned char *data = new unsigned char[entry.size];
+    std::memcpy(data, buffer + entry.offset, entry.size);
+
+    if (entry.key) {
+        DecryptEntry(data, entry.size, entry.key);
+    }
+
+    return (const char*)data;
 }

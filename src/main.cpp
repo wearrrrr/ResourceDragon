@@ -22,12 +22,7 @@ int main() {
 
     for (int i = 0; i < opened_arc->entries.size(); i++) {
         DPMEntry entry = opened_arc->entries.at(i);
-        unsigned char *data = new unsigned char[entry.size];
-        std::memcpy(data, buffer + entry.offset, entry.size);
-
-        if (entry.key) {
-            opened_arc->DecryptEntry(data, entry.size, entry.key);
-        }
+        const char *data = opened_arc->OpenStream(entry, buffer);
         std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
         outFile.write((const char*)data, entry.size);
         outFile.close();

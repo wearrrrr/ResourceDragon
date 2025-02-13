@@ -36,6 +36,7 @@ class DPMArchive {
             }
             return;
         };
+        const char* OpenStream(DPMEntry entry, unsigned char *buffer);
 };
 
 class HSPArchive : public ArchiveFormat {
@@ -50,6 +51,5 @@ class HSPArchive : public ArchiveFormat {
         };
 
         DPMArchive* TryOpen(unsigned char *buffer, uint32_t size);
-        
         uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
 };
