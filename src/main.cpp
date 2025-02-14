@@ -5,6 +5,7 @@
 #include "ArchiveFormats/HSP/hsp.h"
 
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_opengles2.h>
 #include "imgui.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
@@ -21,19 +22,27 @@ int main() {
         return -1;
     }
 
+    TTF_Init();
+    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 24);
+
+    if (!font) {
+        printf("Error TTF_LoadFont(): %s\n", SDL_GetError());
+    }
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
-    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1280, 720, window_flags);
-    if (window == nullptr)
+    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 800, 600, window_flags);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL);
+    if (!window)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
         return -1;
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    if (gl_context == nullptr)
+    if (!gl_context)
     {
         printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         return -1;
@@ -51,14 +60,29 @@ int main() {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    SDL_GL_SetSwapInterval(1); // vsync
     SDL_ShowWindow(window);
+
+    std::string str = "Resource Dragon";
+
+    SDL_Color textColor = { 255, 255, 255, 255};
+    SDL_Surface* textSurface = TTF_RenderText_Blended(font, str.c_str(), str.length(), textColor);
+    if (!textSurface) {
+        printf("Error: TTF_RenderText_Solid(): %s\n", SDL_GetError());
+        return -1;
+    }
+
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FRect textRect = { 10, 15, (float)textSurface->w, (float)textSurface->h};  // x, y, width, height
+    SDL_DestroySurface(textSurface);
+    SDL_RenderClear(renderer);
+
 
     bool running = true;
 
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.4f, 0.4f, 0.4f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
 
     while (running) {
         SDL_Event event;
@@ -70,20 +94,27 @@ int main() {
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 running = false;
         }
+        SDL_RenderClear(renderer);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
 
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
+
+        SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
+        SDL_RenderPresent(renderer);
     }
+
+    SDL_DestroyTexture(textTexture);
+    TTF_CloseFont(font);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    TTF_Quit();
+    SDL_Quit();
 
     HSPArchive *arc = new HSPArchive();
     auto [buffer, size] = arc->open("./eXceed3.exe");

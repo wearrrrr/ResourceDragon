@@ -10,6 +10,7 @@ if (SDL3_VENDORED)
     add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 else()
     find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+    find_package(SDL3_ttf REQUIRED)
     find_package(imgui REQUIRED)
     find_package(OpenGL REQUIRED)
 endif()
@@ -38,4 +39,4 @@ add_executable(ResourceDragon
 set_target_properties(ResourceDragon PROPERTIES LINK_FLAGS_RELEASE -s)
 target_compile_options(ResourceDragon PRIVATE -O3)
 
-target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 imgui OpenGL)
+target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 imgui OpenGL SDL3_ttf)
