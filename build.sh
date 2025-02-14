@@ -1,3 +1,3 @@
-cmake -B build
+cmake -B build -G Ninja
 cd build
-make -j12
+ninja -j12
