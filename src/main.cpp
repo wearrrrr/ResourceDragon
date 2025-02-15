@@ -4,17 +4,48 @@
 #include <cstring>
 #include "ArchiveFormats/HSP/hsp.h"
 
+
+
 #include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_opengles2.h>
 #include "imgui.h"
+#include "GUI/DirectoryNode.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
 
 
 namespace fs = std::filesystem;
 
-int main() {
+bool node_clicked = false;
+
+void RecursivelyDisplayDirectoryNode(const DirectoryNode& parentNode)
+{
+	ImGui::PushID(&parentNode);
+	if (parentNode.IsDirectory)
+	{
+		if (ImGui::TreeNodeEx(parentNode.FileName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth))
+		{
+			for (const DirectoryNode& childNode : parentNode.Children)
+				RecursivelyDisplayDirectoryNode(childNode);
+			ImGui::TreePop();
+		}
+	}
+	else
+	{
+		if (ImGui::TreeNodeEx(parentNode.FileName.c_str(), ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth))
+		{
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemClicked()) {
+                printf("click!\n");
+            }
+		}
+	}
+	ImGui::PopID();
+}
+
+int main(int argc, char* argv[]) {
+
+    // TODO: make this more graceful, likely default to home dir and just load things when the tree is expanded instead of trying to load everything at once.
+    static DirectoryNode rootNode = CreateDirectryNodeTreeFromPath(argv[1]);
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -22,19 +53,11 @@ int main() {
         return -1;
     }
 
-    TTF_Init();
-    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 24);
-
-    if (!font) {
-        printf("Error TTF_LoadFont(): %s\n", SDL_GetError());
-    }
-
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
     SDL_Window* window = SDL_CreateWindow("ResourceDragon", 800, 600, window_flags);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, NULL);
     if (!window)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -53,7 +76,9 @@ int main() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.DeltaTime = 0.01667;
     ImGui::StyleColorsDark();
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
@@ -63,21 +88,6 @@ int main() {
     SDL_GL_SetSwapInterval(1); // vsync
     SDL_ShowWindow(window);
 
-    std::string str = "Resource Dragon";
-
-    SDL_Color textColor = { 255, 255, 255, 255};
-    SDL_Surface* textSurface = TTF_RenderText_Blended(font, str.c_str(), str.length(), textColor);
-    if (!textSurface) {
-        printf("Error: TTF_RenderText_Solid(): %s\n", SDL_GetError());
-        return -1;
-    }
-
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    SDL_FRect textRect = { 10, 15, (float)textSurface->w, (float)textSurface->h};  // x, y, width, height
-    SDL_DestroySurface(textSurface);
-    SDL_RenderClear(renderer);
-
-
     bool running = true;
 
     bool show_demo_window = true;
@@ -86,34 +96,40 @@ int main() {
 
     while (running) {
         SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 running = false;
         }
-        SDL_RenderClear(renderer);
-        ImGui_ImplOpenGL3_NewFrame();
+        
+        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
+        {
+            SDL_Delay(10);
+            continue;
+        }
         ImGui_ImplSDL3_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
-
+        ImGui::SetNextWindowSize({600, 400});
+        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            RecursivelyDisplayDirectoryNode(rootNode);
+        }
+        ImGui::End();
+        
         ImGui::Render();
+
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
+        
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
-        SDL_RenderPresent(renderer);
+        SDL_GL_SwapWindow(window);
     }
 
-    SDL_DestroyTexture(textTexture);
-    TTF_CloseFont(font);
-    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    TTF_Quit();
     SDL_Quit();
 
     HSPArchive *arc = new HSPArchive();

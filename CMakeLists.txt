@@ -28,6 +28,8 @@ add_executable(ResourceDragon
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
 
+    src/GUI/DirectoryNode.cpp
+
     vendored/imgui/imgui_impl_sdl3.cpp
     vendored/imgui/imgui_impl_sdl3.h
     vendored/imgui/imgui_impl_opengl3_loader.h
