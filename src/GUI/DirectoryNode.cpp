@@ -11,9 +11,8 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, std::filesystem::di
 		DirectoryNode& childNode = parentNode.Children.emplace_back();
 		childNode.FullPath = entry.path().string();
         childNode.FileName = entry.path().filename().string();
-
-		if (childNode.IsDirectory = entry.is_directory(); childNode.IsDirectory)
-			RecursivelyAddDirectoryNodes(childNode, std::filesystem::directory_iterator(entry));
+        childNode.IsDirectory = entry.is_directory();
+		// RecursivelyAddDirectoryNodes(childNode, std::filesystem::directory_iterator(entry));
 	}
 
 	auto moveDirectoriesToFront = [](const DirectoryNode& a, const DirectoryNode& b) { return (a.IsDirectory > b.IsDirectory) && b.FileName != ".."; };
