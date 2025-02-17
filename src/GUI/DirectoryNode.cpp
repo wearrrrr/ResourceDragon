@@ -1,8 +1,6 @@
 #include "DirectoryNode.h"
-#include <iostream>
 #include <algorithm>
 
-// Helper function for case-insensitive sorting
 inline std::string ToLower(const std::string& str)
 {
     std::string result = str;
@@ -12,8 +10,6 @@ inline std::string ToLower(const std::string& str)
 
 void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesystem::path& parentPath)
 {
-    parentNode.IsLoaded = true; // Mark directory as loaded
-
     try 
     {
         std::filesystem::directory_iterator directoryIterator(parentPath);
@@ -23,7 +19,6 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
             parentNode.Children.emplace_back("..", grandParentPath.string(), true);
-            std::cout << "Added parent: " << grandParentPath.string() << std::endl;
         }
 
         // Add children
@@ -50,7 +45,7 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
     }
     catch (const std::filesystem::filesystem_error& e)
     {
-        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+        printf("Error accessing directory: %s\n", e.what());
     }
 }
 

@@ -20,11 +20,10 @@ std::filesystem::path pendingRootPath;
 void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& rootNode, bool isRoot = false)
 {
     ImGui::PushID(&parentNode);
-    bool isClicked = false;
 
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
     if (parentNode.IsDirectory) {
-        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnDoubleClick;
     } else {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
@@ -35,19 +34,18 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
 
     bool isOpen = ImGui::TreeNodeEx(parentNode.FileName.c_str(), nodeFlags);
 
-    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        isClicked = true;
-        std::cout << "Double Clicked: " << parentNode.FileName << " -> " << parentNode.FullPath << std::endl;
+    if (parentNode.FullPath != rootNode.FullPath) {
+        ImGui::SetNextItemOpen(false);
     }
 
     if (parentNode.IsDirectory && isOpen) {
-        for (auto& childNode : parentNode.Children) {
+        for (auto &childNode : parentNode.Children) {
             RecursivelyDisplayDirectoryNode(childNode, rootNode, false);
         }
         ImGui::TreePop();
     }
 
-    if (isClicked) {
+    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         std::filesystem::path newRootPath = parentNode.FullPath;
 
         if (parentNode.FileName == "..") {
@@ -57,20 +55,17 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
                 if (parentPath != rootNode.FullPath) {
                     newRootPath = parentPath;
                 } else {
-                    std::cout << "Already at root, ignoring navigation" << std::endl;
                     ImGui::PopID();
                     return;
                 }
             }
             if (newRootPath.empty() || newRootPath == rootNode.FullPath) {
-                std::cout << "Already at root, ignoring navigation" << std::endl;
                 ImGui::PopID();
                 return;
             }
         }
 
         if (!newRootPath.empty() && newRootPath != pendingRootPath) {
-            std::cout << "Updating root to: " << newRootPath << std::endl;
             pendingRootPath = newRootPath;
         }
     }
@@ -84,7 +79,7 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
 int main(int argc, char* argv[]) {
 
     // TODO: make this more graceful, likely default to home dir and just load things when the tree is expanded instead of trying to load everything at once.
-    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(argv[1]);
+    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical("./"));
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {

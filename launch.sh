@@ -1,1 +1,1 @@
-./build.sh && build/ResourceDragon /home/wearr/Documents/Coding/ResourceDragon/
+./build.sh && build/ResourceDragon .
