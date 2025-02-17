@@ -21,9 +21,13 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
 {
     ImGui::PushID(&parentNode);
 
+    bool isClicked = false;
+
+    
+
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
     if (parentNode.IsDirectory) {
-        nodeFlags |= ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
     } else {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
@@ -34,9 +38,14 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
 
     bool isOpen = ImGui::TreeNodeEx(parentNode.FileName.c_str(), nodeFlags);
 
-    if (parentNode.FullPath != rootNode.FullPath) {
-        ImGui::SetNextItemOpen(false);
+    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        isClicked = true;
+        std::cout << "Double Clicked: " << parentNode.FileName << " -> " << parentNode.FullPath << std::endl;
     }
+
+    // if (parentNode.FullPath != rootNode.FullPath) {
+    //     ImGui::SetNextItemOpen(false);
+    // }
 
     if (parentNode.IsDirectory && isOpen) {
         for (auto &childNode : parentNode.Children) {
@@ -45,7 +54,7 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& r
         ImGui::TreePop();
     }
 
-    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    if (isClicked) {
         std::filesystem::path newRootPath = parentNode.FullPath;
 
         if (parentNode.FileName == "..") {
