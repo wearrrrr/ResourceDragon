@@ -2,9 +2,8 @@
 #include <filesystem>
 #include <fstream>
 #include <cstring>
+#include <iostream>
 #include "ArchiveFormats/HSP/hsp.h"
-
-
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengles2.h>
@@ -16,36 +15,76 @@
 
 namespace fs = std::filesystem;
 
-bool node_clicked = false;
+std::filesystem::path pendingRootPath;
 
-void RecursivelyDisplayDirectoryNode(const DirectoryNode& parentNode)
+void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& rootNode, bool isRoot = false)
 {
-	ImGui::PushID(&parentNode);
-	if (parentNode.IsDirectory)
-	{
-		if (ImGui::TreeNodeEx(parentNode.FileName.c_str(), ImGuiTreeNodeFlags_SpanFullWidth))
-		{
-			for (const DirectoryNode& childNode : parentNode.Children)
-				RecursivelyDisplayDirectoryNode(childNode);
-			ImGui::TreePop();
-		}
-	}
-	else
-	{
-		if (ImGui::TreeNodeEx(parentNode.FileName.c_str(), ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth))
-		{
-            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemClicked()) {
-                printf("click!\n");
+    ImGui::PushID(&parentNode);
+    bool isClicked = false;
+
+    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
+    if (parentNode.IsDirectory) {
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
+    } else {
+        nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    }
+
+    if (isRoot) {
+        nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+    }
+
+    bool isOpen = ImGui::TreeNodeEx(parentNode.FileName.c_str(), nodeFlags);
+
+    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        isClicked = true;
+        std::cout << "Double Clicked: " << parentNode.FileName << " -> " << parentNode.FullPath << std::endl;
+    }
+
+    if (parentNode.IsDirectory && isOpen) {
+        for (auto& childNode : parentNode.Children) {
+            RecursivelyDisplayDirectoryNode(childNode, rootNode, false);
+        }
+        ImGui::TreePop();
+    }
+
+    if (isClicked) {
+        std::filesystem::path newRootPath = parentNode.FullPath;
+
+        if (parentNode.FileName == "..") {
+            newRootPath = std::filesystem::path(rootNode.FullPath).parent_path();
+            if (parentNode.FileName == "..") {
+                std::filesystem::path parentPath = std::filesystem::path(rootNode.FullPath).parent_path();
+                if (parentPath != rootNode.FullPath) {
+                    newRootPath = parentPath;
+                } else {
+                    std::cout << "Already at root, ignoring navigation" << std::endl;
+                    ImGui::PopID();
+                    return;
+                }
             }
-		}
-	}
-	ImGui::PopID();
+            if (newRootPath.empty() || newRootPath == rootNode.FullPath) {
+                std::cout << "Already at root, ignoring navigation" << std::endl;
+                ImGui::PopID();
+                return;
+            }
+        }
+
+        if (!newRootPath.empty() && newRootPath != pendingRootPath) {
+            std::cout << "Updating root to: " << newRootPath << std::endl;
+            pendingRootPath = newRootPath;
+        }
+    }
+
+    ImGui::PopID();
 }
+
+
+
 
 int main(int argc, char* argv[]) {
 
     // TODO: make this more graceful, likely default to home dir and just load things when the tree is expanded instead of trying to load everything at once.
-    static DirectoryNode rootNode = CreateDirectryNodeTreeFromPath(argv[1]);
+    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(argv[1]);
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -104,21 +143,23 @@ int main(int argc, char* argv[]) {
                 running = false;
         }
         
-        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
-        {
-            SDL_Delay(10);
-            continue;
-        }
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({600, 400});
+        ImGui::SetNextWindowSize({io.DisplaySize.x, 500});
+        ImGui::SetNextWindowPos({0, 100});
         if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-            RecursivelyDisplayDirectoryNode(rootNode);
+            RecursivelyDisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
         
         ImGui::Render();
+
+        if (!pendingRootPath.empty())
+        {
+            rootNode = CreateDirectoryNodeTreeFromPath(pendingRootPath);
+            pendingRootPath.clear();
+        }
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
@@ -127,6 +168,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window);
+
+        SDL_Delay(12);
     }
 
     SDL_DestroyWindow(window);

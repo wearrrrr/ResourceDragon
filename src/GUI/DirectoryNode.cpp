@@ -1,31 +1,68 @@
 #include "DirectoryNode.h"
+#include <iostream>
+#include <algorithm>
 
-
-void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, std::filesystem::directory_iterator directoryIterator)
+// Helper function for case-insensitive sorting
+inline std::string ToLower(const std::string& str)
 {
-    DirectoryNode upNode;
-    upNode.FileName = "..";
-    parentNode.Children.insert(parentNode.Children.begin(), upNode);
-	for (const std::filesystem::directory_entry& entry : directoryIterator)
-	{
-		DirectoryNode& childNode = parentNode.Children.emplace_back();
-		childNode.FullPath = entry.path().string();
-        childNode.FileName = entry.path().filename().string();
-        childNode.IsDirectory = entry.is_directory();
-		// RecursivelyAddDirectoryNodes(childNode, std::filesystem::directory_iterator(entry));
-	}
-
-	auto moveDirectoriesToFront = [](const DirectoryNode& a, const DirectoryNode& b) { return (a.IsDirectory > b.IsDirectory) && b.FileName != ".."; };
-	std::sort(parentNode.Children.begin(), parentNode.Children.end(), moveDirectoriesToFront);
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
 }
 
-DirectoryNode CreateDirectryNodeTreeFromPath(const std::filesystem::path& rootPath)
+void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesystem::path& parentPath)
 {
-	DirectoryNode rootNode;
-	rootNode.FullPath = rootPath.string();
-	rootNode.FileName = "./";
-	if (rootNode.IsDirectory = std::filesystem::is_directory(rootPath); rootNode.IsDirectory)
-		RecursivelyAddDirectoryNodes(rootNode, std::filesystem::directory_iterator(rootPath));
+    parentNode.IsLoaded = true; // Mark directory as loaded
 
-	return rootNode;
+    try 
+    {
+        std::filesystem::directory_iterator directoryIterator(parentPath);
+
+        // Add ".." (parent directory) if applicable
+        std::filesystem::path grandParentPath = parentPath.parent_path();
+        if (!grandParentPath.empty() && grandParentPath != parentPath)
+        {
+            parentNode.Children.emplace_back("..", grandParentPath.string(), true);
+            std::cout << "Added parent: " << grandParentPath.string() << std::endl;
+        }
+
+        // Add children
+        for (const auto& entry : directoryIterator)
+        {
+			DirectoryNode childNode;
+			childNode.FullPath = entry.path().string();
+			childNode.FileName = entry.path().filename().string();
+			childNode.IsDirectory = entry.is_directory();
+
+			parentNode.Children.push_back(std::move(childNode));
+        }
+
+        // Sort: ".." first, then directories, then files
+        std::sort(parentNode.Children.begin(), parentNode.Children.end(), 
+            [](const DirectoryNode& a, const DirectoryNode& b) 
+            {
+                if (a.FileName == "..") return true;
+                if (b.FileName == "..") return false;
+                if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
+                return ToLower(a.FileName) < ToLower(b.FileName);
+            });
+
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+    }
+}
+
+
+DirectoryNode CreateDirectoryNodeTreeFromPath(const std::filesystem::path& rootPath)
+{
+    DirectoryNode rootNode(rootPath.string(), rootPath.string(), std::filesystem::is_directory(rootPath));
+    
+    if (rootNode.IsDirectory)
+    {
+        RecursivelyAddDirectoryNodes(rootNode, rootPath);
+    }
+
+    return rootNode;
 }
