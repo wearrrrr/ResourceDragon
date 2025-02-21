@@ -62,7 +62,13 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
 
         ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
 
-        printf("Format: %s\n", format->getTag().c_str());
+        if (format != nullptr) {
+            printf("Format: %s\n", format->getTag().c_str());
+        } else {
+            printf("No compatible format found!\n");
+        }
+
+        
     }
 
     if (directoryClicked) {
