@@ -19,7 +19,7 @@ uint32_t FindString(unsigned char *section_base, size_t section_size, const std:
 }
 
 
-DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
+void* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 {
 
     ExeFile *exe = nullptr;
@@ -83,9 +83,6 @@ DPMArchive* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
         entries.push_back(entry);
     }
-    DPMEntry first_entry = entries.at(1);
-
-    printf("Opened archive successfully!\n");
 
     return new DPMArchive(entries, arc_key, data_size);
 }
@@ -129,6 +126,21 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     };
 
     return ReadUint32(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
+}
+
+bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size) const
+{
+    int iter = 0;
+    for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
+        if (std::memcmp(&buffer[i], &sig, sizeof(sig)) == 0) {
+            if (iter > 0) {
+                return true;
+            }
+            iter++;
+        }
+    }
+    
+    return false;
 }
 
 const char* DPMArchive::OpenStream(DPMEntry entry, unsigned char *buffer) {

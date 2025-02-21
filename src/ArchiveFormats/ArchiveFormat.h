@@ -53,4 +53,10 @@ class ArchiveFormat {
         bool IsSaneFileCount(uint32_t file_count) {
             return file_count > 0 && file_count < 0x40000;
         }
+
+        virtual ~ArchiveFormat() = default;
+
+        virtual bool CanHandleFile(unsigned char *buffer, uint32_t size) const = 0;
+        virtual void* TryOpen(unsigned char *buffer, uint32_t size) = 0;
+        virtual std::string getTag() const = 0;
 };

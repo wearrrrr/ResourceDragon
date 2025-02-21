@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include "ArchiveFormats/HSP/hsp.h"
+#include "ExtractorManager.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengles2.h>
@@ -14,6 +15,8 @@
 
 
 namespace fs = std::filesystem;
+
+static ExtractorManager extractor_manager;
 
 std::filesystem::path pendingRootPath;
 
@@ -51,8 +54,15 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
         std::string filename = node.FileName;
         std::string ext = filename.substr(filename.find_last_of(".") + 1);
         
-        printf("File clicked! File name: %s\n", filename.c_str());
+        printf("File name: %s\n", filename.c_str());
         printf("File extension: %s\n", ext.c_str());
+
+        auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
+        printf("Size: %ld\n", size);
+
+        ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
+
+        printf("Format: %s\n", format->getTag().c_str());
     }
 
     if (directoryClicked) {
@@ -87,6 +97,8 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
 
 
 int main(int argc, char* argv[]) {
+
+    extractor_manager.registerFormat(std::make_unique<HSPArchive>());
 
     // TODO: make this more graceful, likely default to home dir and just load things when the tree is expanded instead of trying to load everything at once.
     static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical("./"));

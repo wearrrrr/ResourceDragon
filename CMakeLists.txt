@@ -18,6 +18,8 @@ endif()
 add_executable(ResourceDragon 
     src/main.cpp
 
+    src/ExtractorManager.h
+    
     src/GameRes/Entry.h
 
     src/ArchiveFormats/ExeFile.h
