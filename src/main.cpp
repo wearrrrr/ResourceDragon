@@ -17,49 +17,50 @@ namespace fs = std::filesystem;
 
 std::filesystem::path pendingRootPath;
 
-void RecursivelyDisplayDirectoryNode(DirectoryNode& parentNode, DirectoryNode& rootNode, bool isRoot = false)
+void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
 {
-    ImGui::PushID(&parentNode);
+    ImGui::PushID(&node);
 
-    bool isClicked = false;
-
-    
+    bool directoryClicked = false;
+    bool fileClicked = false;
 
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
-    if (parentNode.IsDirectory) {
+    if (node.IsDirectory) {
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
     } else {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    if (isRoot) {
-        nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+    if (isRoot) nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+    bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
+
+    if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        if (node.IsDirectory) directoryClicked = true;
+        else fileClicked = true;
     }
 
-    bool isOpen = ImGui::TreeNodeEx(parentNode.FileName.c_str(), nodeFlags);
-
-    if (parentNode.IsDirectory && ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        isClicked = true;
-        std::cout << "Double Clicked: " << parentNode.FileName << " -> " << parentNode.FullPath << std::endl;
-    }
-
-    // if (parentNode.FullPath != rootNode.FullPath) {
-    //     ImGui::SetNextItemOpen(false);
-    // }
-
-    if (parentNode.IsDirectory && isOpen) {
-        for (auto &childNode : parentNode.Children) {
+    if (node.IsDirectory && isOpen) {
+        for (auto &childNode : node.Children) {
             RecursivelyDisplayDirectoryNode(childNode, rootNode, false);
         }
         ImGui::TreePop();
     }
 
-    if (isClicked) {
-        std::filesystem::path newRootPath = parentNode.FullPath;
+    if (fileClicked) {
+        std::string filename = node.FileName;
+        std::string ext = filename.substr(filename.find_last_of(".") + 1);
+        
+        printf("File clicked! File name: %s\n", filename.c_str());
+        printf("File extension: %s\n", ext.c_str());
+    }
 
-        if (parentNode.FileName == "..") {
+    if (directoryClicked) {
+        std::filesystem::path newRootPath = node.FullPath;
+
+        if (node.FileName == "..") {
             newRootPath = std::filesystem::path(rootNode.FullPath).parent_path();
-            if (parentNode.FileName == "..") {
+            if (node.FileName == "..") {
                 std::filesystem::path parentPath = std::filesystem::path(rootNode.FullPath).parent_path();
                 if (parentPath != rootNode.FullPath) {
                     newRootPath = parentPath;
@@ -172,34 +173,32 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window);
-
-        SDL_Delay(12);
     }
 
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    HSPArchive *arc = new HSPArchive();
-    auto [buffer, size] = arc->open("./eXceed3.exe");
-    DPMArchive *opened_arc = arc->TryOpen(buffer, size);
-    DPMEntry entry = opened_arc->entries.at(0);
+    // HSPArchive *arc = new HSPArchive();
+    // auto [buffer, size] = arc->open("./eXceed3.exe");
+    // DPMArchive *opened_arc = arc->TryOpen(buffer, size);
+    // DPMEntry entry = opened_arc->entries.at(0);
 
-    if (entry.offset + entry.size > size) {
-        printf("Entry is out of bounds! This is very bad.\n");
-        return 1;
-    }
+    // if (entry.offset + entry.size > size) {
+    //     printf("Entry is out of bounds! This is very bad.\n");
+    //     return 1;
+    // }
 
-    fs::remove_all("decrypt/");
-    fs::create_directory("decrypt");
+    // fs::remove_all("decrypt/");
+    // fs::create_directory("decrypt");
 
-    for (int i = 0; i < opened_arc->entries.size(); i++) {
-        DPMEntry entry = opened_arc->entries.at(i);
-        const char *data = opened_arc->OpenStream(entry, buffer);
-        std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
-        outFile.write((const char*)data, entry.size);
-        outFile.close();
-    }
-    printf("Decrypted successfully!\n");
+    // for (int i = 0; i < opened_arc->entries.size(); i++) {
+    //     DPMEntry entry = opened_arc->entries.at(i);
+    //     const char *data = opened_arc->OpenStream(entry, buffer);
+    //     std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
+    //     outFile.write((const char*)data, entry.size);
+    //     outFile.close();
+    // }
+    // printf("Decrypted successfully!\n");
     
     return 0;
 }

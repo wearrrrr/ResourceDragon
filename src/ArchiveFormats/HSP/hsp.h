@@ -25,6 +25,7 @@ class DPMArchive {
             this->dpm_size = dpm_size;
         };
         void DecryptEntry(unsigned char *data, uint32_t data_size, uint32_t entry_key) {
+            // TODO: These values seem to swap between games? Maybe different versions of the engine..?
             uint8_t s1 = 0x55;
             uint8_t s2 = 0xAA;
             s1 = (seed_1 + ((entry_key >> 16) ^ (entry_key + s1)));

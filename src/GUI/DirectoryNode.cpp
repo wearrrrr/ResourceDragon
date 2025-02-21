@@ -14,7 +14,6 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
     {
         std::filesystem::directory_iterator directoryIterator(parentPath);
 
-        // Add ".." (parent directory) if applicable
         std::filesystem::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
@@ -26,7 +25,6 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
             parentNode.Children.emplace_back(upNode);
         }
 
-        // Add children
         for (const auto& entry : directoryIterator)
         {
 
@@ -39,7 +37,6 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
 			parentNode.Children.push_back(childNode);
         }
 
-        // Sort: ".." first, then directories, then files
         std::sort(parentNode.Children.begin(), parentNode.Children.end(), 
             [](const DirectoryNode& a, const DirectoryNode& b) 
             {

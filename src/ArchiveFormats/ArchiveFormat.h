@@ -49,7 +49,6 @@ class ArchiveFormat {
             return new ExeFile(buffer);
         }
 
-        // If file count is negative or greater than 0x40000, then it's probably not a valid archive.
         // Taken directly from GARbro GameRes->ArchiveFormat.cs
         bool IsSaneFileCount(uint32_t file_count) {
             return file_count > 0 && file_count < 0x40000;
