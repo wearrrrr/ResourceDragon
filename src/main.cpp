@@ -64,6 +64,18 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
 
         if (format != nullptr) {
             printf("Format: %s\n", format->getTag().c_str());
+            DPMArchive *arc = (DPMArchive*)format->TryOpen(buffer, size);
+            fs::remove_all("decrypt/");
+            fs::create_directory("decrypt");
+
+            for (int i = 0; i < arc->entries.size(); i++) {
+                DPMEntry entry = arc->entries.at(i);
+                const char *data = arc->OpenStream(entry, buffer);
+                std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
+                outFile.write((const char*)data, entry.size);
+                outFile.close();
+            }
+            printf("Decrypted successfully!\n");
         } else {
             printf("No compatible format found!\n");
         }
@@ -135,7 +147,6 @@ int main(int argc, char* argv[]) {
 
     const char* glsl_version = "#version 130";
 
-    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30);
@@ -195,28 +206,6 @@ int main(int argc, char* argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
-
-    // HSPArchive *arc = new HSPArchive();
-    // auto [buffer, size] = arc->open("./eXceed3.exe");
-    // DPMArchive *opened_arc = arc->TryOpen(buffer, size);
-    // DPMEntry entry = opened_arc->entries.at(0);
-
-    // if (entry.offset + entry.size > size) {
-    //     printf("Entry is out of bounds! This is very bad.\n");
-    //     return 1;
-    // }
-
-    // fs::remove_all("decrypt/");
-    // fs::create_directory("decrypt");
-
-    // for (int i = 0; i < opened_arc->entries.size(); i++) {
-    //     DPMEntry entry = opened_arc->entries.at(i);
-    //     const char *data = opened_arc->OpenStream(entry, buffer);
-    //     std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
-    //     outFile.write((const char*)data, entry.size);
-    //     outFile.close();
-    // }
-    // printf("Decrypted successfully!\n");
     
     return 0;
 }
