@@ -66,14 +66,14 @@ void* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     dpmx_offset += ReadUint32(exe->raw_contents, dpmx_offset + 0x4);
     
-    std::vector<DPMEntry> entries;
+    std::vector<Entry> entries;
     entries.reserve(file_count);
 
     for (int i = 0; i < file_count; i++) {
         std::string file_name =  ReadString(exe->raw_contents, index_offset, 0x10);
         index_offset += 0x14;
 
-        DPMEntry entry;
+        Entry entry;
         entry.name = file_name;
         entry.key = ReadUint32(exe->raw_contents, index_offset);
         entry.offset = ReadUint32(exe->raw_contents, index_offset + 0x4) + dpmx_offset;
@@ -143,7 +143,13 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size) const
     return false;
 }
 
-const char* DPMArchive::OpenStream(DPMEntry entry, unsigned char *buffer) {
+std::vector<Entry> DPMArchive::getEntries()
+{
+    return this->entries;
+}
+
+const char *DPMArchive::OpenStream(Entry entry, unsigned char *buffer)
+{
     unsigned char *data = new unsigned char[entry.size];
     std::memcpy(data, buffer + entry.offset, entry.size);
 

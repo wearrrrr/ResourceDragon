@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "ExeFile.h"
+#include "../GameRes/Entry.h"
 
 using std::string;
 
@@ -20,6 +21,14 @@ template <typename T = void>
     }
     return std::make_pair(buffer, file_size);
 }
+
+class ArchiveBase {
+    public:
+        std::vector<Entry> entries;
+
+        virtual const char* OpenStream(Entry entry, unsigned char *buffer) = 0;
+        virtual std::vector<Entry> getEntries() = 0;
+};
 
 class ArchiveFormat {
     public:

@@ -1,14 +1,9 @@
 #include "../ArchiveFormat.h"
 #include "../../GameRes/Entry.h"
 
-struct DPMEntry : Entry {
-    uint32_t key;
-};
-
 // TODO: Make generic ArchiveFile class to inherit from, so that I don't have to set variables on this class directly.
-class DPMArchive {
+class DPMArchive : public ArchiveBase {
     public:
-        std::vector<DPMEntry> entries;
         uint32_t arc_key;
         size_t dpm_size;
         uint8_t seed_1;
@@ -17,7 +12,7 @@ class DPMArchive {
             seed_1 = 0xAA;
             seed_2 = 0x55;
         };
-        DPMArchive(std::vector<DPMEntry> &entries, uint32_t arc_key, size_t dpm_size) {
+        DPMArchive(std::vector<Entry> &entries, uint32_t arc_key, size_t dpm_size) {
             seed_1 = ((((arc_key >> 16) & 0xFF) * (arc_key & 0xFF) / 3) ^ dpm_size);
             seed_2 = ((((arc_key >> 8)  & 0xFF) * ((arc_key >> 24) & 0xFF) / 5) ^ dpm_size ^ 0xAA);
             this->entries = entries;
@@ -37,7 +32,9 @@ class DPMArchive {
             }
             return;
         };
-        const char* OpenStream(DPMEntry entry, unsigned char *buffer);
+
+        std::vector<Entry> getEntries() override;
+        const char* OpenStream(Entry entry, unsigned char *buffer) override;
 };
 
 class HSPArchive : public ArchiveFormat {

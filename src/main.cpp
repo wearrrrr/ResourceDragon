@@ -64,12 +64,12 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
 
         if (format != nullptr) {
             printf("Format: %s\n", format->getTag().c_str());
-            DPMArchive *arc = (DPMArchive*)format->TryOpen(buffer, size);
+            ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
             fs::remove_all("decrypt/");
             fs::create_directory("decrypt");
 
             for (int i = 0; i < arc->entries.size(); i++) {
-                DPMEntry entry = arc->entries.at(i);
+                Entry entry = arc->entries.at(i);
                 const char *data = arc->OpenStream(entry, buffer);
                 std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
                 outFile.write((const char*)data, entry.size);
