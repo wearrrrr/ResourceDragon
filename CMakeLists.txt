@@ -31,6 +31,8 @@ add_executable(ResourceDragon
     src/ArchiveFormats/HSP/hsp.cpp
 
     src/GUI/DirectoryNode.cpp
+    src/GUI/Theme/Themes.h
+    src/GUI/Theme/BessDark.cpp
 
     vendored/imgui/imgui_impl_sdl3.cpp
     vendored/imgui/imgui_impl_sdl3.h

@@ -13,6 +13,7 @@
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
 
+#include "GUI/Theme/Themes.h"
 
 namespace fs = std::filesystem;
 
@@ -146,7 +147,7 @@ int main(int argc, char* argv[]) {
     io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.DeltaTime = 0.01667;
-    ImGui::StyleColorsDark();
+    Theme::BessDark();
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -176,7 +177,15 @@ int main(int argc, char* argv[]) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
+
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2, io.DisplaySize.y});
+        ImGui::SetNextWindowPos({io.DisplaySize.x / 2, 0});
+        ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
         
+        ImGui::End();
+        
+
+
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
