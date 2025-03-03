@@ -18,9 +18,7 @@ namespace fs = std::filesystem;
 
 static ExtractorManager extractor_manager;
 
-std::filesystem::path pendingRootPath;
-
-void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
+void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
 {
     ImGui::PushID(&node);
 
@@ -45,7 +43,7 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
 
     if (node.IsDirectory && isOpen) {
         for (auto &childNode : node.Children) {
-            RecursivelyDisplayDirectoryNode(childNode, rootNode, false);
+            DisplayDirectoryNode(childNode, rootNode, false);
         }
         ImGui::TreePop();
     }
@@ -103,8 +101,8 @@ void RecursivelyDisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNod
             }
         }
 
-        if (!newRootPath.empty() && newRootPath != pendingRootPath) {
-            pendingRootPath = newRootPath;
+        if (!newRootPath.empty()) {
+            rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
         }
     }
 
@@ -118,7 +116,6 @@ int main(int argc, char* argv[]) {
 
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
 
-    // TODO: make this more graceful, likely default to home dir and just load things when the tree is expanded instead of trying to load everything at once.
     static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical("./"));
 
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -127,11 +124,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
-    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 800, 600, window_flags);
+    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1280, 720, window_flags);
     if (!window)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -158,14 +152,10 @@ int main(int argc, char* argv[]) {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // vsync
     SDL_ShowWindow(window);
 
     bool running = true;
-
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
     while (running) {
         SDL_Event event;
@@ -180,20 +170,14 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({io.DisplaySize.x, 500});
-        ImGui::SetNextWindowPos({0, 100});
-        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-            RecursivelyDisplayDirectoryNode(rootNode, rootNode, true);
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2, io.DisplaySize.y});
+        ImGui::SetNextWindowPos({0, 0});
+        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
+            DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
         
         ImGui::Render();
-
-        if (!pendingRootPath.empty())
-        {
-            rootNode = CreateDirectoryNodeTreeFromPath(pendingRootPath);
-            pendingRootPath.clear();
-        }
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
