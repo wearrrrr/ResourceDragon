@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2, io.DisplaySize.y});
         ImGui::SetNextWindowPos({io.DisplaySize.x / 2, 0});
-        ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
         
         ImGui::End();
         
