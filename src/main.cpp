@@ -9,23 +9,80 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengles2.h>
 #include "imgui.h"
+#include "GUI/Utils.h"
+#include "GUI/Theme/Themes.h"
 #include "GUI/DirectoryNode.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
 
-#include "GUI/Theme/Themes.h"
+
 
 namespace fs = std::filesystem;
 
 static ExtractorManager extractor_manager;
 
-void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
+void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 {
+    std::filesystem::path newRootPath(node.FullPath);
+
+    if (node.FileName == "..") {
+        std::filesystem::path parentPath = std::filesystem::path(rootNode.FullPath).parent_path();
+        if (parentPath != std::filesystem::path(rootNode.FullPath)) {
+            newRootPath = parentPath;
+        } else {
+            return;
+        }
+    }
+    rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
+}
+
+
+
+void HandleFileClick(DirectoryNode& node)
+{
+    std::string filename = node.FileName;
+    std::string ext = filename.substr(filename.find_last_of(".") + 1);
+    
+    printf("File name: %s\n", filename.c_str());
+    printf("File extension: %s\n", ext.c_str());
+
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
+    printf("Size: %ld\n", size);
+
+    ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
+
+    if (format != nullptr) {
+        printf("Format: %s\n", format->getTag().c_str());
+        ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
+        fs::remove_all("decrypt/");
+        fs::create_directory("decrypt");
+
+        for (int i = 0; i < arc->entries.size(); i++) {
+            Entry entry = arc->entries.at(i);
+            const char *data = arc->OpenStream(entry, buffer);
+            std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
+            outFile.write((const char*)data, entry.size);
+            outFile.close();
+        }
+        printf("Decrypted successfully!\n");
+    } else {
+        printf("No compatible format found!\n");
+    }
+}
+
+
+void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
+{
+    ImGui::TableNextRow();
     ImGui::PushID(&node);
 
     bool directoryClicked = false;
     bool fileClicked = false;
 
+    ImGui::TableNextColumn();
+
+    bool isRoot = (&node == &rootNode);
+    
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
     if (node.IsDirectory) {
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
@@ -33,84 +90,60 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isR
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    if (isRoot) nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+    if (isRoot) nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_Leaf;
 
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
-
+    
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node.IsDirectory) directoryClicked = true;
         else fileClicked = true;
     }
 
+    ImGui::TableNextColumn();
+    if (!node.IsDirectory) {
+        ImGui::Text("%s", Utils::GetFileSize(node.FullPath).c_str());
+    } else {
+        ImGui::Text("--");
+    }
+
+
+    ImGui::TableNextColumn();
+    auto ftime = Utils::GetLastModifiedTime(node.FullPath);
+    ImGui::Text("%s", ftime.c_str());
+
     if (node.IsDirectory && isOpen) {
-        for (auto &childNode : node.Children) {
-            DisplayDirectoryNode(childNode, rootNode, false);
+        for (auto& childNode : node.Children) {
+            DisplayDirectoryNodeRecursive(childNode, rootNode);
         }
         ImGui::TreePop();
     }
 
     if (fileClicked) {
-        std::string filename = node.FileName;
-        std::string ext = filename.substr(filename.find_last_of(".") + 1);
-        
-        printf("File name: %s\n", filename.c_str());
-        printf("File extension: %s\n", ext.c_str());
-
-        auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
-        printf("Size: %ld\n", size);
-
-        ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
-
-        if (format != nullptr) {
-            printf("Format: %s\n", format->getTag().c_str());
-            ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
-            fs::remove_all("decrypt/");
-            fs::create_directory("decrypt");
-
-            for (int i = 0; i < arc->entries.size(); i++) {
-                Entry entry = arc->entries.at(i);
-                const char *data = arc->OpenStream(entry, buffer);
-                std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
-                outFile.write((const char*)data, entry.size);
-                outFile.close();
-            }
-            printf("Decrypted successfully!\n");
-        } else {
-            printf("No compatible format found!\n");
-        }
-
-        
-    }
-
-    if (directoryClicked) {
-        std::filesystem::path newRootPath = node.FullPath;
-
-        if (node.FileName == "..") {
-            newRootPath = std::filesystem::path(rootNode.FullPath).parent_path();
-            if (node.FileName == "..") {
-                std::filesystem::path parentPath = std::filesystem::path(rootNode.FullPath).parent_path();
-                if (parentPath != rootNode.FullPath) {
-                    newRootPath = parentPath;
-                } else {
-                    ImGui::PopID();
-                    return;
-                }
-            }
-            if (newRootPath.empty() || newRootPath == rootNode.FullPath) {
-                ImGui::PopID();
-                return;
-            }
-        }
-
-        if (!newRootPath.empty()) {
-            rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
-        }
+        HandleFileClick(node);
+    } else if (directoryClicked) {
+        ChangeDirectory(node, rootNode);
     }
 
     ImGui::PopID();
 }
 
 
+void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
+{
+    ImGui::PushID(&node);
+
+    ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame);
+    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+    ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 225.0f);
+    ImGui::TableHeadersRow();
+
+    DisplayDirectoryNodeRecursive(node, rootNode);
+
+    ImGui::EndTable();
+
+    ImGui::PopID();
+}
 
 
 int main(int argc, char* argv[]) {
@@ -171,15 +204,15 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2, io.DisplaySize.y});
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 250, io.DisplaySize.y});
         ImGui::SetNextWindowPos({0, 0});
         if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2, io.DisplaySize.y});
-        ImGui::SetNextWindowPos({io.DisplaySize.x / 2, 0});
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 250, io.DisplaySize.y});
+        ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 250, 0});
         ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
         
         ImGui::End();
