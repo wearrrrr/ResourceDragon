@@ -36,18 +36,15 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
 }
 
-
+// Contents to be rendered in the preview window when a file is clicked and no compatible format is found.
+std::string pendingRawContents;
 
 void HandleFileClick(DirectoryNode& node)
 {
     std::string filename = node.FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    
-    printf("File name: %s\n", filename.c_str());
-    printf("File extension: %s\n", ext.c_str());
 
     auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
-    printf("Size: %ld\n", size);
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
 
@@ -66,7 +63,7 @@ void HandleFileClick(DirectoryNode& node)
         }
         printf("Decrypted successfully!\n");
     } else {
-        printf("No compatible format found!\n");
+        pendingRawContents = std::string((char*)buffer, size);
     }
 }
 
@@ -90,7 +87,10 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
 
-    if (isRoot) nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_Leaf;
+    if (isRoot) { 
+        nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
+        ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing()); 
+    };
 
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
     
@@ -133,9 +133,9 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isR
     ImGui::PushID(&node);
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame);
-    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);
     ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 100.0f);
-    ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 225.0f);
+    ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 215.0f);
     ImGui::TableHeadersRow();
 
     DisplayDirectoryNodeRecursive(node, rootNode);
@@ -175,12 +175,25 @@ int main(int argc, char* argv[]) {
 
     const char* glsl_version = "#version 130";
 
+    // Wow, this is annoying!
+    ImWchar fix_imgui_not_adding_most_of_the_unicode_shit = (ImWchar)0x2070;
+
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30);
+    ImFontGlyphRangesBuilder range;
+    ImVector<ImWchar> gr;
+
+    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
+    range.AddRanges(&fix_imgui_not_adding_most_of_the_unicode_shit);
+
+
+    range.BuildRanges(&gr);
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.DeltaTime = 0.01667;
-    Theme::BessDark();
+    Theme::SetTheme("BessDark");
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -195,35 +208,33 @@ int main(int argc, char* argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT)
-                running = false;
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+            if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 running = false;
         }
         
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 250, io.DisplaySize.y});
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({0, 0});
         if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 250, io.DisplaySize.y});
-        ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 250, 0});
-        ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
-        
+        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 150, io.DisplaySize.y});
+        ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
+        if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
+            if (pendingRawContents.size() > 0) {
+                ImGui::TextWrapped("%s", Utils::ShiftJISToUTF8(pendingRawContents).c_str());
+            }
+        }
         ImGui::End();
         
-
-
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
         
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
