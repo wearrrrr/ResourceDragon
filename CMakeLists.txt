@@ -15,7 +15,8 @@ else()
     find_package(OpenGL REQUIRED)
 endif()
 
-add_executable(ResourceDragon 
+add_executable(ResourceDragon
+    src/imconfig.h
     src/main.cpp
 
     src/ExtractorManager.h
@@ -34,6 +35,8 @@ add_executable(ResourceDragon
     src/GUI/DirectoryNode.cpp
     src/GUI/Utils.h
     src/GUI/Utils.cpp
+    src/GUI/Image.h
+    src/GUI/Image.cpp
     src/GUI/Theme/Themes.h
     src/GUI/Theme/BessDark.cpp
 

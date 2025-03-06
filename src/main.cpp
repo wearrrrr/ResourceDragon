@@ -1,3 +1,5 @@
+#define IMGUI_USER_CONFIG "imconfig.h"
+
 #include <filesystem>
 #include <fstream>
 #include "ArchiveFormats/HSP/hsp.h"
@@ -11,6 +13,7 @@
 
 #include "GUI/Theme/Themes.h"
 #include "GUI/DirectoryNode.h"
+#include "GUI/Image.h"
 #include "GUI/Utils.h"
 
 
@@ -218,6 +221,11 @@ int main(int argc, char* argv[]) {
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 running = false;
+
+            // Check for f5 and reload tree node
+            if (event.key.key == SDLK_F5) {
+                rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
+            }
         }
         
         ImGui_ImplSDL3_NewFrame();
@@ -235,11 +243,10 @@ int main(int argc, char* argv[]) {
         if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
             if (pendingRawContentsSize > 0) {
                 // TODO: Gif support is very iffy, currently only the first frame is rendered.
-                // Also, there should be an inline helper function to abstract all these comparisons out to a single function.
-                if (rawContentsExt == "png" || rawContentsExt == "jpg" || rawContentsExt == "jpeg" || rawContentsExt == "bmp" || rawContentsExt == "gif") {
+                if (Image::IsImageExtension(rawContentsExt)) {
                     GLuint texture;
                     int width, height;
-                    if (LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
+                    if (Image::LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
                         ImGui::Image(texture, ImVec2(width, height));
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
@@ -247,7 +254,7 @@ int main(int argc, char* argv[]) {
                 } else {
                     // TODO: Don't blindly assume that we need to convert anything from SJIS
                     // we need a dropdown to specify the preview text encoding instead.
-                    ImGui::TextWrapped("%s", Utils::ShiftJISToUTF8(std::string(pendingRawContents, pendingRawContentsSize)).c_str());
+                    ImGui::TextWrapped("%s", std::string(pendingRawContents, pendingRawContentsSize).c_str());
                 }
                 
             }
