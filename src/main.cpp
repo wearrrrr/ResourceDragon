@@ -248,7 +248,9 @@ int main(int argc, char* argv[]) {
                 if (Image::IsImageExtension(rawContentsExt)) {
                     GLuint texture;
                     int width, height;
+                    ImVec2 image_size = ImVec2((float)width, (float)height);
                     if (Image::LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
+                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - (float)width) * 0.5f, 75));
                         ImGui::Image(texture, ImVec2(width, height));
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
