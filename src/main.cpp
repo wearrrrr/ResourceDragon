@@ -8,12 +8,12 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengles2.h>
-#include "imgui.h"
-#include "GUI/Utils.h"
-#include "GUI/Theme/Themes.h"
-#include "GUI/DirectoryNode.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
+#include "imgui.h"
+#include "GUI/Theme/Themes.h"
+#include "GUI/DirectoryNode.h"
+#include "GUI/Utils.h"
 
 
 
@@ -37,7 +37,9 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 }
 
 // Contents to be rendered in the preview window when a file is clicked and no compatible format is found.
-std::string pendingRawContents;
+char *pendingRawContents;
+long pendingRawContentsSize = 0;
+std::string rawContentsExt;
 
 void HandleFileClick(DirectoryNode& node)
 {
@@ -63,7 +65,9 @@ void HandleFileClick(DirectoryNode& node)
         }
         printf("Decrypted successfully!\n");
     } else {
-        pendingRawContents = std::string((char*)buffer, size);
+        pendingRawContents = (char*)buffer;
+        pendingRawContentsSize = size;
+        rawContentsExt = ext;
     }
 }
 
@@ -225,8 +229,23 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
         if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
-            if (pendingRawContents.size() > 0) {
-                ImGui::TextWrapped("%s", Utils::ShiftJISToUTF8(pendingRawContents).c_str());
+            if (pendingRawContentsSize > 0) {
+                // TODO: Gif support is very iffy, currently only the first frame is rendered.
+                // Also, there should be an inline helper function to abstract all these comparisons out to a single function.
+                if (rawContentsExt == "png" || rawContentsExt == "jpg" || rawContentsExt == "jpeg" || rawContentsExt == "bmp" || rawContentsExt == "gif") {
+                    GLuint texture;
+                    int width, height;
+                    if (LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
+                        ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(width, height));
+                    } else {
+                        ImGui::TextWrapped("Failed to load image!");
+                    }
+                } else {
+                    // TODO: Don't blindly assume that we need to convert anything from SJIS
+                    // we need a dropdown to specify the preview text encoding instead.
+                    ImGui::TextWrapped("%s", Utils::ShiftJISToUTF8(std::string(pendingRawContents, pendingRawContentsSize)).c_str());
+                }
+                
             }
         }
         ImGui::End();

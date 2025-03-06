@@ -42,6 +42,8 @@ add_executable(ResourceDragon
     vendored/imgui/imgui_impl_opengl3_loader.h
     vendored/imgui/imgui_impl_opengl3.cpp
     vendored/imgui/imgui_impl_opengl3.h
+
+    vendored/stb_image/stb_image.h
     
 )
 
