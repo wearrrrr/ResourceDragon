@@ -1,16 +1,14 @@
-#include <stdio.h>
 #include <filesystem>
 #include <fstream>
-#include <cstring>
-#include <iostream>
 #include "ArchiveFormats/HSP/hsp.h"
 #include "ExtractorManager.h"
 
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_opengles2.h>
+
+#include "imgui.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
-#include "imgui.h"
+
 #include "GUI/Theme/Themes.h"
 #include "GUI/DirectoryNode.h"
 #include "GUI/Utils.h"
@@ -53,7 +51,7 @@ void HandleFileClick(DirectoryNode& node)
     if (format != nullptr) {
         printf("Format: %s\n", format->getTag().c_str());
         ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
-        fs::remove_all("decrypt/");
+        fs::remove_all("1ypt/");
         fs::create_directory("decrypt");
 
         for (int i = 0; i < arc->entries.size(); i++) {
@@ -154,7 +152,13 @@ int main(int argc, char* argv[]) {
 
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
 
-    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical("./"));
+    std::string path = argv[1];
+    if (argc < 2) {
+        printf("Usage: %s <path>\n", argv[0]);
+        path = ".";
+    }
+
+    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -177,8 +181,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    const char* glsl_version = "#version 130";
-
     // Wow, this is annoying!
     ImWchar fix_imgui_not_adding_most_of_the_unicode_shit = (ImWchar)0x2070;
 
@@ -186,21 +188,21 @@ int main(int argc, char* argv[]) {
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
 
-    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
-    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
-    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
+    ImGuiIO& io = ImGui::GetIO();
+
+    range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
+    range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(&fix_imgui_not_adding_most_of_the_unicode_shit);
 
-
     range.BuildRanges(&gr);
-    ImGuiIO& io = ImGui::GetIO();
+
     io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.DeltaTime = 0.01667;
     Theme::SetTheme("BessDark");
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_ShowWindow(window);
@@ -236,7 +238,7 @@ int main(int argc, char* argv[]) {
                     GLuint texture;
                     int width, height;
                     if (LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
-                        ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(width, height));
+                        ImGui::Image(texture, ImVec2(width, height));
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
                     }
@@ -249,7 +251,6 @@ int main(int argc, char* argv[]) {
             }
         }
         ImGui::End();
-        
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
