@@ -22,6 +22,8 @@ namespace fs = std::filesystem;
 
 static ExtractorManager extractor_manager;
 
+static DirectoryNode rootNode;
+
 void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 {
     std::filesystem::path newRootPath(node.FullPath);
@@ -163,7 +165,7 @@ int main(int argc, char* argv[]) {
         path = argv[1];
     }
 
-    static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
+    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -172,7 +174,7 @@ int main(int argc, char* argv[]) {
     }
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1280, 720, window_flags);
+    SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
     if (!window)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
 
     range.BuildRanges(&gr);
 
-    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
+    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30, nullptr, gr.Data);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.DeltaTime = 0.01667;
     Theme::SetTheme("BessDark");
