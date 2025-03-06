@@ -153,10 +153,11 @@ int main(int argc, char* argv[]) {
 
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
 
-    std::string path = argv[1];
+    std::string path;
     if (argc < 2) {
-        printf("Usage: %s <path>\n", argv[0]);
         path = ".";
+    } else {
+        path = argv[1];
     }
 
     static DirectoryNode rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
