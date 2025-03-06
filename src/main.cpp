@@ -51,7 +51,7 @@ void HandleFileClick(DirectoryNode& node)
     if (format != nullptr) {
         printf("Format: %s\n", format->getTag().c_str());
         ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
-        fs::remove_all("1ypt/");
+        fs::remove_all("decrypt/");
         fs::create_directory("decrypt");
 
         for (int i = 0; i < arc->entries.size(); i++) {
@@ -62,6 +62,7 @@ void HandleFileClick(DirectoryNode& node)
             outFile.close();
         }
         printf("Decrypted successfully!\n");
+        free(buffer);
     } else {
         pendingRawContents = (char*)buffer;
         pendingRawContentsSize = size;

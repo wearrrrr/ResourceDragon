@@ -148,14 +148,13 @@ std::vector<Entry> DPMArchive::getEntries()
     return this->entries;
 }
 
-const char *DPMArchive::OpenStream(Entry entry, unsigned char *buffer)
+const char *DPMArchive::OpenStream(const Entry &entry, unsigned char *buffer)
 {
-    unsigned char *data = new unsigned char[entry.size];
-    std::memcpy(data, buffer + entry.offset, entry.size);
+    unsigned char *data = buffer + entry.offset;
 
     if (entry.key) {
         DecryptEntry(data, entry.size, entry.key);
     }
 
-    return (const char*)data;
+    return (const char*)(data);
 }

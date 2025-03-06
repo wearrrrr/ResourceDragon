@@ -34,7 +34,7 @@ class DPMArchive : public ArchiveBase {
         };
 
         std::vector<Entry> getEntries() override;
-        const char* OpenStream(Entry entry, unsigned char *buffer) override;
+        const char* OpenStream(const Entry &entry, unsigned char *buffer) override;
 };
 
 class HSPArchive : public ArchiveFormat {

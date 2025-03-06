@@ -26,7 +26,7 @@ class ArchiveBase {
     public:
         std::vector<Entry> entries;
 
-        virtual const char* OpenStream(Entry entry, unsigned char *buffer) = 0;
+        virtual const char* OpenStream(const Entry &entry, unsigned char *buffer) = 0;
         virtual std::vector<Entry> getEntries() = 0;
 };
 
@@ -35,13 +35,6 @@ class ArchiveFormat {
         string tag = "?????";
         string description = "????? Resource Archive";
         uint32_t sig = 0x00000000;
-
-        auto open(const char *path) {
-            printf("Loading %s...\n", path);
-            auto buffer = read_file_to_buffer<unsigned char>(path);
-            printf("Loaded!\n");
-            return buffer;
-        };
 
         uint32_t ReadUint32(unsigned char *buffer, uint32_t offset) {
             return *based_pointer<uint32_t>(buffer, offset);
