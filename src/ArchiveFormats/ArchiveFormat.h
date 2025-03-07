@@ -28,6 +28,8 @@ class ArchiveBase {
 
         virtual const char* OpenStream(const Entry &entry, unsigned char *buffer) = 0;
         virtual std::vector<Entry> getEntries() = 0;
+
+        virtual ~ArchiveBase() = default;
 };
 
 class ArchiveFormat {

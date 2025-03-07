@@ -24,6 +24,11 @@ static ExtractorManager extractor_manager;
 
 static DirectoryNode rootNode;
 
+void ReloadRootNode(DirectoryNode& node)
+{
+    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node.FullPath));
+}
+
 void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 {
     std::filesystem::path newRootPath(node.FullPath);
@@ -67,6 +72,11 @@ void HandleFileClick(DirectoryNode& node)
             outFile.close();
         }
         printf("Decrypted successfully!\n");
+
+        ReloadRootNode(rootNode);
+
+        delete arc;
+
         free(buffer);
     } else {
         pendingRawContents = (char*)buffer;
@@ -187,10 +197,7 @@ int main(int argc, char* argv[]) {
         printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         return -1;
     }
-
-    // Wow, this is annoying!
-    ImWchar fix_imgui_not_adding_most_of_the_unicode_shit = (ImWchar)0x2070;
-
+    
     ImGui::CreateContext();
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
@@ -198,8 +205,7 @@ int main(int argc, char* argv[]) {
     ImGuiIO& io = ImGui::GetIO();
 
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
-    range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-    range.AddRanges(&fix_imgui_not_adding_most_of_the_unicode_shit);
+    // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
 
     range.BuildRanges(&gr);
 
@@ -226,12 +232,13 @@ int main(int argc, char* argv[]) {
 
             // Check for f5 and reload tree node
             if (event.key.key == SDLK_F5) {
-                rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
+                ReloadRootNode(rootNode);
             }
         }
         
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
+        
         ImGui::NewFrame();
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({0, 0});
@@ -260,7 +267,8 @@ int main(int argc, char* argv[]) {
                     // we need a dropdown to specify the preview text encoding instead.
                     ImGui::TextWrapped("%s", std::string(pendingRawContents, pendingRawContentsSize).c_str());
                 }
-                
+            } else {
+                ImGui::TextWrapped("No file selected.");
             }
         }
         ImGui::End();
