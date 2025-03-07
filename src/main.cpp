@@ -1,5 +1,3 @@
-#define IMGUI_USER_CONFIG "imconfig.h"
-
 #include <filesystem>
 #include <fstream>
 #include "ArchiveFormats/HSP/hsp.h"
@@ -44,10 +42,14 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
 }
 
+static const ImGuiWindowFlags FPS_OVERLAY_FLAGS = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
+
 // Contents to be rendered in the preview window when a file is clicked and no compatible format is found.
-char *pendingRawContents;
-long pendingRawContentsSize = 0;
-std::string rawContentsExt;
+static char *pendingRawContents;
+static long pendingRawContentsSize = 0;
+static std::string rawContentsExt;
+static GLuint pendingTexture;
+static int texWidth, texHeight;
 
 void HandleFileClick(DirectoryNode& node)
 {
@@ -82,6 +84,10 @@ void HandleFileClick(DirectoryNode& node)
         pendingRawContents = (char*)buffer;
         pendingRawContentsSize = size;
         rawContentsExt = ext;
+
+        if (Image::IsImageExtension(ext)) {
+            Image::LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &pendingTexture, &texWidth, &texHeight);
+        }
     }
 }
 
@@ -199,20 +205,24 @@ int main(int argc, char* argv[]) {
     }
     
     ImGui::CreateContext();
-    ImFontGlyphRangesBuilder range;
-    ImVector<ImWchar> gr;
-
     ImGuiIO& io = ImGui::GetIO();
+    ImFontGlyphRangesBuilder range;
 
+    ImVector<ImWchar> gr;
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-
     range.BuildRanges(&gr);
 
     io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30, nullptr, gr.Data);
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
     io.DeltaTime = 0.01667;
     Theme::SetTheme("BessDark");
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    SDL_GL_SetSwapInterval(1);
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -242,23 +252,22 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({0, 0});
-        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
+        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
 
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
-        if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
+        if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
             if (pendingRawContentsSize > 0) {
                 // TODO: Gif support is very iffy, currently only the first frame is rendered.
                 if (Image::IsImageExtension(rawContentsExt)) {
-                    GLuint texture;
                     int width, height;
-                    ImVec2 image_size = ImVec2((float)width, (float)height);
-                    if (Image::LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &texture, &width, &height)) {
+                    ImVec2 image_size = ImVec2(texWidth, texHeight);
+                    if (pendingTexture) {
                         ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - (float)width) * 0.5f, 75));
-                        ImGui::Image(texture, ImVec2(width, height));
+                        ImGui::Image(pendingTexture, image_size);
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
                     }
@@ -272,6 +281,22 @@ int main(int argc, char* argv[]) {
             }
         }
         ImGui::End();
+
+        const float DISTANCE = 8.0f;
+
+        ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, DISTANCE); // Top-right corner
+        ImVec2 window_pos_pivot = ImVec2(1.0f, 0.0f); // Align to top-right
+    
+        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowBgAlpha(0.55f); // Transparent background
+    
+        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
+        {
+            ImGui::Text("FPS: %.1f", io.Framerate);
+        }
+        ImGui::End();
+
+
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
