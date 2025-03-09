@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.BuildRanges(&gr);
 
-    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 30, nullptr, gr.Data);
+    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
 
     io.DeltaTime = 0.01667;
     Theme::SetTheme("BessDark");
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
+`
     SDL_GL_SetSwapInterval(1);
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
@@ -240,8 +240,6 @@ int main(int argc, char* argv[]) {
 
     bool running = true;
     ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
-
-    int test = 0;
 
     while (running) {
         SDL_Event event;
@@ -281,13 +279,8 @@ int main(int argc, char* argv[]) {
                         ImGui::TextWrapped("Failed to load image!");
                     }
                 } else {
-                    if (test == 0) {
-                        // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
-                        ImGui::TextWrapped("%s", pendingRawContents);
-                    } else {
-                        test++;
-                    }
-
+                    // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
+                    ImGui::Text("%s", pendingRawContents);
                 }
             } else {
                 ImGui::TextWrapped("No file selected.");
