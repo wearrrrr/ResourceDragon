@@ -33,6 +33,16 @@ bool Image::LoadTextureFromMemory(const void* data, size_t data_size, GLuint* ou
     return true;
 }
 
+bool Image::UnloadTexture(GLuint texture)
+{
+    if (texture != 0) {
+        glDeleteTextures(1, &texture);
+        return true;
+    }
+
+    return false;
+}
+
 bool Image::IsImageExtension(const std::string &ext)
 {
     if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "gif") return true;

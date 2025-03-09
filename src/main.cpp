@@ -45,7 +45,7 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 static const ImGuiWindowFlags FPS_OVERLAY_FLAGS = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
 
 // Contents to be rendered in the preview window when a file is clicked and no compatible format is found.
-static char *pendingRawContents;
+static char *pendingRawContents = nullptr;
 static long pendingRawContentsSize = 0;
 static std::string rawContentsExt;
 static GLuint pendingTexture;
@@ -81,6 +81,14 @@ void HandleFileClick(DirectoryNode& node)
 
         free(buffer);
     } else {
+        if (pendingRawContents) {
+            free(pendingRawContents);
+            pendingRawContents = nullptr;
+        }
+        Image::UnloadTexture(pendingTexture);
+        texWidth = 0;
+        texHeight = 0;
+
         pendingRawContents = (char*)buffer;
         pendingRawContentsSize = size;
         rawContentsExt = ext;
@@ -233,6 +241,8 @@ int main(int argc, char* argv[]) {
     bool running = true;
     ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
+    int test = 0;
+
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -261,20 +271,23 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
         if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
             if (pendingRawContentsSize > 0) {
-                // TODO: Gif support is very iffy, currently only the first frame is rendered.
+                // TODO: Only the first frame is rendered when loading a gif.
                 if (Image::IsImageExtension(rawContentsExt)) {
-                    int width, height;
                     ImVec2 image_size = ImVec2(texWidth, texHeight);
                     if (pendingTexture) {
-                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - (float)width) * 0.5f, 75));
+                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 75));
                         ImGui::Image(pendingTexture, image_size);
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
                     }
                 } else {
-                    // TODO: Don't blindly assume that we need to convert anything from SJIS
-                    // we need a dropdown to specify the preview text encoding instead.
-                    ImGui::TextWrapped("%s", std::string(pendingRawContents, pendingRawContentsSize).c_str());
+                    if (test == 0) {
+                        // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
+                        ImGui::TextWrapped("%s", pendingRawContents);
+                    } else {
+                        test++;
+                    }
+
                 }
             } else {
                 ImGui::TextWrapped("No file selected.");
@@ -283,12 +296,11 @@ int main(int argc, char* argv[]) {
         ImGui::End();
 
         const float DISTANCE = 8.0f;
-
-        ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, DISTANCE); // Top-right corner
-        ImVec2 window_pos_pivot = ImVec2(1.0f, 0.0f); // Align to top-right
+        ImVec2 window_pos = ImVec2(DISTANCE, io.DisplaySize.y - DISTANCE);
+        ImVec2 window_pos_pivot = ImVec2(0.0f, 1.0f);
     
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowBgAlpha(0.55f); // Transparent background
+        ImGui::SetNextWindowBgAlpha(0.55f);
     
         if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
         {
