@@ -60,7 +60,7 @@ class ArchiveFormat {
 
         virtual ~ArchiveFormat() = default;
 
-        virtual bool CanHandleFile(unsigned char *buffer, uint32_t size) const = 0;
+        virtual bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const = 0;
         virtual ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size) = 0;
         virtual std::string getTag() const = 0;
 };

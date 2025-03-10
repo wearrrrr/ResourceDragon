@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "../ArchiveFormat.h"
 #include "../../GameRes/Entry.h"
 
@@ -56,7 +58,7 @@ class HSPArchive : public ArchiveFormat {
         uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
         
         ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size) override;
-        bool CanHandleFile(unsigned char *buffer, uint32_t size) const override;
+        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
         std::string getTag() const override {
             return this->tag;
         }

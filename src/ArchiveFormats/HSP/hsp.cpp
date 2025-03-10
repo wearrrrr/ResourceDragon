@@ -128,8 +128,13 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     return ReadUint32(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
 }
 
-bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size) const
+bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
 {
+
+    if (std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
+        return false;
+    }
+
     int iter = 0;
     for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
         if (std::memcmp(&buffer[i], &sig, sizeof(sig)) == 0) {

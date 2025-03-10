@@ -48,6 +48,7 @@ static const ImGuiWindowFlags FPS_OVERLAY_FLAGS = ImGuiWindowFlags_NoTitleBar | 
 static char *pendingRawContents = nullptr;
 static long pendingRawContentsSize = 0;
 static std::string rawContentsExt;
+
 static GLuint pendingTexture;
 static int texWidth, texHeight;
 
@@ -58,7 +59,7 @@ void HandleFileClick(DirectoryNode& node)
 
     auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
 
-    ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size);
+    ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
     if (format != nullptr) {
         printf("Format: %s\n", format->getTag().c_str());
@@ -229,7 +230,7 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-`
+
     SDL_GL_SetSwapInterval(1);
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
@@ -280,7 +281,7 @@ int main(int argc, char* argv[]) {
                     }
                 } else {
                     // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
-                    ImGui::Text("%s", pendingRawContents);
+                    ImGui::TextUnformatted(pendingRawContents, pendingRawContents + pendingRawContentsSize);
                 }
             } else {
                 ImGui::TextWrapped("No file selected.");
