@@ -44,13 +44,28 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 
 static const ImGuiWindowFlags FPS_OVERLAY_FLAGS = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
 
-// Contents to be rendered in the preview window when a file is clicked and no compatible format is found.
-static char *pendingRawContents = nullptr;
-static long pendingRawContentsSize = 0;
-static std::string rawContentsExt;
+struct PreviewWindowState {
+    char *rawContents = nullptr;
+    long rawContentsSize = 0;
+    std::string rawContentsExt;
+    struct Texture {
+        GLuint id;
+        struct {
+            int x;
+            int y;
+        } size;
+    } texture;
+};
 
-static GLuint pendingTexture;
-static int texWidth, texHeight;
+static PreviewWindowState preview_state = {
+    .rawContents = nullptr,
+    .rawContentsSize = 0,
+    .rawContentsExt = "",
+    .texture = {
+        .id = 0,
+        .size = {0, 0}
+    }
+};
 
 void HandleFileClick(DirectoryNode& node)
 {
@@ -82,20 +97,20 @@ void HandleFileClick(DirectoryNode& node)
 
         free(buffer);
     } else {
-        if (pendingRawContents) {
-            free(pendingRawContents);
-            pendingRawContents = nullptr;
+        if (preview_state.rawContents) {
+            free(preview_state.rawContents);
+            preview_state.rawContents = nullptr;
         }
-        Image::UnloadTexture(pendingTexture);
-        texWidth = 0;
-        texHeight = 0;
+        Image::UnloadTexture(preview_state.texture.id);
+        preview_state.texture.size.x = 0;
+        preview_state.texture.size.y = 0;
 
-        pendingRawContents = (char*)buffer;
-        pendingRawContentsSize = size;
-        rawContentsExt = ext;
+        preview_state.rawContents = (char*)buffer;
+        preview_state.rawContentsSize = size;
+        preview_state.rawContentsExt = ext;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadTextureFromMemory(pendingRawContents, pendingRawContentsSize, &pendingTexture, &texWidth, &texHeight);
+            Image::LoadTextureFromMemory(preview_state.rawContents, preview_state.rawContentsSize, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
         }
     }
 }
@@ -269,19 +284,20 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 150, io.DisplaySize.y});
         ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
         if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
-            if (pendingRawContentsSize > 0) {
+            if (preview_state.rawContentsSize > 0) {
                 // TODO: Only the first frame is rendered when loading a gif.
-                if (Image::IsImageExtension(rawContentsExt)) {
-                    ImVec2 image_size = ImVec2(texWidth, texHeight);
-                    if (pendingTexture) {
+                if (Image::IsImageExtension(preview_state.rawContentsExt)) {
+                    ImVec2 image_size = ImVec2(preview_state.texture.size.x, preview_state.texture.size.y);
+                    if (preview_state.texture.id) {
                         ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 75));
-                        ImGui::Image(pendingTexture, image_size);
+                        ImGui::Image(preview_state.texture.id, image_size);
                     } else {
                         ImGui::TextWrapped("Failed to load image!");
                     }
                 } else {
                     // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
-                    ImGui::TextUnformatted(pendingRawContents, pendingRawContents + pendingRawContentsSize);
+                    char* text_end = preview_state.rawContents + preview_state.rawContentsSize;
+                    ImGui::TextUnformatted(preview_state.rawContents, text_end);
                 }
             } else {
                 ImGui::TextWrapped("No file selected.");
