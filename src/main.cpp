@@ -14,7 +14,7 @@
 #include "GUI/Image.h"
 #include "GUI/Utils.h"
 
-
+#define DEBUG
 
 namespace fs = std::filesystem;
 
@@ -42,7 +42,13 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
 }
 
-static const ImGuiWindowFlags FPS_OVERLAY_FLAGS = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
+
+#ifdef DEBUG
+#define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
+#endif
+
+#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus
+#define FILE_PREVIEW_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
 struct PreviewWindowState {
     char *rawContents = nullptr;
@@ -258,6 +264,7 @@ int main(int argc, char* argv[]) {
     ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
     while (running) {
+        ImVec2 window_size = ImVec2(io.DisplaySize.x, io.DisplaySize.y);
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
@@ -274,16 +281,16 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_NewFrame();
         
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 + 150, io.DisplaySize.y});
+        ImGui::SetNextWindowSize({window_size.x / 2 + 150, window_size.y});
         ImGui::SetNextWindowPos({0, 0});
-        if (ImGui::Begin("Directory Tree", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
+        if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize({io.DisplaySize.x / 2 - 150, io.DisplaySize.y});
-        ImGui::SetNextWindowPos({io.DisplaySize.x / 2 + 150, 0});
-        if(ImGui::Begin("Preview", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
+        ImGui::SetNextWindowSize({window_size.x / 2 - 150, window_size.y});
+        ImGui::SetNextWindowPos({window_size.x / 2 + 150, 0});
+        if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
             if (preview_state.rawContentsSize > 0) {
                 // TODO: Only the first frame is rendered when loading a gif.
                 if (Image::IsImageExtension(preview_state.rawContentsExt)) {
@@ -292,7 +299,7 @@ int main(int argc, char* argv[]) {
                         ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 75));
                         ImGui::Image(preview_state.texture.id, image_size);
                     } else {
-                        ImGui::TextWrapped("Failed to load image!");
+                        ImGui::Text("Failed to load image!");
                     }
                 } else {
                     // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
@@ -300,23 +307,25 @@ int main(int argc, char* argv[]) {
                     ImGui::TextUnformatted(preview_state.rawContents, text_end);
                 }
             } else {
-                ImGui::TextWrapped("No file selected.");
+                ImGui::Text("No file selected.");
             }
         }
         ImGui::End();
 
         const float DISTANCE = 8.0f;
-        ImVec2 window_pos = ImVec2(DISTANCE, io.DisplaySize.y - DISTANCE);
+        ImVec2 window_pos = ImVec2(DISTANCE, window_size.y - DISTANCE);
         ImVec2 window_pos_pivot = ImVec2(0.0f, 1.0f);
     
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowBgAlpha(0.55f);
-    
+
+        #ifdef DEBUG
         if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
         {
             ImGui::Text("FPS: %.1f", io.Framerate);
         }
         ImGui::End();
+        #endif
 
 
         ImGui::Render();
