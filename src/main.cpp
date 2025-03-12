@@ -47,8 +47,10 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 #define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
 #endif
 
-#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus
-#define FILE_PREVIEW_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
+#define BACKGROUND_WIN_FLAGS ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs
+#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
+#define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
+
 
 struct PreviewWindowState {
     char *rawContents = nullptr;
@@ -246,6 +248,7 @@ int main(int argc, char* argv[]) {
     io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
 
     io.DeltaTime = 0.01667;
+
     Theme::SetTheme("BessDark");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -264,7 +267,6 @@ int main(int argc, char* argv[]) {
     ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
     while (running) {
-        ImVec2 window_size = ImVec2(io.DisplaySize.x, io.DisplaySize.y);
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
@@ -279,17 +281,59 @@ int main(int argc, char* argv[]) {
         
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
+
+        ImVec2 window_size = io.DisplaySize;
+        ImVec2 mouse_pos = io.MousePos;
+
+
+        float splitterWidth = 10.0f;
+        float minPanelSize = 400.0f;
+
+        static float leftPanelWidth = (window_size.x / 2.0f) - splitterWidth;
+        static float rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
+        static bool resizing = false;
         
         ImGui::NewFrame();
-        ImGui::SetNextWindowSize({window_size.x / 2 + 150, window_size.y});
-        ImGui::SetNextWindowPos({0, 0});
+        ImGui::SetNextWindowSize({leftPanelWidth, window_size.y}, ImGuiCond_Always);
+        ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize({window_size.x / 2 - 150, window_size.y});
-        ImGui::SetNextWindowPos({window_size.x / 2 + 150, 0});
+        bool hovered = (mouse_pos.x >= leftPanelWidth && mouse_pos.x <= leftPanelWidth + splitterWidth);
+
+        if (hovered)
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+
+        if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            resizing = true;
+        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            resizing = false;
+
+        if (resizing)
+        {
+            leftPanelWidth += io.MouseDelta.x;
+            leftPanelWidth = std::max(minPanelSize, std::min(leftPanelWidth, window_size.x - minPanelSize - splitterWidth));
+            rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
+        }
+
+        
+
+        ImGui::SetNextWindowPos({0, 0});
+        ImGui::SetNextWindowSize(window_size);
+        ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
+
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            {leftPanelWidth, 0},
+            {leftPanelWidth + splitterWidth, window_size.y},
+            IM_COL32(58, 58, 58, 255)
+        );
+
+        ImGui::End();
+
+        ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
+        ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
             if (preview_state.rawContentsSize > 0) {
                 // TODO: Only the first frame is rendered when loading a gif.
@@ -303,8 +347,7 @@ int main(int argc, char* argv[]) {
                     }
                 } else {
                     // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
-                    char* text_end = preview_state.rawContents + preview_state.rawContentsSize;
-                    ImGui::TextUnformatted(preview_state.rawContents, text_end);
+                    ImGui::TextUnformatted(preview_state.rawContents, (preview_state.rawContents + preview_state.rawContentsSize));
                 }
             } else {
                 ImGui::Text("No file selected.");
