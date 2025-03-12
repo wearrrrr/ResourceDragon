@@ -222,6 +222,14 @@ int main(int argc, char* argv[]) {
     }
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+
+    // If display is smaller than 1600x900, maximize the window.
+    SDL_DisplayID display = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
+    if (mode->w < 1600 || mode->h < 900) {
+        window_flags |= SDL_WINDOW_MAXIMIZED;
+    }
+
     SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
     if (!window)
     {
