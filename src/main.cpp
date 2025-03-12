@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <fstream>
+#include <cmath>
 #include "ArchiveFormats/HSP/hsp.h"
 #include "ExtractorManager.h"
 
@@ -271,6 +272,10 @@ int main(int argc, char* argv[]) {
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_ShowWindow(window);
 
+    float splitterWidth = 10.0f;
+    float minPanelSize = 400.0f;
+    static bool resizing = false;
+
     bool running = true;
     ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
@@ -293,15 +298,24 @@ int main(int argc, char* argv[]) {
         ImVec2 window_size = io.DisplaySize;
         ImVec2 mouse_pos = io.MousePos;
 
-
-        float splitterWidth = 10.0f;
-        float minPanelSize = 400.0f;
-
         static float leftPanelWidth = (window_size.x / 2.0f) - splitterWidth;
         static float rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
-        static bool resizing = false;
+
         
         ImGui::NewFrame();
+
+        ImGui::SetNextWindowPos({0, 0});
+        ImGui::SetNextWindowSize(window_size);
+        ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
+
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            {leftPanelWidth, 0},
+            {leftPanelWidth + splitterWidth, window_size.y},
+            IM_COL32(58, 58, 58, 255)
+        );
+
+        ImGui::End();
+
         ImGui::SetNextWindowSize({leftPanelWidth, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
@@ -325,20 +339,6 @@ int main(int argc, char* argv[]) {
             leftPanelWidth = std::max(minPanelSize, std::min(leftPanelWidth, window_size.x - minPanelSize - splitterWidth));
             rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
         }
-
-        
-
-        ImGui::SetNextWindowPos({0, 0});
-        ImGui::SetNextWindowSize(window_size);
-        ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
-
-        ImGui::GetWindowDrawList()->AddRectFilled(
-            {leftPanelWidth, 0},
-            {leftPanelWidth + splitterWidth, window_size.y},
-            IM_COL32(58, 58, 58, 255)
-        );
-
-        ImGui::End();
 
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
         #ifdef DEBUG
         if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
         {
-            ImGui::Text("FPS: %.1f", io.Framerate);
+            ImGui::Text("FPS: %d", (int)std::ceil(io.Framerate));
         }
         ImGui::End();
         #endif
