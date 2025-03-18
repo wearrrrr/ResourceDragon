@@ -15,6 +15,7 @@ else()
 endif()
 
 add_executable(ResourceDragon
+    src/main.h
     src/main.cpp
 
     src/ExtractorManager.h

@@ -1,20 +1,4 @@
-#include <filesystem>
-#include <fstream>
-#include <cmath>
-#include "ArchiveFormats/HSP/hsp.h"
-#include "ExtractorManager.h"
-
-#include <SDL3/SDL.h>
-
-#include "imgui.h"
-#include "../vendored/imgui/imgui_impl_sdl3.h"
-#include "../vendored/imgui/imgui_impl_opengl3.h"
-
-#include "GUI/Theme/Themes.h"
-#include "GUI/DirectoryNode.h"
-#include "GUI/Image.h"
-#include "GUI/Utils.h"
-
+#include "main.h"
 #define DEBUG
 
 namespace fs = std::filesystem;
@@ -53,18 +37,7 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
 
-struct PreviewWindowState {
-    char *rawContents = nullptr;
-    long rawContentsSize = 0;
-    std::string rawContentsExt;
-    struct Texture {
-        GLuint id;
-        struct {
-            int x;
-            int y;
-        } size;
-    } texture;
-};
+
 
 static PreviewWindowState preview_state = {
     .rawContents = nullptr,
@@ -206,15 +179,31 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isR
     ImGui::PopID();
 }
 
-void RenderContextMenu() {
-    if (ImGui::BeginPopupContextWindow("ContextMenu")) {
-        if (ImGui::MenuItem("Delete"))
-        {
-            printf("clicked!\n");
-        }
+bool openDelPopup = false;
 
+void RenderContextMenu(ImGuiIO *io) {
+    if (ImGui::BeginPopupContextWindow("ContextMenu")) {
+        if (ImGui::MenuItem("Delete")) openDelPopup = true;
         ImGui::EndPopup();
     }
+
+
+    ImGui::SetNextWindowSize({600, 175});
+    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, 
+        ImGuiCond_Appearing, 
+        {0.5f, 0.5f});
+    if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::Text("Are you sure you'd like to delete <ITEM>?");
+        ImGui::Text("This cannot be undone!");
+        if (ImGui::Button("Confirm", {100, 0})) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close", {80, 0})) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    };
 }
 
 int main(int argc, char* argv[]) {
@@ -336,7 +325,13 @@ int main(int argc, char* argv[]) {
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
-        RenderContextMenu();
+        RenderContextMenu(&io);
+
+        if (openDelPopup == true) {
+            ImGui::OpenPopup("Delete Confirmation");
+            openDelPopup = false;
+        }
+
         ImGui::End();
 
 
