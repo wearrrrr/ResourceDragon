@@ -36,9 +36,6 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 #define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
-
-
-
 static PreviewWindowState preview_state = {
     .rawContents = nullptr,
     .rawContentsSize = 0,
@@ -48,6 +45,8 @@ static PreviewWindowState preview_state = {
         .size = {0, 0}
     }
 };
+
+const char *selectedItem = nullptr;
 
 void HandleFileClick(DirectoryNode& node)
 {
@@ -125,6 +124,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        selectedItem = node.FileName.c_str();
         ImGui::OpenPopup("ContextMenu");
     }
     
@@ -193,13 +193,17 @@ void RenderContextMenu(ImGuiIO *io) {
         ImGuiCond_Appearing, 
         {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Are you sure you'd like to delete <ITEM>?");
+        ImGui::Text("Are you sure you'd like to delete %s?", selectedItem ? selectedItem : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
+            std::string del_path = rootNode.FullPath + "/" + selectedItem;
+            fs::remove_all(del_path);
+
+            ReloadRootNode(rootNode);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Close", {80, 0})) {
+        if (ImGui::Button("Close", {100, 0})) {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
