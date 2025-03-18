@@ -150,6 +150,10 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
     };
 
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
+
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        ImGui::OpenPopup("ContextMenu");
+    }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node.IsDirectory) directoryClicked = true;
@@ -202,6 +206,16 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isR
     ImGui::PopID();
 }
 
+void RenderContextMenu() {
+    if (ImGui::BeginPopupContextWindow("ContextMenu")) {
+        if (ImGui::MenuItem("Delete"))
+        {
+            printf("clicked!\n");
+        }
+
+        ImGui::EndPopup();
+    }
+}
 
 int main(int argc, char* argv[]) {
 
@@ -304,6 +318,7 @@ int main(int argc, char* argv[]) {
         
         ImGui::NewFrame();
 
+
         ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize(window_size);
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
@@ -321,7 +336,10 @@ int main(int argc, char* argv[]) {
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
+        RenderContextMenu();
         ImGui::End();
+
+
 
         bool hovered = (mouse_pos.x >= leftPanelWidth && mouse_pos.x <= leftPanelWidth + splitterWidth);
 

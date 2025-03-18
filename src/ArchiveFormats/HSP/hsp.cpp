@@ -43,7 +43,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
                     dpmx_offset = i;
                     arc_key = FindExeKey(exe, dpmx_offset);
 
-                    printf("Arc Key: 0x%x\n", arc_key);
+                    // printf("Arc Key: 0x%x\n", arc_key);
                     break;
                 }
                 iter++;
@@ -59,7 +59,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     uint32_t file_count = ReadUint32(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
-    printf("File Count: 0x%x\n", file_count);
+    // printf("File Count: 0x%x\n", file_count);
 
     uint32_t index_offset = (dpmx_offset + 0x10) + ReadUint32(exe->raw_contents, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
@@ -91,7 +91,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, std::vector<unsi
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     uint32_t base = section->pointerToRawData;
     uint32_t size = section->sizeOfRawData;
-    printf("Searching %s: base=0x%08x size=0x%x\n", section->name, base, size);
+    // printf("Searching %s: base=0x%08x size=0x%x\n", section->name, base, size);
 
     uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
 

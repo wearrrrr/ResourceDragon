@@ -44,8 +44,8 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
                 if (b.FileName == "..") return false;
                 if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
                 return ToLower(a.FileName) < ToLower(b.FileName);
-            });
-
+            }
+        );
     }
     catch (const std::filesystem::filesystem_error& e)
     {
