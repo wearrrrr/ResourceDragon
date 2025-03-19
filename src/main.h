@@ -17,11 +17,11 @@
 #include "GUI/Image.h"
 #include "GUI/Utils.h"
 
-struct PreviewWindowState {
+struct PreviewWinState {
     char *rawContents = nullptr;
     long rawContentsSize = 0;
     std::string rawContentsExt;
-    struct Texture {
+    struct {
         GLuint id;
         struct {
             int x;

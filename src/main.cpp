@@ -1,11 +1,29 @@
 #include "main.h"
 #define DEBUG
 
+#ifdef DEBUG
+#define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
+#endif
+
+#define BACKGROUND_WIN_FLAGS ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs
+#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
+#define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
+
 namespace fs = std::filesystem;
 
 static ExtractorManager extractor_manager;
-
 static DirectoryNode rootNode;
+
+static PreviewWinState preview_state = {
+    .rawContents = nullptr,
+    .rawContentsSize = 0,
+    .rawContentsExt = "",
+    .texture = {
+        .id = 0,
+        .size = {0, 0}
+    }
+};
+const char *selectedItem = nullptr;
 
 void ReloadRootNode(DirectoryNode& node)
 {
@@ -26,27 +44,6 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     }
     rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
 }
-
-
-#ifdef DEBUG
-#define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
-#endif
-
-#define BACKGROUND_WIN_FLAGS ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs
-#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
-#define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
-
-static PreviewWindowState preview_state = {
-    .rawContents = nullptr,
-    .rawContentsSize = 0,
-    .rawContentsExt = "",
-    .texture = {
-        .id = 0,
-        .size = {0, 0}
-    }
-};
-
-const char *selectedItem = nullptr;
 
 void HandleFileClick(DirectoryNode& node)
 {
@@ -311,7 +308,6 @@ int main(int argc, char* argv[]) {
         
         ImGui::NewFrame();
 
-
         ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize(window_size);
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
@@ -347,15 +343,16 @@ int main(int argc, char* argv[]) {
 
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
             resizing = true;
-        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
             resizing = false;
 
         if (resizing)
         {
             leftPanelWidth += io.MouseDelta.x;
-            leftPanelWidth = std::max(minPanelSize, std::min(leftPanelWidth, window_size.x - minPanelSize - splitterWidth));
-            rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
         }
+
+        leftPanelWidth = std::max(minPanelSize, std::min(leftPanelWidth, window_size.x - minPanelSize - splitterWidth));
+        rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
 
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
