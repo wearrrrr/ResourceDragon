@@ -1,7 +1,4 @@
-
-#include "ArchiveFormats/HSP/hsp.h"
-#include "ExtractorManager.h"
-
+#pragma once
 
 #include <SDL3/SDL.h>
 #include <filesystem>
@@ -11,6 +8,9 @@
 #include "imgui.h"
 #include "../vendored/imgui/imgui_impl_sdl3.h"
 #include "../vendored/imgui/imgui_impl_opengl3.h"
+
+#include "ArchiveFormats/HSP/hsp.h"
+#include "ExtractorManager.h"
 
 #include "GUI/Theme/Themes.h"
 #include "GUI/DirectoryNode.h"
@@ -29,3 +29,16 @@ struct PreviewWinState {
         } size;
     } texture;
 };
+
+inline PreviewWinState preview_state = {
+    .rawContents = nullptr,
+    .rawContentsSize = 0,
+    .rawContentsExt = "",
+    .texture = {
+        .id = 0,
+        .size = {0, 0}
+    }
+};
+inline const char *selectedItem;
+inline ExtractorManager extractor_manager;
+

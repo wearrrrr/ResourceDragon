@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <GLES3/gl3.h>
 
