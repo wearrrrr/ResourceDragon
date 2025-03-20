@@ -9,7 +9,6 @@
 #include "iconv.h"
 
 namespace fs = std::filesystem;
-namespace chrono = std::chrono;
 
 class Utils {
     public:

@@ -23,9 +23,10 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
             DirectoryNode upNode = {
                 .FullPath = grandParentPath.string(),
                 .FileName = "..",
+                .FileSize = Utils::GetFileSize(grandParentPath),
+                .LastModified = Utils::GetLastModifiedTime(grandParentPath.string()),
                 .IsDirectory = true
             };
-            upNode.LastModified = Utils::GetLastModifiedTime(upNode.FullPath);
             parentNode.Children.emplace_back(upNode);
         }
 
@@ -35,9 +36,10 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
             DirectoryNode childNode = {
                 .FullPath = entry.path().string(),
                 .FileName = entry.path().filename().string(),
+                .FileSize = Utils::GetFileSize(entry.path()),
+                .LastModified = Utils::GetLastModifiedTime(entry.path().string()),
                 .IsDirectory = entry.is_directory()
             };
-            childNode.LastModified = Utils::GetLastModifiedTime(childNode.FullPath);
 
 			parentNode.Children.push_back(childNode);
         }
@@ -65,9 +67,10 @@ DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
     DirectoryNode rootNode = {
         .FullPath = rootPath.string(),
         .FileName = rootPath.string(),
+        .FileSize = Utils::GetFileSize(rootPath),
+        .LastModified = Utils::GetLastModifiedTime(rootPath),
         .IsDirectory = fs::is_directory(rootPath)
     };
-    rootNode.LastModified = Utils::GetLastModifiedTime(rootNode.FullPath);
 
     if (rootNode.IsDirectory)
     {
@@ -184,7 +187,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 
     ImGui::TableNextColumn();
     if (!node.IsDirectory) {
-        ImGui::Text("%s", Utils::GetFileSize(node.FullPath).c_str());
+        ImGui::Text("%s", node.FileSize.c_str());
     } else {
         ImGui::Text("--");
     }
@@ -214,7 +217,7 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isR
 {
     ImGui::PushID(&node);
 
-    ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame);
+    ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);
     ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 100.0f);
     ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 215.0f);

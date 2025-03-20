@@ -13,6 +13,7 @@ struct DirectoryNode
 {
     std::string FullPath;
     std::string FileName;
+    std::string FileSize;
     std::string LastModified;
     std::vector<DirectoryNode> Children;
     bool IsDirectory;

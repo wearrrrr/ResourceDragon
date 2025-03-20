@@ -2,13 +2,14 @@
 
 std::string Utils::GetLastModifiedTime(const std::string& fpath)
 {
+    using namespace std::chrono;
     try {
         auto ftime = fs::last_write_time(fpath);
-        auto sctp = std::chrono::time_point_cast<chrono::system_clock::duration>(
-            ftime - fs::file_time_type::clock::now() + chrono::system_clock::now()
+        auto sctp = std::chrono::time_point_cast<system_clock::duration>(
+            ftime - fs::file_time_type::clock::now() + system_clock::now()
         );
 
-        std::time_t tt = chrono::system_clock::to_time_t(sctp);
+        std::time_t tt = system_clock::to_time_t(sctp);
         std::tm* lt = std::localtime(&tt);
 
         char buffer[32];
@@ -30,10 +31,10 @@ std::string Utils::GetFileSize(const fs::path& path)
 
             static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
             int unitIndex = 0;
-            double readableSize = (double)(size);
+            double decimal_size = (double)(size);
 
-            while (readableSize >= 1024.0 && unitIndex < 4) {
-                readableSize /= 1024.0;
+            while (decimal_size >= 1024.0 && unitIndex < 4) {
+                decimal_size /= 1024.0;
                 unitIndex++;
             }
 
@@ -41,7 +42,7 @@ std::string Utils::GetFileSize(const fs::path& path)
             if (unitIndex == 0) {
                 oss << size << " " << units[unitIndex];
             } else {
-                oss << std::fixed << std::setprecision(2) << readableSize << " " << units[unitIndex];
+                oss << std::fixed << std::setprecision(2) << decimal_size << " " << units[unitIndex];
             }
 
             return oss.str();
