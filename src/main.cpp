@@ -31,9 +31,7 @@ void RenderContextMenu(ImGuiIO *io) {
         ImGui::Text("Are you sure you'd like to delete %s?", selectedItem ? selectedItem : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
-            std::string del_path = rootNode.FullPath + "/" + selectedItem;
-            fs::remove_all(del_path);
-
+            fs::remove_all(rootNode.FullPath + fs::path::preferred_separator + selectedItem);
             ReloadRootNode(rootNode);
             ImGui::CloseCurrentPopup();
         }
