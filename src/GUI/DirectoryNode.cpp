@@ -25,6 +25,7 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
                 .FileName = "..",
                 .IsDirectory = true
             };
+            upNode.LastModified = Utils::GetLastModifiedTime(upNode.FullPath);
             parentNode.Children.emplace_back(upNode);
         }
 
@@ -36,6 +37,7 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
                 .FileName = entry.path().filename().string(),
                 .IsDirectory = entry.is_directory()
             };
+            childNode.LastModified = Utils::GetLastModifiedTime(childNode.FullPath);
 
 			parentNode.Children.push_back(childNode);
         }
@@ -65,6 +67,7 @@ DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
         .FileName = rootPath.string(),
         .IsDirectory = fs::is_directory(rootPath)
     };
+    rootNode.LastModified = Utils::GetLastModifiedTime(rootNode.FullPath);
 
     if (rootNode.IsDirectory)
     {
@@ -188,8 +191,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 
 
     ImGui::TableNextColumn();
-    auto ftime = Utils::GetLastModifiedTime(node.FullPath);
-    ImGui::Text("%s", ftime.c_str());
+    ImGui::Text("%s", node.LastModified.c_str());
 
     if (node.IsDirectory && isOpen) {
         for (auto& childNode : node.Children) {
