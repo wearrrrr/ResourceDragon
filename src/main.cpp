@@ -1,7 +1,5 @@
 #include "common.h"
 
-DirectoryNode rootNode;
-
 #define DEBUG
 
 #ifdef DEBUG
@@ -41,7 +39,6 @@ void RenderContextMenu(ImGuiIO *io) {
 }
 
 int main(int argc, char* argv[]) {
-
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
 
     std::string path;
@@ -83,17 +80,22 @@ int main(int argc, char* argv[]) {
     }
     
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    ImFontGlyphRangesBuilder range;
+    ImGuiIO &io = ImGui::GetIO();
+    io.IniFilename = nullptr;
 
+    ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
+    
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.BuildRanges(&gr);
 
-    io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 28, nullptr, gr.Data);
-
-    io.DeltaTime = 0.01667;
+    std::string font_path = "fonts/NotoSansCJK-Medium.ttc";
+    if (fs::exists(font_path)) {
+        io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 24, nullptr, gr.Data);
+    } else {
+        printf("\x1b[1;33m[ResourceDragon]\x1b[1;39m Failed to locate font file! Attempted to search: %s\x1B[0m\n", font_path.c_str());
+    }
 
     Theme::SetTheme("BessDark");
 
@@ -114,7 +116,7 @@ int main(int argc, char* argv[]) {
     static bool resizing = false;
 
     bool running = true;
-    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
 
     while (running) {
         SDL_Event event;
@@ -146,7 +148,7 @@ int main(int argc, char* argv[]) {
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
 
         ImGui::GetWindowDrawList()->AddRectFilled(
-            {leftPanelWidth, 0},
+            {leftPanelWidth, 10},
             {leftPanelWidth + splitterWidth, window_size.y},
             IM_COL32(58, 58, 58, 255)
         );
@@ -167,17 +169,13 @@ int main(int argc, char* argv[]) {
 
         ImGui::End();
 
-
-
         bool hovered = (mouse_pos.x >= leftPanelWidth && mouse_pos.x <= leftPanelWidth + splitterWidth);
 
         if (hovered)
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
-        if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-            resizing = true;
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-            resizing = false;
+        if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) resizing = true;
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) resizing = false;
 
         if (resizing)
         {
@@ -210,6 +208,7 @@ int main(int argc, char* argv[]) {
         }
         ImGui::End();
 
+        #ifdef DEBUG
         const float DISTANCE = 8.0f;
         ImVec2 window_pos = ImVec2(DISTANCE, window_size.y - DISTANCE);
         ImVec2 window_pos_pivot = ImVec2(0.0f, 1.0f);
@@ -217,7 +216,6 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowBgAlpha(0.55f);
 
-        #ifdef DEBUG
         if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
         {
             ImGui::Text("FPS: %d", (int)std::ceil(io.Framerate));

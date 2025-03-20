@@ -19,7 +19,7 @@ struct DirectoryNode
     bool IsDirectory;
 };
 
-extern DirectoryNode rootNode;
+inline DirectoryNode rootNode;
 
 DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath);
 
