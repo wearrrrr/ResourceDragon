@@ -18,15 +18,14 @@ bool openDelPopup = false;
 
 void RenderContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("ContextMenu")) {
+        if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;
         ImGui::EndPopup();
     }
 
 
     ImGui::SetNextWindowSize({600, 175});
-    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, 
-        ImGuiCond_Appearing, 
-        {0.5f, 0.5f});
+    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::Text("Are you sure you'd like to delete %s?", selectedItem ? selectedItem : "<ITEM>");
         ImGui::Text("This cannot be undone!");

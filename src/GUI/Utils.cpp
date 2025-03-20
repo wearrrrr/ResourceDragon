@@ -3,12 +3,12 @@
 std::string Utils::GetLastModifiedTime(const std::string& fpath)
 {
     try {
-        auto ftime = std::filesystem::last_write_time(fpath);
-        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-            ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now()
+        auto ftime = fs::last_write_time(fpath);
+        auto sctp = std::chrono::time_point_cast<chrono::system_clock::duration>(
+            ftime - fs::file_time_type::clock::now() + chrono::system_clock::now()
         );
 
-        std::time_t tt = std::chrono::system_clock::to_time_t(sctp);
+        std::time_t tt = chrono::system_clock::to_time_t(sctp);
         std::tm* lt = std::localtime(&tt);
 
         char buffer[32];
@@ -16,17 +16,17 @@ std::string Utils::GetLastModifiedTime(const std::string& fpath)
             return std::string(buffer);
         }
         return "N/A";
-    } catch (const std::filesystem::filesystem_error& e) {
+    } catch (const fs::filesystem_error& e) {
         return "N/A";
     }
 }
 
 
-std::string Utils::GetFileSize(const std::filesystem::path& path)
+std::string Utils::GetFileSize(const fs::path& path)
 {
     try {
-        if (std::filesystem::exists(path) && std::filesystem::is_regular_file(path)) {
-            uintmax_t size = std::filesystem::file_size(path);
+        if (fs::exists(path) && fs::is_regular_file(path)) {
+            uintmax_t size = fs::file_size(path);
 
             static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
             int unitIndex = 0;
@@ -46,7 +46,7 @@ std::string Utils::GetFileSize(const std::filesystem::path& path)
 
             return oss.str();
         }
-    } catch (const std::filesystem::filesystem_error& e) {
+    } catch (const fs::filesystem_error& e) {
         printf("Error getting file size for %s: %s\n", path.string().c_str(), e.what());
     }
 

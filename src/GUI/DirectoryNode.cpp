@@ -4,8 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-namespace fs = std::filesystem;
-
 inline std::string ToLower(const std::string& str)
 {
     std::string result = str;
@@ -13,13 +11,13 @@ inline std::string ToLower(const std::string& str)
     return result;
 }
 
-void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesystem::path& parentPath)
+void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& parentPath)
 {
     try 
     {
-        std::filesystem::directory_iterator directoryIterator(parentPath);
+        fs::directory_iterator directoryIterator(parentPath);
 
-        std::filesystem::path grandParentPath = parentPath.parent_path();
+        fs::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
             DirectoryNode upNode = {
@@ -52,20 +50,20 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const std::filesyst
             }
         );
     }
-    catch (const std::filesystem::filesystem_error& e)
+    catch (const fs::filesystem_error& e)
     {
         printf("Error accessing directory: %s\n", e.what());
     }
 }
 
 
-DirectoryNode CreateDirectoryNodeTreeFromPath(const std::filesystem::path& rootPath)
+DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
 {
 
     DirectoryNode rootNode = {
         .FullPath = rootPath.string(),
         .FileName = rootPath.string(),
-        .IsDirectory = std::filesystem::is_directory(rootPath)
+        .IsDirectory = fs::is_directory(rootPath)
     };
 
     if (rootNode.IsDirectory)
@@ -83,11 +81,11 @@ void ReloadRootNode(DirectoryNode& node)
 
 void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 {
-    std::filesystem::path newRootPath(node.FullPath);
+    fs::path newRootPath(node.FullPath);
 
     if (node.FileName == "..") {
-        std::filesystem::path parentPath = std::filesystem::path(rootNode.FullPath).parent_path();
-        if (parentPath != std::filesystem::path(rootNode.FullPath)) {
+        fs::path parentPath = fs::path(rootNode.FullPath).parent_path();
+        if (parentPath != fs::path(rootNode.FullPath)) {
             newRootPath = parentPath;
         } else {
             return;
@@ -157,7 +155,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 
     bool isRoot = (&node == &rootNode);
     
-    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth;
+    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAllColumns;
     if (node.IsDirectory) {
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
     } else {
