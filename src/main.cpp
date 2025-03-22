@@ -90,11 +90,17 @@ int main(int argc, char* argv[]) {
     // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.BuildRanges(&gr);
 
-    std::string font_path = "fonts/NotoSansCJK-Medium.ttc";
+    #ifdef _WIN32
+    const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
+    #else
+    const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
+    #endif
+
+    
     if (fs::exists(font_path)) {
-        io.Fonts->AddFontFromFileTTF("fonts/NotoSansCJK-Medium.ttc", 24, nullptr, gr.Data);
+        io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
     } else {
-        printf("\x1b[1;33m[ResourceDragon]\x1b[1;39m Failed to locate font file! Attempted to search: %s\x1B[0m\n", font_path.c_str());
+        printf("\x1b[1;33m[ResourceDragon]\x1b[1;39m Failed to locate font file! Attempted to search: %s\x1B[0m\n", font_path);
     }
 
     Theme::SetTheme("BessDark");
