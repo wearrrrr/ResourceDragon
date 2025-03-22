@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 
 project(ResourceDragon VERSION 0.1)
 
@@ -57,6 +57,11 @@ add_executable(ResourceDragon
 )
 
 target_link_options(ResourceDragon PRIVATE -s)
-target_compile_options(ResourceDragon PRIVATE -O3)
+target_compile_options(ResourceDragon PRIVATE -O3 -static)
 
-target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 imgui OpenGL)
+set(OPENGL_LIB_NAME OpenGL)
+if (WIN32)
+set(OPENGL_LIB_NAME opengl32)
+endif()
+
+target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 ${OPENGL_LIB_NAME})

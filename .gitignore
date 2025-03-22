@@ -1,4 +1,5 @@
 build/
+build-mingw/
 decrypt/
 eXceed3.exe
 .vscode
