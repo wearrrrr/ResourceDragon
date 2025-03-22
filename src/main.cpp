@@ -10,6 +10,12 @@
 #define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
+#ifdef WIN32
+std::string separator = "\\";
+#else
+std::string separator = "/";
+#endif
+
 bool openDelPopup = false;
 
 void RenderContextMenu(ImGuiIO *io) {
@@ -26,7 +32,7 @@ void RenderContextMenu(ImGuiIO *io) {
         ImGui::Text("Are you sure you'd like to delete %s?", selectedItem ? selectedItem : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
-            fs::remove_all(rootNode.FullPath + fs::path::preferred_separator + selectedItem);
+            fs::remove_all(rootNode.FullPath + separator + selectedItem);
             ReloadRootNode(rootNode);
             ImGui::CloseCurrentPopup();
         }
@@ -90,7 +96,7 @@ int main(int argc, char* argv[]) {
     // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.BuildRanges(&gr);
 
-    #ifdef _WIN32
+    #ifdef WIN32
     const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
     #else
     const char *font_path = "fonts/NotoSansCJK-Medium.ttc";

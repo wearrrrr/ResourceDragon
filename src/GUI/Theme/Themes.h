@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "imgui.h"
 
 class Theme {
     public:

@@ -1,20 +1,32 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_CXX_STANDARD 23)
-option(SDL3_VENDORED "Use vendored SDL3" OFF)
+set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 
 project(ResourceDragon VERSION 0.1)
 
-if (SDL3_VENDORED)
-    add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
-else()
-    find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
-    find_package(imgui REQUIRED)
-    find_package(OpenGL REQUIRED)
-endif()
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+
+set(IMGUI_SRC
+        vendored/imgui/backends/imgui_impl_sdl3.cpp
+        vendored/imgui/backends/imgui_impl_sdl3.h
+        vendored/imgui/backends/imgui_impl_opengl3_loader.h
+        vendored/imgui/backends/imgui_impl_opengl3.cpp
+        vendored/imgui/backends/imgui_impl_opengl3.h
+        vendored/imgui/imgui.h
+        vendored/imgui/imgui.cpp
+        vendored/imgui/imgui_draw.cpp
+        vendored/imgui/imgui_tables.cpp
+        vendored/imgui/imgui_widgets.cpp
+)
+
+include_directories(vendored/imgui)
+include_directories(vendored/gles3)
 
 add_executable(ResourceDragon
+    ${IMGUI_SRC}
     src/main.cpp
 
     src/common.h
@@ -40,17 +52,11 @@ add_executable(ResourceDragon
     src/GUI/Theme/Themes.h
     src/GUI/Theme/BessDark.cpp
 
-    vendored/imgui/imgui_impl_sdl3.cpp
-    vendored/imgui/imgui_impl_sdl3.h
-    vendored/imgui/imgui_impl_opengl3_loader.h
-    vendored/imgui/imgui_impl_opengl3.cpp
-    vendored/imgui/imgui_impl_opengl3.h
-
     vendored/stb_image/stb_image.h
     
 )
 
-set_target_properties(ResourceDragon PROPERTIES LINK_FLAGS_RELEASE -s)
+target_link_options(ResourceDragon PRIVATE -s)
 target_compile_options(ResourceDragon PRIVATE -O3)
 
-target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 imgui OpenGL SDL3_ttf)
+target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 imgui OpenGL)

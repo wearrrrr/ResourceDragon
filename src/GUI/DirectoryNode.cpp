@@ -68,7 +68,7 @@ DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
         .FullPath = rootPath.string(),
         .FileName = rootPath.string(),
         .FileSize = Utils::GetFileSize(rootPath),
-        .LastModified = Utils::GetLastModifiedTime(rootPath),
+        .LastModified = Utils::GetLastModifiedTime(rootPath.string()),
         .IsDirectory = fs::is_directory(rootPath)
     };
 
