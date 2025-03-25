@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 project(ResourceDragon VERSION 0.1)
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+find_package(Freetype)
 
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
@@ -21,11 +22,14 @@ set(IMGUI_SRC
         vendored/imgui/imgui_draw.cpp
         vendored/imgui/imgui_tables.cpp
         vendored/imgui/imgui_widgets.cpp
+        vendored/imgui/misc/freetype/imgui_freetype.h
+        vendored/imgui/misc/freetype/imgui_freetype.cpp
 )
 
 include_directories(vendored/imgui)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3)
+include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
 
 add_executable(ResourceDragon
     ${IMGUI_SRC}
@@ -68,4 +72,4 @@ if (WIN32)
 set(OPENGL_LIB_NAME opengl32)
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE SDL3::SDL3 ${OPENGL_LIB_NAME})
+target_link_libraries(ResourceDragon PRIVATE freetype SDL3::SDL3 ${OPENGL_LIB_NAME})

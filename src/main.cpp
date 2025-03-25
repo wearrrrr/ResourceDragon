@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     ImVector<ImWchar> gr;
     
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
-    // range.AddRanges(io.Fonts->GetGlyphRangesKorean());
+    range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.BuildRanges(&gr);
 
     #ifdef WIN32
