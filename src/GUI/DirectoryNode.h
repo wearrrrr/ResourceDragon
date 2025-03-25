@@ -20,6 +20,7 @@ struct DirectoryNode
 };
 
 inline DirectoryNode rootNode;
+inline DirectoryNode selectedItem;
 
 DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath);
 

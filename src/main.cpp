@@ -18,8 +18,18 @@ std::string separator = "/";
 
 bool openDelPopup = false;
 
+// TODO: This should probably be split out into two separate context menus, one firing when an item is hovered, and one when nothing is hovered.
 void RenderContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("ContextMenu")) {
+        if (ImGui::BeginMenu("Copy..")) {
+            if (ImGui::MenuItem("Name")) {
+                ImGui::SetClipboardText(selectedItem.FileName.c_str());
+            }
+            if (ImGui::MenuItem("Location")) {
+                ImGui::SetClipboardText(selectedItem.FullPath.c_str());
+            }
+            ImGui::EndMenu();
+        }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;
         ImGui::EndPopup();
@@ -29,10 +39,10 @@ void RenderContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Are you sure you'd like to delete %s?", selectedItem ? selectedItem : "<ITEM>");
+        ImGui::Text("Are you sure you'd like to delete %s?", selectedItem.FileName.length() > 0 ? selectedItem.FileName.c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
-            fs::remove_all(rootNode.FullPath + separator + selectedItem);
+            fs::remove_all(selectedItem.FullPath);
             ReloadRootNode(rootNode);
             ImGui::CloseCurrentPopup();
         }
@@ -154,6 +164,8 @@ int main(int argc, char* argv[]) {
 
         
         ImGui::NewFrame();
+
+        // ImGui::ShowDemoWindow();
 
         ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize(window_size);

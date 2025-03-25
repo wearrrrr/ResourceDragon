@@ -176,7 +176,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        selectedItem = node.FileName.c_str();
+        selectedItem = node;
         ImGui::OpenPopup("ContextMenu");
     }
     

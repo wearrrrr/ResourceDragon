@@ -17,12 +17,14 @@ set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_opengl3.h
         vendored/imgui/imgui.h
         vendored/imgui/imgui.cpp
+        vendored/imgui/imgui_demo.cpp
         vendored/imgui/imgui_draw.cpp
         vendored/imgui/imgui_tables.cpp
         vendored/imgui/imgui_widgets.cpp
 )
 
 include_directories(vendored/imgui)
+include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3)
 
 add_executable(ResourceDragon
