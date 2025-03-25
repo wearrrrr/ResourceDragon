@@ -1,10 +1,10 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdexcept>
 
 #include "ExeFile.h"
 #include "../GameRes/Entry.h"
+#include "../util/Logger.h"
 
 using std::string;
 

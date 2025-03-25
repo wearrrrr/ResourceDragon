@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 project(ResourceDragon VERSION 0.1)
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+find_package(SDL3_image REQUIRED)
 find_package(Freetype)
 
 set(IMGUI_SRC
@@ -59,8 +60,6 @@ add_executable(ResourceDragon
     src/GUI/Theme/BessDark.cpp
 
     src/util/Logger.h
-
-    vendored/stb_image/stb_image.h
     
 )
 
@@ -72,4 +71,4 @@ if (WIN32)
 set(OPENGL_LIB_NAME opengl32)
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE freetype SDL3::SDL3 ${OPENGL_LIB_NAME})
+target_link_libraries(ResourceDragon PRIVATE freetype SDL3::SDL3 SDL3_image ${OPENGL_LIB_NAME})

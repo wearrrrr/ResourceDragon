@@ -53,14 +53,14 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
             printf("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
         }
     } else {
-        throw std::invalid_argument("Extracting from non-exe targets is currently not supported!");
+        Logger::warn("Extracting from non-exe targets is currently not supported!");
+        return nullptr;
     }
 
     uint32_t file_count = ReadUint32(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
-    // printf("File Count: 0x%x\n", file_count);
-
+    
     uint32_t index_offset = (dpmx_offset + 0x10) + ReadUint32(exe->raw_contents, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
 

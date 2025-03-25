@@ -213,16 +213,28 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
             if (preview_state.rawContentsSize > 0) {
-                // TODO: Only the first frame is rendered when loading a gif.
+                if (Image::IsGif(preview_state.rawContentsExt)) {
+                    GifAnimation &anim = preview_state.texture.anim;
+                    ImVec2 image_size = ImVec2((float)anim.width, (float)anim.height);
+                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
+                    ImGui::Image(Image::GetGifFrame(anim, &preview_state.texture.frame), image_size);
+
+                    uint32_t now = SDL_GetTicks();
+                    int frame_delay = anim.delays[preview_state.texture.frame];
+                    if (now - preview_state.texture.last_frame_time >= frame_delay) {
+                        preview_state.texture.frame = (preview_state.texture.frame + 1) % anim.frame_count;
+                        preview_state.texture.last_frame_time = now;
+                    }
+                }
                 if (Image::IsImageExtension(preview_state.rawContentsExt)) {
                     ImVec2 image_size = ImVec2(preview_state.texture.size.x, preview_state.texture.size.y);
+                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
                     if (preview_state.texture.id) {
-                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 75));
                         ImGui::Image(preview_state.texture.id, image_size);
                     } else {
                         ImGui::Text("Failed to load image!");
                     }
-                } else {
+                } else if (!Image::IsGif(preview_state.rawContentsExt)) {
                     // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
                     ImGui::TextUnformatted(preview_state.rawContents, (preview_state.rawContents + preview_state.rawContentsSize));
                 }

@@ -135,6 +135,8 @@ void HandleFileClick(DirectoryNode& node)
             preview_state.rawContents = nullptr;
         }
         Image::UnloadTexture(preview_state.texture.id);
+
+        Image::UnloadAnimation(&preview_state.texture.anim);
         preview_state.texture.size.x = 0;
         preview_state.texture.size.y = 0;
 
@@ -144,6 +146,10 @@ void HandleFileClick(DirectoryNode& node)
 
         if (Image::IsImageExtension(ext)) {
             Image::LoadTextureFromMemory(preview_state.rawContents, preview_state.rawContentsSize, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+        }
+        if (Image::IsGif(ext)) {
+            Image::LoadGifAnimation(preview_state.rawContents, preview_state.rawContentsSize, &preview_state.texture.anim);
+            preview_state.texture.last_frame_time = SDL_GetTicks();
         }
     }
 }
