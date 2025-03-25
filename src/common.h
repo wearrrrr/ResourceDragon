@@ -17,6 +17,8 @@
 #include "GUI/Image.h"
 #include "GUI/Utils.h"
 
+#include "util/Logger.h"
+
 struct PreviewWinState {
     char *rawContents = nullptr;
     long rawContentsSize = 0;

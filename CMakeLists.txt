@@ -52,6 +52,8 @@ add_executable(ResourceDragon
     src/GUI/Theme/Themes.h
     src/GUI/Theme/BessDark.cpp
 
+    src/util/Logger.h
+
     vendored/stb_image/stb_image.h
     
 )

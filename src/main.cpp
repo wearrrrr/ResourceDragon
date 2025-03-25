@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     if (fs::exists(font_path)) {
         io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
     } else {
-        printf("\x1b[1;33m[ResourceDragon]\x1b[1;39m Failed to locate font file! Attempted to search: %s\x1B[0m\n", font_path);
+        Logger::warn("Failed to locate font file! Attempted to search: %s", font_path);
     }
 
     Theme::SetTheme("BessDark");
