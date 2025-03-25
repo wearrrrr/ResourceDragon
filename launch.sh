@@ -1,1 +1,5 @@
-./build.sh && build/ResourceDragon
+./build.sh
+
+if (($? == 0)); then
+    build/ResourceDragon
+fi
