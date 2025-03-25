@@ -143,6 +143,6 @@ bool Image::IsGif(const std::string &ext) {
 
 bool Image::IsImageExtension(const std::string &ext)
 {
-    if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "webp") return true;
+    if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "webp" || ext == "svg" || ext == "tga" || ext == "tif" || ext == "tiff") return true;
     else return false;
 }
