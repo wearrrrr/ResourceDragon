@@ -19,21 +19,24 @@
 
 #include "util/Logger.h"
 
+struct PWinStateTexture {
+    GifAnimation anim;
+    int frame;
+    int last_frame_time;
+    GLuint id;
+    struct {
+        int x;
+        int y;
+    } size;
+};
 struct PreviewWinState {
     char *rawContents = nullptr;
     long rawContentsSize = 0;
     std::string rawContentsExt;
-    struct {
-        GifAnimation anim;
-        int frame;
-        int last_frame_time;
-        GLuint id;
-        struct {
-            int x;
-            int y;
-        } size;
-    } texture;
+    PWinStateTexture texture;
 };
+
+
 
 inline PreviewWinState preview_state = {
     .rawContents = nullptr,

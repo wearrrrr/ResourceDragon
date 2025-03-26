@@ -141,8 +141,10 @@ bool Image::IsGif(const std::string &ext) {
     return ext == "gif";
 }
 
+std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "tga", "tif", "tiff"};
+
 bool Image::IsImageExtension(const std::string &ext)
 {
-    if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp" || ext == "webp" || ext == "svg" || ext == "tga" || ext == "tif" || ext == "tiff") return true;
-    else return false;
+    std::string *find = std::find(std::begin(image_exts), std::end(image_exts), ext);
+    return find != std::end(image_exts);
 }

@@ -212,30 +212,33 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
+            std::string ext = preview_state.rawContentsExt;
             if (preview_state.rawContentsSize > 0) {
-                if (Image::IsGif(preview_state.rawContentsExt)) {
-                    GifAnimation &anim = preview_state.texture.anim;
-                    ImVec2 image_size = ImVec2((float)anim.width, (float)anim.height);
+                if (Image::IsImageExtension(ext)) {
+                    PWinStateTexture *texture = &preview_state.texture;
+                    ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
                     ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
-                    ImGui::Image(Image::GetGifFrame(anim, &preview_state.texture.frame), image_size);
-
-                    uint32_t now = SDL_GetTicks();
-                    int frame_delay = anim.delays[preview_state.texture.frame];
-                    if (now - preview_state.texture.last_frame_time >= frame_delay) {
-                        preview_state.texture.frame = (preview_state.texture.frame + 1) % anim.frame_count;
-                        preview_state.texture.last_frame_time = now;
-                    }
-                }
-                if (Image::IsImageExtension(preview_state.rawContentsExt)) {
-                    ImVec2 image_size = ImVec2(preview_state.texture.size.x, preview_state.texture.size.y);
-                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
-                    if (preview_state.texture.id) {
-                        ImGui::Image(preview_state.texture.id, image_size);
+                    if (texture->id) {
+                        ImGui::Image(texture->id, image_size);
                     } else {
                         ImGui::Text("Failed to load image!");
                     }
-                } else if (!Image::IsGif(preview_state.rawContentsExt)) {
-                    // TODO: handle different potential encodings using a dropdown for the user to select the encoding.
+                } else if (Image::IsGif(ext)) {
+                    PWinStateTexture *texture = &preview_state.texture;
+                    GifAnimation &anim = texture->anim;
+                    ImVec2 image_size = ImVec2(anim.width, anim.height);
+                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
+                    ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
+
+                    uint32_t now = SDL_GetTicks();
+                    int frame_delay = anim.delays[texture->frame];
+                    if (now - texture->last_frame_time >= frame_delay) {
+                        texture->frame = (texture->frame + 1) % anim.frame_count;
+                        texture->last_frame_time = now;
+                    }
+                } else {
+                    // TODO: handle different potential encodings
+                    // maybe using a dropdown for the user to select the encoding.
                     ImGui::TextUnformatted(preview_state.rawContents, (preview_state.rawContents + preview_state.rawContentsSize));
                 }
             } else {
