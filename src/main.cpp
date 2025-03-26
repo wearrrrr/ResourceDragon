@@ -217,8 +217,8 @@ int main(int argc, char* argv[]) {
                 if (Image::IsImageExtension(ext)) {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
-                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
                     if (texture->id) {
+                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
                         ImGui::Image(texture->id, image_size);
                     } else {
                         ImGui::Text("Failed to load image!");

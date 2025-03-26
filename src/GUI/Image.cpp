@@ -141,7 +141,7 @@ bool Image::IsGif(const std::string &ext) {
     return ext == "gif";
 }
 
-std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "tga", "tif", "tiff"};
+std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "tga", "tif", "tiff", "jxl"};
 
 bool Image::IsImageExtension(const std::string &ext)
 {
