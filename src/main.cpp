@@ -212,8 +212,8 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
-            std::string ext = preview_state.rawContentsExt;
-            if (preview_state.rawContentsSize > 0) {
+            std::string ext = preview_state.contents.ext;
+            if (preview_state.contents.size > 0) {
                 if (Image::IsImageExtension(ext)) {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
                 } else {
                     // TODO: handle different potential encodings
                     // maybe using a dropdown for the user to select the encoding.
-                    ImGui::TextUnformatted(preview_state.rawContents, (preview_state.rawContents + preview_state.rawContentsSize));
+                    ImGui::TextUnformatted(preview_state.contents.data, (preview_state.contents.data + preview_state.contents.size));
                 }
             } else {
                 ImGui::Text("No file selected.");

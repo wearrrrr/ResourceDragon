@@ -30,19 +30,22 @@ struct PWinStateTexture {
     } size;
 };
 struct PreviewWinState {
-    char *rawContents = nullptr;
-    long rawContentsSize = 0;
-    std::string rawContentsExt;
+    struct {
+        char *data;
+        long size;
+        std::string ext;
+    } contents;
     PWinStateTexture texture;
 };
 
 
 
 inline PreviewWinState preview_state = {
-    .rawContents = nullptr,
-    .rawContentsSize = 0,
-    .rawContentsExt = "",
-
+    .contents = {
+        .data = nullptr,
+        .size = 0,
+        .ext = "",
+    },
     .texture = {
         .anim = {},
         .frame = 0,

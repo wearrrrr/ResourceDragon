@@ -50,7 +50,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
             }
         }
         if (iter == 0) {
-            printf("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
+            Logger::error("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
         }
     } else {
         Logger::warn("Extracting from non-exe targets is currently not supported!");

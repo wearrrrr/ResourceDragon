@@ -122,7 +122,7 @@ void HandleFileClick(DirectoryNode& node)
             outFile.write((const char*)data, entry.size);
             outFile.close();
         }
-        printf("Decrypted successfully!\n");
+        Logger::log("Decrypted successfully!");
 
         ReloadRootNode(rootNode);
 
@@ -130,25 +130,25 @@ void HandleFileClick(DirectoryNode& node)
 
         free(buffer);
     } else {
-        if (preview_state.rawContents) {
-            free(preview_state.rawContents);
-            preview_state.rawContents = nullptr;
+        if (preview_state.contents.data) {
+            free(preview_state.contents.data);
+            preview_state.contents.data = nullptr;
         }
         Image::UnloadTexture(preview_state.texture.id);
 
         Image::UnloadAnimation(&preview_state.texture.anim);
-        preview_state.texture.size.x = 0;
-        preview_state.texture.size.y = 0;
+        preview_state.texture.frame = 0;
+        preview_state.texture.size = {0, 0};
 
-        preview_state.rawContents = (char*)buffer;
-        preview_state.rawContentsSize = size;
-        preview_state.rawContentsExt = ext;
+        preview_state.contents.data = (char*)buffer;
+        preview_state.contents.size = size;
+        preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadTextureFromMemory(preview_state.rawContents, preview_state.rawContentsSize, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            Image::LoadTextureFromMemory(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
         }
         if (Image::IsGif(ext)) {
-            Image::LoadGifAnimation(preview_state.rawContents, preview_state.rawContentsSize, &preview_state.texture.anim);
+            Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
             preview_state.texture.last_frame_time = SDL_GetTicks();
         }
     }

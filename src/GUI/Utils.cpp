@@ -48,33 +48,8 @@ std::string Utils::GetFileSize(const fs::path& path)
             return oss.str();
         }
     } catch (const fs::filesystem_error& e) {
-        printf("Error getting file size for %s: %s\n", path.string().c_str(), e.what());
+        Logger::error("Error getting file size for %s: %s\n", path.string().c_str(), e.what());
     }
 
     return "0 B";
 }
-
-// std::string Utils::ShiftJISToUTF8(const std::string& sjisStr) {
-//     iconv_t conv = iconv_open("UTF-8", "SHIFT-JIS");
-//     if (conv == (iconv_t)-1) {
-//         printf("iconv_open failed: %s\n", strerror(errno));
-//         return "";
-//     }
-
-//     size_t inBytesLeft = sjisStr.size();
-//     size_t outBytesLeft = inBytesLeft * 2;
-//     std::vector<char> utf8Str(outBytesLeft);
-
-//     char* inBuf = (char*)(sjisStr.data());
-//     char* outBuf = utf8Str.data();
-    
-//     if (iconv(conv, &inBuf, &inBytesLeft, &outBuf, &outBytesLeft) == (size_t)-1) {
-//         printf("iconv failed: %s\n", strerror(errno));
-//         iconv_close(conv);
-//         return "";
-//     }
-
-//     iconv_close(conv);
-
-//     return std::string(utf8Str.data());
-// }
