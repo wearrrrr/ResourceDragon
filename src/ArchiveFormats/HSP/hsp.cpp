@@ -26,35 +26,29 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
 
     uint32_t dpmx_offset;
     uint32_t arc_key;
-    bool is_pe = false;
-
-    if (ExeFile::SignatureCheck(buffer)) {
-        is_pe = true;
-    }
+    bool is_pe = ExeFile::SigCheck(buffer);
 
     // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.
     // This needs more testing to see if I can get away with adding 0x90 to the sig, since that seems to be something different between them.
     int iter = 0;
-    if (is_pe) {
-        exe = ConvertToExeFile(buffer);
-        for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
-            if (std::memcmp(&exe->raw_contents[i], &sig, sizeof(sig)) == 0) {
-                if (iter > 0) {
-                    dpmx_offset = i;
-                    arc_key = FindExeKey(exe, dpmx_offset);
-
-                    // printf("Arc Key: 0x%x\n", arc_key);
-                    break;
-                }
-                iter++;
-            }
-        }
-        if (iter == 0) {
-            Logger::error("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
-        }
-    } else {
+    if (!is_pe) {
         Logger::warn("Extracting from non-exe targets is currently not supported!");
         return nullptr;
+    }
+
+    exe = ConvertToExeFile(buffer);
+    for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
+        if (std::memcmp(&exe->raw_contents[i], &sig, sizeof(sig)) == 0) {
+            if (iter > 0) {
+                dpmx_offset = i;
+                arc_key = FindExeKey(exe, dpmx_offset);
+                break;
+            }
+            iter++;
+        }
+    }
+    if (iter == 0) {
+        Logger::error("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
     }
 
     uint32_t file_count = ReadUint32(buffer, dpmx_offset + 8);
@@ -73,11 +67,12 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
         std::string file_name =  ReadString(exe->raw_contents, index_offset, 0x10);
         index_offset += 0x14;
 
-        Entry entry;
-        entry.name = file_name;
-        entry.key = ReadUint32(exe->raw_contents, index_offset);
-        entry.offset = ReadUint32(exe->raw_contents, index_offset + 0x4) + dpmx_offset;
-        entry.size = ReadUint32(exe->raw_contents, index_offset + 0x8);
+        Entry entry = {
+            .name = file_name,
+            .key = ReadUint32(exe->raw_contents, index_offset),
+            .offset = ReadUint32(exe->raw_contents, index_offset + 0x4) + dpmx_offset,
+            .size = ReadUint32(exe->raw_contents, index_offset + 0x8)
+        };
 
         index_offset += 0xC;
 
@@ -87,12 +82,10 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
     return new DPMArchive(entries, arc_key, data_size);
 }
 
-auto FindKeyFromSection(ExeFile* exe, std::string section_name, std::vector<unsigned char> offset_bytes) {
+auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_bytes) {
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     uint32_t base = section->pointerToRawData;
     uint32_t size = section->sizeOfRawData;
-    // printf("Searching %s: base=0x%08x size=0x%x\n", section->name, base, size);
-
     uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
@@ -130,7 +123,6 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 
 bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
 {
-
     if (std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;
     }

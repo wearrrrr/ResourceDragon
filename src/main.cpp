@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
         }
         RenderContextMenu(&io);
 
-        if (openDelPopup == true) {
+        if (openDelPopup) {
             ImGui::OpenPopup("Delete Confirmation");
             openDelPopup = false;
         }
@@ -239,7 +239,39 @@ int main(int argc, char* argv[]) {
                 } else {
                     // TODO: handle different potential encodings
                     // maybe using a dropdown for the user to select the encoding.
-                    ImGui::TextUnformatted(preview_state.contents.data, (preview_state.contents.data + preview_state.contents.size));
+                    ImGui::BeginChild("TextArea", {0, 0}, ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+
+                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                    ImVec2 text_pos = ImGui::GetCursorScreenPos();
+                    text_pos.x += 10.0f;
+                    float line_height = ImGui::GetTextLineHeightWithSpacing();
+                    float number_margin = 40.0f;
+            
+                    const char* begin = preview_state.contents.data;
+                    const char* end = preview_state.contents.data + preview_state.contents.size;
+                
+                    int lineNumber = 1;
+                    const char* line_start = begin;
+                
+                    while (line_start < end) {
+                        const char* line_end = (const char*)memchr(line_start, '\n', end - line_start);
+                        if (!line_end) {
+                            line_end = end;
+                        }
+                
+                        char ln_buf[8];
+                        snprintf(ln_buf, sizeof(ln_buf), "%d", lineNumber++);
+                        draw_list->AddText(ImVec2(text_pos.x, text_pos.y), IM_COL32(150, 150, 150, 255), ln_buf);
+                
+                        ImGui::SetCursorScreenPos(ImVec2(text_pos.x + number_margin, text_pos.y));
+                        ImGui::TextUnformatted(line_start, line_end);
+                
+                        text_pos.y += line_height;
+                        if (line_end == end) break;
+                        line_start = line_end + 1;
+                    }
+                
+                    ImGui::EndChild();
                 }
             } else {
                 ImGui::Text("No file selected.");

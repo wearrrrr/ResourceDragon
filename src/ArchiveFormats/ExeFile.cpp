@@ -17,7 +17,7 @@ Pe32OptionalHeader ExeFile::GetPEOptionalHeader() {
 	return *based_pointer<Pe32OptionalHeader>(raw_contents, pe_optional_offset);
 }
 
-bool ExeFile::SignatureCheck(unsigned char *buffer)
+bool ExeFile::SigCheck(unsigned char *buffer)
 {
     uint16_t mz_signature = *based_pointer<uint16_t>(buffer, 0x0);
 	uint32_t pe_offset = GetPEOffset(buffer);

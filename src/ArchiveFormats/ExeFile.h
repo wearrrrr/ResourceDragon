@@ -95,5 +95,5 @@ class ExeFile {
 		Pe32SectionHeader* GetSectionHeader(std::string target_section);
 		std::map<std::string, Pe32SectionHeader> ParseSectionHeaders();
 
-        static bool SignatureCheck(unsigned char *buffer);
+        static bool SigCheck(unsigned char *buffer);
 };
