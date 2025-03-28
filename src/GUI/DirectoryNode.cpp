@@ -183,7 +183,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
-        ImGui::OpenPopup("ContextMenu");
+        ImGui::OpenPopup("FBContextMenu");
     }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {

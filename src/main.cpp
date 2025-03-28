@@ -19,8 +19,8 @@ std::string separator = "/";
 bool openDelPopup = false;
 
 // TODO: This should probably be split out into two separate context menus, one firing when an item is hovered, and one when nothing is hovered.
-void RenderContextMenu(ImGuiIO *io) {
-    if (ImGui::BeginPopupContextWindow("ContextMenu")) {
+void RenderFBContextMenu(ImGuiIO *io) {
+    if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
                 ImGui::SetClipboardText(selectedItem.FileName.c_str());
@@ -52,6 +52,15 @@ void RenderContextMenu(ImGuiIO *io) {
         }
         ImGui::EndPopup();
     };
+}
+
+void RenderPreviewContextMenu(ImGuiIO *io) {
+    if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
+        if (ImGui::MenuItem("Save...")) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -182,9 +191,12 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({leftPanelWidth, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
+            RenderFBContextMenu(&io);
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
-        RenderContextMenu(&io);
+
+        
+        
 
         if (openDelPopup) {
             ImGui::OpenPopup("Delete Confirmation");
@@ -212,6 +224,7 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
+            RenderPreviewContextMenu(&io);
             std::string ext = preview_state.contents.ext;
             if (preview_state.contents.size > 0) {
                 if (Image::IsImageExtension(ext)) {
@@ -272,6 +285,9 @@ int main(int argc, char* argv[]) {
                     }
                 
                     ImGui::EndChild();
+                }
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                    ImGui::OpenPopup("PreviewItemContextMenu");
                 }
             } else {
                 ImGui::Text("No file selected.");

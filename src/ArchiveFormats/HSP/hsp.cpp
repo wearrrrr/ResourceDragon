@@ -140,7 +140,7 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::
     return false;
 }
 
-std::vector<Entry> DPMArchive::getEntries()
+std::vector<Entry> DPMArchive::GetEntries()
 {
     return this->entries;
 }
