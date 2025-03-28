@@ -54,8 +54,51 @@ void RenderFBContextMenu(ImGuiIO *io) {
     };
 }
 
+struct ClipboardImage {
+    std::vector<uint8_t> data;
+    std::string name;
+    std::string mime_type;
+};
+
+std::string uri_list;
+
+const void* ClipboardDataCallback(void *userdata, const char *mime_type, size_t *size) {
+    auto *image = (ClipboardImage*)(userdata);
+    *size = image->data.size();
+    image->name = "image.gif";
+    return image->data.data();
+}
+
+void ClipboardCleanupCallback(void *userdata) {
+    delete (ClipboardImage*)(userdata);
+}
+
 void RenderPreviewContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
+        if (ImGui::MenuItem("Copy to Clipboard")) {
+            ClipboardImage *image = new ClipboardImage();
+            image->data = std::vector<uint8_t>(preview_state.contents.data, preview_state.contents.data + preview_state.contents.size);
+
+            std::string ext = preview_state.contents.ext;
+
+            if (ext == "png")  image->mime_type = "image/png";
+            else if (ext == "bmp") image->mime_type = "image/bmp";
+            else if (ext == "jpg" || ext == "jpeg") image->mime_type = "image/jpeg";
+            else if (ext == "gif") image->mime_type = "image/gif";
+            else image->mime_type = "application/octet-stream";
+
+            Logger::log("%s", image->mime_type.c_str());
+
+            const char *mime_types[] = { image->mime_type.c_str() };
+            
+            SDL_SetClipboardData(
+                ClipboardDataCallback,
+                ClipboardCleanupCallback, 
+                image, 
+                mime_types, 
+                1
+            );
+        }
         if (ImGui::MenuItem("Save...")) {
             ImGui::CloseCurrentPopup();
         }
@@ -231,7 +274,7 @@ int main(int argc, char* argv[]) {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
                     if (texture->id) {
-                        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
+                        ImGui::SetCursorPos({(ImGui::GetWindowSize().x - texture->size.x) * 0.5f, 50});
                         ImGui::Image(texture->id, image_size);
                     } else {
                         ImGui::Text("Failed to load image!");

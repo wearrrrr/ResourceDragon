@@ -61,14 +61,16 @@ add_executable(ResourceDragon
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
 
+    src/GUI/Audio.h
+    src/GUI/Audio.cpp
     src/GUI/DirectoryNode.h
     src/GUI/DirectoryNode.cpp
-    src/GUI/Utils.h
-    src/GUI/Utils.cpp
     src/GUI/Image.h
     src/GUI/Image.cpp
     src/GUI/Theme/Themes.h
     src/GUI/Theme/BessDark.cpp
+    src/GUI/Utils.h
+    src/GUI/Utils.cpp
 
     src/util/Logger.h
     
