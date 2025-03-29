@@ -18,6 +18,34 @@ std::string separator = "/";
 
 bool openDelPopup = false;
 
+struct ClipboardFile {
+    std::string path;
+    std::string mime_type;
+};
+
+const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
+    auto *file = (ClipboardFile*)(userdata);
+
+    if (strcmp(mime_type, "text/uri-list") == 0) {
+        *size = file->path.size();
+        return file->path.data();
+    }
+    return nullptr;
+}
+
+void ClipboardCleanup(void *userdata) {
+    delete userdata;
+}
+
+void CopyFilePathToClipboard(const std::string &file_path) {
+    ClipboardFile *file = new ClipboardFile();
+    file->path = "file://" + file_path; // Convert path to URI format
+
+    const char *mime_types[] = {"text/uri-list"};
+
+    SDL_SetClipboardData(ClipboardCopy, ClipboardCleanup, file, mime_types, 1);
+}
+
 // TODO: This should probably be split out into two separate context menus, one firing when an item is hovered, and one when nothing is hovered.
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
@@ -27,6 +55,11 @@ void RenderFBContextMenu(ImGuiIO *io) {
             }
             if (ImGui::MenuItem("Location")) {
                 ImGui::SetClipboardText(selectedItem.FullPath.c_str());
+            }
+            if (!selectedItem.IsDirectory) {
+                if (ImGui::MenuItem("File")) {
+                    CopyFilePathToClipboard(selectedItem.FullPath);
+                }
             }
             ImGui::EndMenu();
         }
@@ -52,35 +85,6 @@ void RenderFBContextMenu(ImGuiIO *io) {
         }
         ImGui::EndPopup();
     };
-}
-
-struct ClipboardFile {
-    std::string path;
-    std::string mime_type;
-};
-
-const void* ClipboardDataCallback(void *userdata, const char *mime_type, size_t *size) {
-    auto *file = (ClipboardFile*)(userdata);
-
-    if (strcmp(mime_type, "text/uri-list") == 0) {
-        *size = file->path.size();
-        return file->path.c_str();
-    }
-
-    return nullptr;
-}
-
-void ClipboardCleanupCallback(void *userdata) {
-    delete (ClipboardFile*)(userdata);
-}
-
-void CopyFilePathToClipboard(const std::string &file_path) {
-    ClipboardFile *file = new ClipboardFile();
-    file->path = "file://" + file_path; // Convert path to URI format
-
-    const char *mime_types[] = {"text/uri-list"};
-
-    SDL_SetClipboardData(ClipboardDataCallback, ClipboardCleanupCallback, file, mime_types, 1);
 }
 
 void RenderPreviewContextMenu(ImGuiIO *io) {
