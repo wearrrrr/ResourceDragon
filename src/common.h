@@ -33,6 +33,7 @@ struct PreviewWinState {
     struct {
         char *data;
         long size;
+        std::string path;
         std::string ext;
     } contents;
     PWinStateTexture texture;
@@ -44,6 +45,7 @@ inline PreviewWinState preview_state = {
     .contents = {
         .data = nullptr,
         .size = 0,
+        .path = "",
         .ext = "",
     },
     .texture = {

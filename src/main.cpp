@@ -54,50 +54,39 @@ void RenderFBContextMenu(ImGuiIO *io) {
     };
 }
 
-struct ClipboardImage {
-    std::vector<uint8_t> data;
-    std::string name;
+struct ClipboardFile {
+    std::string path;
     std::string mime_type;
 };
 
-std::string uri_list;
-
 const void* ClipboardDataCallback(void *userdata, const char *mime_type, size_t *size) {
-    auto *image = (ClipboardImage*)(userdata);
-    *size = image->data.size();
-    image->name = "image.gif";
-    return image->data.data();
+    auto *file = (ClipboardFile*)(userdata);
+
+    if (strcmp(mime_type, "text/uri-list") == 0) {
+        *size = file->path.size();
+        return file->path.c_str();
+    }
+
+    return nullptr;
 }
 
 void ClipboardCleanupCallback(void *userdata) {
-    delete (ClipboardImage*)(userdata);
+    delete (ClipboardFile*)(userdata);
+}
+
+void CopyFilePathToClipboard(const std::string &file_path) {
+    ClipboardFile *file = new ClipboardFile();
+    file->path = "file://" + file_path; // Convert path to URI format
+
+    const char *mime_types[] = {"text/uri-list"};
+
+    SDL_SetClipboardData(ClipboardDataCallback, ClipboardCleanupCallback, file, mime_types, 1);
 }
 
 void RenderPreviewContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
-            ClipboardImage *image = new ClipboardImage();
-            image->data = std::vector<uint8_t>(preview_state.contents.data, preview_state.contents.data + preview_state.contents.size);
-
-            std::string ext = preview_state.contents.ext;
-
-            if (ext == "png")  image->mime_type = "image/png";
-            else if (ext == "bmp") image->mime_type = "image/bmp";
-            else if (ext == "jpg" || ext == "jpeg") image->mime_type = "image/jpeg";
-            else if (ext == "gif") image->mime_type = "image/gif";
-            else image->mime_type = "application/octet-stream";
-
-            Logger::log("%s", image->mime_type.c_str());
-
-            const char *mime_types[] = { image->mime_type.c_str() };
-            
-            SDL_SetClipboardData(
-                ClipboardDataCallback,
-                ClipboardCleanupCallback, 
-                image, 
-                mime_types, 
-                1
-            );
+            CopyFilePathToClipboard(preview_state.contents.path);
         }
         if (ImGui::MenuItem("Save...")) {
             ImGui::CloseCurrentPopup();

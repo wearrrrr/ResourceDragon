@@ -142,6 +142,7 @@ void HandleFileClick(DirectoryNode& node)
 
         preview_state.contents.data = (char*)buffer;
         preview_state.contents.size = size;
+        preview_state.contents.path = node.FullPath;
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
