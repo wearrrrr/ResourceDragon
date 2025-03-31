@@ -1,4 +1,5 @@
 #include "Image.h"
+#include "Utils.h"
 
 bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
 {
@@ -145,5 +146,6 @@ const std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "t
 
 bool Image::IsImageExtension(const std::string &ext)
 {
-    return std::find(std::begin(image_exts), std::end(image_exts), ext) != std::end(image_exts);
+    std::string ext_lower = Utils::ToLower(ext);
+    return std::find(std::begin(image_exts), std::end(image_exts), ext_lower) != std::end(image_exts);
 }

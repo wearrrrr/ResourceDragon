@@ -1,11 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <filesystem>
-
 #include "../common.h"
-#include "Image.h"
 
 namespace fs = std::filesystem;
 

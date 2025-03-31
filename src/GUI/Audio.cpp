@@ -25,22 +25,22 @@ void Audio::InitAudioSystem() {
         return;
     }
 }
-bool Audio::IsAudio(const fs::path &path)
-{
-    std::string ext = path.extension().string();
 
-    if (ext == ".mid" || ext == ".midi") {
+const std::string audio_exts[] = {
+    "wav", "mp3", "ogg", "flac", "aac", "opus",
+    "m4a", "wma"
+};
+
+bool Audio::IsAudio(const std::string &ext)
+{
+    std::string ext_lower = Utils::ToLower(ext);
+    if (ext_lower == "mid" || ext_lower == "midi") {
         curr_sound_is_midi = true;
         return true;
     }
+    curr_sound_is_midi = false;
 
-    if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || 
-        ext == ".flac" || ext == ".aac" || ext == ".opus" ||
-        ext == ".m4a" || ext == ".wma" || ext == ".mid" || ext == ".midi") {
-
-        return true;
-    }
-    return false;
+    return std::find(std::begin(audio_exts), std::end(audio_exts), ext_lower) != std::end(audio_exts);
 };
 
 bool Audio::PlaySound(const fs::path &path) {

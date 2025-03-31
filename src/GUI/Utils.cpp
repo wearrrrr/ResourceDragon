@@ -1,5 +1,12 @@
 #include "Utils.h"
 
+std::string Utils::ToLower(const std::string& str)
+{
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
+}
+
 std::string Utils::GetLastModifiedTime(const std::string& fpath)
 {
     using namespace std::chrono;

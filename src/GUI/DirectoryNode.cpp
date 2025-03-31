@@ -1,15 +1,4 @@
 #include "DirectoryNode.h"
-#include <filesystem>
-#include <fstream>
-#include <cmath>
-#include <algorithm>
-
-inline std::string ToLower(const std::string& str)
-{
-    std::string result = str;
-    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
-    return result;
-}
 
 void UnloadSelectedFile() {
     if (preview_state.contents.data) {
@@ -96,7 +85,7 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
                 if (a.FileName == "..") return true;
                 if (b.FileName == "..") return false;
                 if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
-                return ToLower(a.FileName) < ToLower(b.FileName);
+                return Utils::ToLower(a.FileName) < Utils::ToLower(b.FileName);
             }
         );
     }
@@ -202,7 +191,7 @@ void HandleFileClick(DirectoryNode& node)
             preview_state.texture.last_frame_time = SDL_GetTicks();
         }
 
-        if (Audio::IsAudio(node.FullPath)) {
+        if (Audio::IsAudio(ext)) {
             // Audio::PlaySound(node.FullPath);
             // preview_state.content_type = "audio";
             SDL_Log("Loading audio file: %s", node.FullPath.c_str());
