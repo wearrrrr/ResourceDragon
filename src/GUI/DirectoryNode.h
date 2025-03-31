@@ -29,3 +29,4 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode);
 void HandleFileClick(DirectoryNode& node);
 void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode);
 void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot);
+void UnloadSelectedFile();

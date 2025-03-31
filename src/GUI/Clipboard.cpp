@@ -11,7 +11,7 @@ const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
 }
 
 void ClipboardCleanup(void *userdata) {
-    delete userdata;
+    delete (ClipboardFile*)(userdata);
 }
 
 void Clipboard::CopyFilePathToClipboard(const std::string &path) {

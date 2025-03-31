@@ -8,4 +8,4 @@ struct ClipboardFile {
 
 namespace Clipboard {
     void CopyFilePathToClipboard(const std::string &path);
-}
+};

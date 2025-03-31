@@ -11,6 +11,52 @@ inline std::string ToLower(const std::string& str)
     return result;
 }
 
+void UnloadSelectedFile() {
+    if (preview_state.contents.data) {
+        free(preview_state.contents.data);
+        preview_state.contents.data = nullptr;
+    }
+    
+    Image::UnloadTexture(preview_state.texture.id);
+    Image::UnloadAnimation(&preview_state.texture.anim);
+    
+    preview_state.texture = {
+        .id = 0,
+        .size = {0, 0},
+        .anim = {},
+        .frame = 0,
+        .last_frame_time = 0
+    };
+
+    preview_state.content_type = "";
+
+    preview_state.contents = {
+        .data = nullptr,
+        .size = 0,
+        .path = "",
+        .ext = ""
+    };
+
+    if (preview_state.audio.music) {
+        Mix_FreeMusic(preview_state.audio.music);
+        preview_state.audio.music = nullptr;
+    }
+    preview_state.audio.playing = false;
+    preview_state.audio.volume = 0;
+    preview_state.audio.time = {
+        .total_time_min = 0,
+        .total_time_sec = 0,
+        .current_time_min = 0,
+        .current_time_sec = 0
+    };
+    if (preview_state.audio.update_timer) {
+        SDL_RemoveTimer(preview_state.audio.update_timer);
+        preview_state.audio.update_timer = 0;
+    }
+    current_sound = nullptr;
+    curr_sound_is_midi = false;
+}
+
 void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& parentPath)
 {
     try 
@@ -100,6 +146,15 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
 }
 
+Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
+    if (current_sound) {
+        double current_time = Mix_GetMusicPosition(current_sound);
+        preview_state.audio.time.current_time_min = (int)current_time / 60;
+        preview_state.audio.time.current_time_sec = (int)current_time % 60;
+    }
+    return interval; // continue timer
+}
+
 void HandleFileClick(DirectoryNode& node)
 {
     std::string filename = node.FileName;
@@ -130,16 +185,7 @@ void HandleFileClick(DirectoryNode& node)
 
         free(buffer);
     } else {
-        if (preview_state.contents.data) {
-            free(preview_state.contents.data);
-            preview_state.contents.data = nullptr;
-        }
-        Image::UnloadTexture(preview_state.texture.id);
-
-        Image::UnloadAnimation(&preview_state.texture.anim);
-        preview_state.texture.frame = 0;
-        preview_state.texture.size = {0, 0};
-
+        UnloadSelectedFile();
         preview_state.contents.data = (char*)buffer;
         preview_state.contents.size = size;
         preview_state.contents.path = node.FullPath;
@@ -147,10 +193,38 @@ void HandleFileClick(DirectoryNode& node)
 
         if (Image::IsImageExtension(ext)) {
             Image::LoadTextureFromMemory(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            preview_state.content_type = "image";
         }
         if (Image::IsGif(ext)) {
             Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
+            preview_state.content_type = "gif";
+            preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
+        }
+
+        if (Audio::IsAudio(node.FullPath)) {
+            // Audio::PlaySound(node.FullPath);
+            // preview_state.content_type = "audio";
+            SDL_Log("Loading audio file: %s", node.FullPath.c_str());
+            current_sound = Mix_LoadMUS(node.FullPath.c_str());
+            if (current_sound) {
+                preview_state.content_type = "audio";
+                Mix_PlayMusic(current_sound, 1);
+                double duration = Mix_MusicDuration(current_sound);
+                preview_state.audio.music = current_sound;
+                preview_state.audio.playing = true;
+                preview_state.audio.volume = Mix_VolumeMusic(-1);
+                preview_state.audio.time.total_time_min = (int)duration / 60;
+                preview_state.audio.time.total_time_sec = (int)duration % 60;
+
+                // Create timer to update current time
+                preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+                if (preview_state.audio.update_timer == 0) {
+                    SDL_Log("Failed to create timer: %s", SDL_GetError());
+                }
+            } else {
+                SDL_Log("Failed to load audio: %s", SDL_GetError());
+            }
         }
     }
 }

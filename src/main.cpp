@@ -43,7 +43,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::Text("Are you sure you'd like to delete %s?", selectedItem.FileName.length() > 0 ? selectedItem.FileName.c_str() : "<ITEM>");
+        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem.FileName.length() > 0 ? selectedItem.FileName.c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
             fs::remove_all(selectedItem.FullPath);
@@ -82,11 +82,13 @@ int main(int argc, char* argv[]) {
 
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
         printf("Error: SDL_Init(): %s\n", SDL_GetError());
         return -1;
     }
+
+    Audio::InitAudioSystem();
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
@@ -229,8 +231,9 @@ int main(int argc, char* argv[]) {
         if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
             RenderPreviewContextMenu(&io);
             std::string ext = preview_state.contents.ext;
+            std::string content_type = preview_state.content_type;
             if (preview_state.contents.size > 0) {
-                if (Image::IsImageExtension(ext)) {
+                if (content_type == "image") {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
                     if (texture->id) {
@@ -239,7 +242,7 @@ int main(int argc, char* argv[]) {
                     } else {
                         ImGui::Text("Failed to load image!");
                     }
-                } else if (Image::IsGif(ext)) {
+                } else if (content_type == "gif") {
                     PWinStateTexture *texture = &preview_state.texture;
                     GifAnimation &anim = texture->anim;
                     ImVec2 image_size = ImVec2(anim.width, anim.height);
@@ -251,6 +254,72 @@ int main(int argc, char* argv[]) {
                     if (now - texture->last_frame_time >= frame_delay) {
                         texture->frame = (texture->frame + 1) % anim.frame_count;
                         texture->last_frame_time = now;
+                    }
+                } else if (content_type == "audio") {
+                    // Display audio controls
+                    if (current_sound) {
+                        // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
+                        ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
+                        if (!curr_sound_is_midi) {
+                            TimeInfo time = preview_state.audio.time;
+                            // Display progress / total time
+                            ImGui::Text("Current Time: %02d:%02d / %02d:%02d", 
+                                time.current_time_min, 
+                                time.current_time_sec,
+                                time.total_time_min, 
+                                time.total_time_sec
+                            );
+                        }
+                        if (!curr_sound_is_midi) {
+                            if (ImGui::Button("RW", {40, 0})) {
+                                double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
+                                if (new_pos > 0) {
+                                    Mix_SetMusicPosition(new_pos);
+                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
+                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
+                                } else {
+                                    // Prevent going negative
+                                    Mix_SetMusicPosition(0);
+                                    preview_state.audio.time.current_time_min = 0;
+                                    preview_state.audio.time.current_time_sec = 0;
+                                }
+                            }
+                            ImGui::SameLine();
+                        }
+                        if (preview_state.audio.playing) {
+                            if (ImGui::Button("Pause", {75, 0})) {
+                                Mix_PauseMusic();
+                                preview_state.audio.playing = false;
+                            }
+                        } else {
+                            if (ImGui::Button("Play", {75, 0})) {
+                                Mix_ResumeMusic();
+                                preview_state.audio.playing = true;
+                                current_sound = Mix_PlayingMusic() ? current_sound : nullptr;
+                            }
+                        }
+                        if (!curr_sound_is_midi) {
+                            ImGui::SameLine();
+                            // Fast forward 5 seconds
+                            if (ImGui::Button("FF", {40, 0})) {
+                                double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
+                                if (new_pos > 0) {
+                                    Mix_SetMusicPosition(new_pos);
+                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
+                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
+                                }
+                            }
+                        }
+
+                        ImGui::SameLine();
+                        if (ImGui::Button("Stop")) {
+                            Mix_HaltMusic();
+                            UnloadSelectedFile();
+                            preview_state.audio.playing = false;
+                            SDL_RemoveTimer(preview_state.audio.update_timer);
+                            preview_state.audio.update_timer = 0;
+
+                        }
                     }
                 } else {
                     // TODO: handle different potential encodings
@@ -326,6 +395,7 @@ int main(int argc, char* argv[]) {
     }
 
     SDL_DestroyWindow(window);
+    SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
     
     return 0;

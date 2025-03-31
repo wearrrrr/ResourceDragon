@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 # set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 set(SDL3_image_DIR ./vendored/SDL3_image/cmake/)
+set(SDL3_mixer_DIR ./vendored/SDL3_mixer/cmake/)
 
 project(ResourceDragon VERSION 0.1)
 
@@ -12,6 +13,7 @@ find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 
 if (NOT WIN32)
     set(IMGUI_FREETYPE_H vendored/imgui/misc/freetype/imgui_freetype.h)
@@ -88,4 +90,4 @@ set(OPENGL_LIB_NAME opengl32)
 set(FREETYPE "")
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} SDL3::SDL3 SDL3_image::SDL3_image ${OPENGL_LIB_NAME})
+target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer ${OPENGL_LIB_NAME})
