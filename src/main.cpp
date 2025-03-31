@@ -18,35 +18,6 @@ std::string separator = "/";
 
 bool openDelPopup = false;
 
-struct ClipboardFile {
-    std::string path;
-    std::string mime_type;
-};
-
-const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
-    auto *file = (ClipboardFile*)(userdata);
-
-    if (strcmp(mime_type, "text/uri-list") == 0) {
-        *size = file->path.size();
-        return file->path.data();
-    }
-    return nullptr;
-}
-
-void ClipboardCleanup(void *userdata) {
-    delete userdata;
-}
-
-void CopyFilePathToClipboard(const std::string &file_path) {
-    ClipboardFile *file = new ClipboardFile();
-    file->path = "file://" + file_path; // Convert path to URI format
-
-    const char *mime_types[] = {"text/uri-list"};
-
-    SDL_SetClipboardData(ClipboardCopy, ClipboardCleanup, file, mime_types, 1);
-}
-
-// TODO: This should probably be split out into two separate context menus, one firing when an item is hovered, and one when nothing is hovered.
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
@@ -58,7 +29,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
             }
             if (!selectedItem.IsDirectory) {
                 if (ImGui::MenuItem("File")) {
-                    CopyFilePathToClipboard(selectedItem.FullPath);
+                    Clipboard::CopyFilePathToClipboard(selectedItem.FullPath);
                 }
             }
             ImGui::EndMenu();
@@ -90,7 +61,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
 void RenderPreviewContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
-            CopyFilePathToClipboard(preview_state.contents.path);
+            Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
         }
         if (ImGui::MenuItem("Save...")) {
             ImGui::CloseCurrentPopup();
@@ -192,7 +163,6 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 running = false;
 
-            // Check for f5 and reload tree node
             if (event.key.key == SDLK_F5) {
                 ReloadRootNode(rootNode);
             }
@@ -230,9 +200,6 @@ int main(int argc, char* argv[]) {
             RenderFBContextMenu(&io);
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
-
-        
-        
 
         if (openDelPopup) {
             ImGui::OpenPopup("Delete Confirmation");

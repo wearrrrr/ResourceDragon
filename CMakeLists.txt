@@ -63,6 +63,8 @@ add_executable(ResourceDragon
 
     src/GUI/Audio.h
     src/GUI/Audio.cpp
+    src/GUI/Clipboard.h
+    src/GUI/Clipboard.cpp
     src/GUI/DirectoryNode.h
     src/GUI/DirectoryNode.cpp
     src/GUI/Image.h

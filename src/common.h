@@ -16,6 +16,7 @@
 #include "GUI/DirectoryNode.h"
 #include "GUI/Image.h"
 #include "GUI/Utils.h"
+#include "GUI/Clipboard.h"
 
 #include "util/Logger.h"
 
