@@ -1,4 +1,5 @@
 #include "common.h"
+#include <iostream>
 
 #define DEBUG
 
@@ -68,6 +69,34 @@ void RenderPreviewContextMenu(ImGuiIO *io) {
         }
         ImGui::EndPopup();
     }
+}
+
+std::string normalize_line_endings(const std::string &input) {
+    std::string output;
+    bool prev_char_was_cr = false;
+
+    for (char ch : input) {
+        if (ch == '\r') {
+            prev_char_was_cr = true;
+        } else if (ch == '\n') {
+            if (!prev_char_was_cr) {
+                output += '\n';
+            }
+            prev_char_was_cr = false;
+        } else {
+            if (prev_char_was_cr) {
+                output += '\n';
+                prev_char_was_cr = false;
+            }
+            output += ch;
+        }
+    }
+
+    if (prev_char_was_cr) {
+        output += '\n';
+    }
+
+    return output;
 }
 
 int main(int argc, char* argv[]) {
@@ -158,6 +187,10 @@ int main(int argc, char* argv[]) {
     bool running = true;
     ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
 
+    std::string preview_win_label = "Preview";
+
+    bool has_unsaved_changes = false;
+
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -228,11 +261,15 @@ int main(int argc, char* argv[]) {
 
         ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
         ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
-        if(ImGui::Begin("Preview", NULL, FILE_PREVIEW_FLAGS)) {
+        std::string preview_win_title = preview_win_label;
+        if (has_unsaved_changes) preview_win_title += " *";
+        else preview_win_title += " ";
+        preview_win_title += "###Preview";
+        if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
             RenderPreviewContextMenu(&io);
             std::string ext = preview_state.contents.ext;
             std::string content_type = preview_state.content_type;
-            if (preview_state.contents.size > 0) {
+            if (preview_state.contents.data.size() > 0) {
                 if (content_type == "image") {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
@@ -325,41 +362,23 @@ int main(int argc, char* argv[]) {
                     // TODO: handle different potential encodings
                     // maybe using a dropdown for the user to select the encoding.
 
-                    // Call io.AddInputCharacter when the user types in the text editor.
-                    // This will allow the user to type in the text editor.
-                    if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
-                        char insertedChar;
-                        for (int i = 0; i < 26; ++i) {
-                            if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_A + i))) {
-                                
-                                if (io.KeyShift) {
-                                    insertedChar = 'A' + i;
-                                } else {
-                                    insertedChar = 'a' + i;
-                                }
-                                io.AddInputCharacter(insertedChar);
-                            }
-                        }
+                    std::string modified_text = normalize_line_endings(editor.GetText());
 
-                        // Handle 0-9 and symbols
-                        for (int i = 0; i < 10; ++i) {
-                            if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_0 + i))) {
-                                if (io.KeyShift) {
-                                    insertedChar = ")!@#$%^&*("[i];
-                                } else {
-                                    insertedChar = '0' + i;
-                                }
-                                io.AddInputCharacter(insertedChar);
-                            }
-                        }
+                    if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S)) {
+                        std::string text = normalize_line_endings(editor.GetText());
+                        std::ofstream file(preview_state.contents.path, std::ios::binary);
+                        file << text;
+                        file.close();
+                        preview_state.contents.data = text;
+                        
+
+                        ReloadRootNode(rootNode);
+                        preview_state.contents.data = text;
+                        has_unsaved_changes = false;
                     }
-                    // Handle special characters
-                    // if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
-                    //     io.AddInputCharacter(' ');
-                    // }
+                    has_unsaved_changes = preview_state.contents.data != modified_text;
 
                     editor.Render("TextEditor", {0, 0}, false);
-
 
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

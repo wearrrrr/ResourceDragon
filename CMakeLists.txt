@@ -80,8 +80,8 @@ add_executable(ResourceDragon
     
 )
 
-target_link_options(ResourceDragon PRIVATE -s)
-target_compile_options(ResourceDragon PRIVATE -Oz)
+# target_link_options(ResourceDragon PRIVATE -s)
+# target_compile_options(ResourceDragon PRIVATE -Oz)
 
 set(OPENGL_LIB_NAME OpenGL)
 set(FREETYPE freetype)

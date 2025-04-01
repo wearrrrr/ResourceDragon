@@ -1,9 +1,8 @@
 #include "DirectoryNode.h"
 
 void UnloadSelectedFile() {
-    if (preview_state.contents.data) {
-        free(preview_state.contents.data);
-        preview_state.contents.data = nullptr;
+    if (preview_state.contents.data.size() > 0) {
+        preview_state.contents.data = "";
     }
     
     Image::UnloadTexture(preview_state.texture.id);
@@ -20,8 +19,7 @@ void UnloadSelectedFile() {
     preview_state.content_type = "";
 
     preview_state.contents = {
-        .data = nullptr,
-        .size = 0,
+        .data = "",
         .path = "",
         .ext = ""
     };
@@ -175,22 +173,19 @@ void HandleFileClick(DirectoryNode& node)
         free(buffer);
     } else {
         UnloadSelectedFile();
-        preview_state.contents.data = (char*)buffer;
-        preview_state.contents.size = size;
+        preview_state.contents.data = std::string((char*)buffer, size);
         preview_state.contents.path = node.FullPath;
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadTextureFromMemory(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            Image::LoadTextureFromMemory(preview_state.contents.data.data(), preview_state.contents.data.size(), &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
             preview_state.content_type = "image";
-        }
-        if (Image::IsGif(ext)) {
-            Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
+        } else if (Image::IsGif(ext)) {
+            Image::LoadGifAnimation(preview_state.contents.data.data(), preview_state.contents.data.size(), &preview_state.texture.anim);
             preview_state.content_type = "gif";
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
-        }
-        if (Audio::IsAudio(ext)) {
+        } else if (Audio::IsAudio(ext)) {
             Logger::log("Loading audio file: %s", node.FullPath.c_str());
             current_sound = Mix_LoadMUS(node.FullPath.c_str());
             if (current_sound) {
@@ -208,10 +203,10 @@ void HandleFileClick(DirectoryNode& node)
             } else {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
+        } else {
+            editor.SetText(preview_state.contents.data.data());
+            editor.SetColorizerEnable(false);
         }
-    
-        const std::string text = std::string(preview_state.contents.data, preview_state.contents.size);
-        editor.SetText(text.data());
     }
 }
 

@@ -713,7 +713,8 @@ void TextEditor::HandleKeyboardInputs()
 	{
 		if (ImGui::IsWindowHovered())
 			ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
-		//ImGui::CaptureKeyboardFromApp(true);
+		// ImGui::CaptureKeyboardFromApp(true);
+		ImGui::SetNextFrameWantCaptureKeyboard(true);
 
 		io.WantCaptureKeyboard = true;
 		io.WantTextInput = true;
@@ -772,6 +773,105 @@ void TextEditor::HandleKeyboardInputs()
 		else if (!IsReadOnly() && ImGui::IsKeyPressed(ImGuiKey_Space)) {
 			EnterCharacter(' ', shift);
 		}
+
+		if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
+			char insertedChar;
+			for (int i = 0; i < 26; ++i) {
+				if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_A + i))) {
+					
+					if (io.KeyShift) {
+						insertedChar = 'A' + i;
+					} else {
+						insertedChar = 'a' + i;
+					}
+					io.AddInputCharacter(insertedChar);
+					
+				}
+			}
+
+			// Handle 0-9 and symbols
+			for (int i = 0; i < 10; ++i) {
+				if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_0 + i))) {
+					if (io.KeyShift) {
+						insertedChar = ")!@#$%^&*("[i];
+					} else {
+						insertedChar = '0' + i;
+					}
+					io.AddInputCharacter(insertedChar);
+				}
+			}
+		}
+
+		// Handle special characters
+		if (ImGui::IsKeyPressed(ImGuiKey_Minus)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('_');
+			} else {
+				io.AddInputCharacter('-');
+			}
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Equal)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('+');
+			} else {
+				io.AddInputCharacter('=');
+			}
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('{');
+			} else {
+				io.AddInputCharacter('[');
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('}');
+			} else {
+				io.AddInputCharacter(']');
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Semicolon)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter(':');
+			} else {
+				io.AddInputCharacter(';');
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Apostrophe)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('"');
+			} else {
+				io.AddInputCharacter('\'');
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Backslash)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('|');
+			} else {
+				io.AddInputCharacter('\\');
+			}
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Period)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('>');
+			} else {
+				io.AddInputCharacter('.');
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Comma)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('<');
+			} else {
+				io.AddInputCharacter(',');
+			}
+		}
+
 
 		if (!IsReadOnly() && !io.InputQueueCharacters.empty())
 		{
@@ -2030,7 +2130,7 @@ const TextEditor::Palette & TextEditor::GetDarkPalette()
 			0xff206020, // Comment (single line)
 			0xff406020, // Comment (multi line)
 			0x242429,   // Background
-			0x00e0e0e0, // Cursor
+			0xffe0e0e0, // Cursor
 			0x80a06020, // Selection
 			0x800020ff, // ErrorMarker
 			0x40f08000, // Breakpoint

@@ -55,8 +55,7 @@ struct PWinStateAudio {
 struct PreviewWinState {
     std::string content_type;
     struct {
-        char *data;
-        long size;
+        std::string data;
         std::string path;
         std::string ext;
     } contents;
@@ -69,8 +68,7 @@ struct PreviewWinState {
 inline PreviewWinState preview_state = {
     .content_type = "",
     .contents = {
-        .data = nullptr,
-        .size = 0,
+        .data = "",
         .path = "",
         .ext = "",
     },
