@@ -263,6 +263,7 @@ public:
 	void Cut();
 	void Paste();
 	void Delete();
+	void Backspace();
 
 	bool CanUndo() const;
 	bool CanRedo() const;
@@ -345,7 +346,6 @@ private:
 	void RemoveLine(int aIndex);
 	Line& InsertLine(int aIndex);
 	void EnterCharacter(ImWchar aChar, bool aShift);
-	void Backspace();
 	void DeleteSelection();
 	std::string GetWordUnderCursor() const;
 	std::string GetWordAt(const Coordinates& aCoords) const;

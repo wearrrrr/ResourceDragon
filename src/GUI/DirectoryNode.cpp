@@ -212,8 +212,6 @@ void HandleFileClick(DirectoryNode& node)
     
         const std::string text = std::string(preview_state.contents.data, preview_state.contents.size);
         editor.SetText(text.data());
-        editor.SetReadOnly(true);
-        editor.SetColorizerEnable(false);
     }
 }
 

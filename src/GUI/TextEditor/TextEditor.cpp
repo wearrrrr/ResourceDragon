@@ -746,7 +746,8 @@ void TextEditor::HandleKeyboardInputs()
 			MoveEnd(shift);
 		else if (!IsReadOnly() && !ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGuiKey_Delete))
 			Delete();
-		else if (!IsReadOnly() && !ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGuiKey_Backspace))
+		// TODO: make it so that ctrl + backspace deletes the previous word? (like in most text editors)
+		else if (!IsReadOnly() && ImGui::IsKeyPressed(ImGuiKey_Backspace))
 			Backspace();
 		else if (!ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGuiKey_Insert))
 			mOverwrite ^= true;
@@ -768,6 +769,9 @@ void TextEditor::HandleKeyboardInputs()
 			EnterCharacter('\n', false);
 		else if (!IsReadOnly() && !ctrl && !alt && ImGui::IsKeyPressed(ImGuiKey_Tab))
 			EnterCharacter('\t', shift);
+		else if (!IsReadOnly() && ImGui::IsKeyPressed(ImGuiKey_Space)) {
+			EnterCharacter(' ', shift);
+		}
 
 		if (!IsReadOnly() && !io.InputQueueCharacters.empty())
 		{

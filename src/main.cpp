@@ -324,7 +324,43 @@ int main(int argc, char* argv[]) {
                 } else {
                     // TODO: handle different potential encodings
                     // maybe using a dropdown for the user to select the encoding.
+
+                    // Call io.AddInputCharacter when the user types in the text editor.
+                    // This will allow the user to type in the text editor.
+                    if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
+                        char insertedChar;
+                        for (int i = 0; i < 26; ++i) {
+                            if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_A + i))) {
+                                
+                                if (io.KeyShift) {
+                                    insertedChar = 'A' + i;
+                                } else {
+                                    insertedChar = 'a' + i;
+                                }
+                                io.AddInputCharacter(insertedChar);
+                            }
+                        }
+
+                        // Handle 0-9 and symbols
+                        for (int i = 0; i < 10; ++i) {
+                            if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_0 + i))) {
+                                if (io.KeyShift) {
+                                    insertedChar = ")!@#$%^&*("[i];
+                                } else {
+                                    insertedChar = '0' + i;
+                                }
+                                io.AddInputCharacter(insertedChar);
+                            }
+                        }
+                    }
+                    // Handle special characters
+                    // if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+                    //     io.AddInputCharacter(' ');
+                    // }
+
                     editor.Render("TextEditor", {0, 0}, false);
+
+
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
