@@ -44,7 +44,7 @@ bool Audio::IsAudio(const std::string &ext)
 };
 
 bool Audio::PlaySound(const fs::path &path) {
-    current_sound = Mix_LoadMUS(path.c_str());
+    current_sound = Mix_LoadMUS(path.string().c_str());
     if (!current_sound) {
         SDL_Log("Failed to load Audio: %s", SDL_GetError());
         // Setting to nullptr just in case
