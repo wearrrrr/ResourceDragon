@@ -7,12 +7,15 @@ void Audio::InitAudioSystem() {
     spec.freq = MIX_DEFAULT_FREQUENCY;
 
     #ifdef MIDI_SUPPORT
-    Mix_SetSoundFonts("8bitsf.SF2");
+    bool load_sf2 = Mix_SetSoundFonts("8bitsf.SF2");
+    if (!load_sf2) {
+        Logger::error("Failed to load soundfont: %s", SDL_GetError());
+    }
     #endif
 
 
     if (!Mix_OpenAudio(0, &spec)) {
-        SDL_Log("Failed to initialize SDL_mixer: %s", SDL_GetError());
+        Logger::error("Failed to initialize SDL_mixer: %s", SDL_GetError());
         return;
     }
 
@@ -20,7 +23,7 @@ void Audio::InitAudioSystem() {
     
     Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
     if (spec.freq == 0 || spec.format == 0 || spec.channels == 0) {
-        SDL_Log("Failed to query audio spec: %s", SDL_GetError());
+        Logger::error("Failed to query audio spec: %s", SDL_GetError());
         Mix_CloseAudio();
         return;
     }
@@ -46,14 +49,14 @@ bool Audio::IsAudio(const std::string &ext)
 bool Audio::PlaySound(const fs::path &path) {
     current_sound = Mix_LoadMUS(path.string().c_str());
     if (!current_sound) {
-        SDL_Log("Failed to load Audio: %s", SDL_GetError());
+        Logger::error("Failed to load Audio: %s", SDL_GetError());
         // Setting to nullptr just in case
         // This just makes sure that if the music fails to load, it won't try to play anyways.
         current_sound = nullptr;
         return false;
     }
     if (!Mix_PlayMusic(current_sound, 1)) {
-        SDL_Log("Failed to play music: %s", SDL_GetError());
+        Logger::error("Failed to play music: %s", SDL_GetError());
         Mix_FreeMusic(current_sound);
         current_sound = nullptr;
         return false;

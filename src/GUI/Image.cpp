@@ -5,13 +5,13 @@ bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* o
 {
     SDL_IOStream* stream = SDL_IOFromConstMem(data, data_size);
     if (!stream) {
-        SDL_Log("Failed to create IOStream: %s", SDL_GetError());
+        Logger::error("Failed to create IOStream: %s", SDL_GetError());
         return false;
     }
 
     IMG_Animation* animation = IMG_LoadAnimation_IO(stream, 1);
     if (!animation) {
-        SDL_Log("Failed to load GIF animation: %s", SDL_GetError());
+        Logger::error("Failed to load GIF animation: %s", SDL_GetError());
         return false;
     }
 
@@ -28,7 +28,7 @@ bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* o
     for (int i = 0; i < animation->count; i++) {
         SDL_Surface* frame_surface = animation->frames[i];
         if (!frame_surface) {
-            SDL_Log("Failed to load GIF frame %d: %s", i, SDL_GetError());
+            Logger::error("Failed to load GIF frame %d: %s", i, SDL_GetError());
             continue;
         }
 
@@ -36,7 +36,7 @@ bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* o
         SDL_DestroySurface(frame_surface);
 
         if (!converted_surface) {
-            SDL_Log("Failed to convert GIF frame %d", i);
+            Logger::error("Failed to convert GIF frame %d", i);
             continue;
         }
 
@@ -81,12 +81,12 @@ bool Image::LoadImageSDL(const void* data, size_t data_size, GLuint *out_texture
 
     SDL_IOStream *stream = SDL_IOFromConstMem(data, data_size);
     if (!stream) {
-        SDL_Log("Failed to create IOStream: %s", SDL_GetError());
+        Logger::error("Failed to create IOStream: %s", SDL_GetError());
         return false;
     }
     SDL_Surface *surface = IMG_Load_IO(stream, 1);
     if (!surface) {
-        SDL_Log("Failed to load image: %s", SDL_GetError());
+        Logger::error("Failed to load image: %s", SDL_GetError());
         return false;
     }
 
@@ -94,7 +94,7 @@ bool Image::LoadImageSDL(const void* data, size_t data_size, GLuint *out_texture
     SDL_DestroySurface(surface);
 
     if (!converted_surface) {
-        SDL_Log("Failed to convert surface format: %s", SDL_GetError());
+        Logger::error("Failed to convert surface format: %s", SDL_GetError());
         return false;
     }
 

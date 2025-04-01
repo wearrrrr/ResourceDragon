@@ -194,9 +194,10 @@ void HandleFileClick(DirectoryNode& node)
         if (Audio::IsAudio(ext)) {
             // Audio::PlaySound(node.FullPath);
             // preview_state.content_type = "audio";
-            SDL_Log("Loading audio file: %s", node.FullPath.c_str());
+            Logger::log("Loading audio file: %s", node.FullPath.c_str());
             current_sound = Mix_LoadMUS(node.FullPath.c_str());
             if (current_sound) {
+                Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
                 Mix_PlayMusic(current_sound, 1);
                 double duration = Mix_MusicDuration(current_sound);
@@ -206,13 +207,9 @@ void HandleFileClick(DirectoryNode& node)
                 preview_state.audio.time.total_time_min = (int)duration / 60;
                 preview_state.audio.time.total_time_sec = (int)duration % 60;
 
-                // Create timer to update current time
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
-                if (preview_state.audio.update_timer == 0) {
-                    SDL_Log("Failed to create timer: %s", SDL_GetError());
-                }
             } else {
-                SDL_Log("Failed to load audio: %s", SDL_GetError());
+                Logger::error("Failed to load audio: %s", SDL_GetError());
             }
         }
     }
