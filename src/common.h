@@ -18,8 +18,10 @@
 #include "GUI/Clipboard.h"
 #include "GUI/DirectoryNode.h"
 #include "GUI/Image.h"
+#include "GUI/TextEditor/TextEditor.h"
 #include "GUI/Theme/Themes.h"
 #include "GUI/Utils.h"
+
 
 
 #include "util/Logger.h"
@@ -94,3 +96,4 @@ inline PreviewWinState preview_state = {
 };
 inline ExtractorManager extractor_manager;
 
+inline TextEditor editor;

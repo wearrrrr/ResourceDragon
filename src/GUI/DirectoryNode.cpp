@@ -190,10 +190,7 @@ void HandleFileClick(DirectoryNode& node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         }
-
         if (Audio::IsAudio(ext)) {
-            // Audio::PlaySound(node.FullPath);
-            // preview_state.content_type = "audio";
             Logger::log("Loading audio file: %s", node.FullPath.c_str());
             current_sound = Mix_LoadMUS(node.FullPath.c_str());
             if (current_sound) {
@@ -212,6 +209,11 @@ void HandleFileClick(DirectoryNode& node)
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
         }
+    
+        const std::string text = std::string(preview_state.contents.data, preview_state.contents.size);
+        editor.SetText(text.data());
+        editor.SetReadOnly(true);
+        editor.SetColorizerEnable(false);
     }
 }
 

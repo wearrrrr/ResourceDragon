@@ -69,6 +69,8 @@ add_executable(ResourceDragon
     src/GUI/DirectoryNode.cpp
     src/GUI/Image.h
     src/GUI/Image.cpp
+    src/GUI/TextEditor/TextEditor.h
+    src/GUI/TextEditor/TextEditor.cpp
     src/GUI/Theme/Themes.h
     src/GUI/Theme/BessDark.cpp
     src/GUI/Utils.h
