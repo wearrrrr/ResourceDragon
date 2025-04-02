@@ -1270,14 +1270,11 @@ void TextEditor::SetText(const std::string & aText)
 	mLines.emplace_back(Line());
 	for (auto chr : aText)
 	{
-		if (chr == '\r')
-		{
-			// ignore the carriage return character
-		}
-		else if (chr == '\n')
+		if (chr == '\r') continue;
+ 		
+		if (chr == '\n') {
 			mLines.emplace_back(Line());
-		else
-		{
+		} else {
 			mLines.back().emplace_back(Glyph(chr, PaletteIndex::Default));
 		}
 	}

@@ -216,6 +216,7 @@ public:
 
 	void SetReadOnly(bool aValue);
 	bool IsReadOnly() const { return mReadOnly; }
+	void SetTextChanged(bool aValue) { mTextChanged = aValue; }
 	bool IsTextChanged() const { return mTextChanged; }
 	bool IsCursorPositionChanged() const { return mCursorPositionChanged; }
 

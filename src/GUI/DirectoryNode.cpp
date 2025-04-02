@@ -205,6 +205,7 @@ void HandleFileClick(DirectoryNode& node)
             }
         } else {
             editor.SetText(preview_state.contents.data.data());
+            editor.SetTextChanged(false);
             editor.SetColorizerEnable(false);
         }
     }
