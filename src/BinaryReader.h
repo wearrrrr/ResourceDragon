@@ -14,13 +14,12 @@ public:
         if (position >= data.size()) return std::nullopt; // Indicate end of buffer
         return data[position]; 
     }
-
-    template<typename T>
-    T read() {
-        T value;
-        std::memcpy(&value, &data[position], sizeof(T));
-        position += sizeof(T);
-        return value;
+    
+    template <typename T>
+    T& read() {
+      size_t offset = position;
+      position += sizeof(T);
+      return *(T*)&data[offset];
     }
 
     std::string ReadChars(size_t count) {

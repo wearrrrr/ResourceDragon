@@ -107,7 +107,6 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         }
         header_stream.resize(header_size);
         memcpy(header_stream.data(), buffer + dir_offset + 0x9, header_size);
-        Logger::log("%x %x %x %x", header_stream[0], header_stream[1], header_stream[2], header_stream[3]);
     } else {
         uint64_t packed_size = *based_pointer<uint64_t>(buffer, dir_offset + 0x1);
         if (packed_size > std::numeric_limits<uint64_t>::max()) {
@@ -166,8 +165,6 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                 }
                 entry_size -= section_size;
                 int64_t next_section_pos = header.position + section_size;
-                printf("%ld\n", next_section_pos);
-
                 switch (section) {
                     // "info"
                     case 0x6f666e69: {
@@ -274,7 +271,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         }
     }
     Logger::log("Finished reading %d bytes", header_stream.size());
-    Logger::log("%d", entries.size());
+    Logger::log("Entry count: %d", entries.size());
     Logger::log("0x%x", entries.at(0).size);
 
     return nullptr;
