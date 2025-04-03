@@ -68,6 +68,15 @@ class FilenameMap {
         }
     };
 
+void DeobfuscateEntry (XP3Entry *entry)
+{
+    if (entry->m_segments.size() > 1)
+        entry->m_segments.erase(entry->m_segments.begin() + 1, entry->m_segments.end());
+    entry->IsPacked = entry->m_segments[0].IsCompressed;
+    entry->size = entry->m_segments[0].PackedSize;
+    entry->UnpackedSize = entry->m_segments[0].Size;
+}
+
 ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
 {
     uint64_t base_offset = 0;
@@ -136,10 +145,8 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
     ICrypt *crypt = QueryCryptAlgorithm(buffer, size, file_name);
 
-    std::vector<Entry> entries;
+    std::vector<XP3Entry> entries;
     dir_offset = 0;
-
-    size_t position = 0;
 
     BinaryReader header(header_stream);
     FilenameMap filename_map;
@@ -155,6 +162,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             while (entry_size > 0) {
                 uint32_t section = header.read<uint32_t>();
                 int64_t section_size = header.read<int64_t>();
+                if (entry_size < 0) return nullptr;
                 entry_size -= 12;
                 if (section_size > entry_size)
                 {
@@ -172,8 +180,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                             header.position = dir_offset;
                         }
                         entry.m_isEncrypted = header.read<uint32_t>() != 0;
-                        int64_t file_size = header.read<int64_t>();
-                        int64_t packed_size = header.read<int64_t>();
+                        int64_t file_size = header.read<int32_t>();
+                        int64_t packed_size = header.read<int32_t>();
+
+                        Logger::log("%ld", file_size);
 
                         uint64_t uint_max = std::numeric_limits<uint64_t>::max();
 
@@ -191,7 +201,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
                         std::string name = entry.m_crypt->ReadName(header);
                         // todo: temporary test
-                        if (name == "RD_INVALID_FILE_NAME") {
+                        if (name == "") {
                             header.position = dir_offset;
                         }
 
@@ -244,10 +254,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                 header.position = next_section_pos;
             }
             if (!entry.name.empty() && entry.m_segments.size() > 0) {
-                // if (entry.m_crypt.ObfuscatedIndex)
-                // {
-                //     DeobfuscateEntry (entry);
-                // }
+                if (entry.m_crypt->ObfuscatedIndex)
+                {
+                    DeobfuscateEntry(&entry);
+                }
                 entries.push_back(entry);
             }
         }
@@ -272,7 +282,8 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     }
     Logger::log("Finished reading %d bytes", header_stream.size());
     Logger::log("Entry count: %d", entries.size());
-    Logger::log("0x%x", entries.at(0).size);
+    XP3Entry entry = entries.at(1);
+    Logger::log("Entry 0 name: %s", entry.name.c_str());
 
     return nullptr;
 }

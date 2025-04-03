@@ -11,13 +11,14 @@ class ICrypt {
         virtual uint8_t Decrypt(XP3Entry *entry, long offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(XP3Entry *entry, long offset, uint8_t value) = 0;
 
-        virtual std::string ReadName (BinaryReader header)
-        {
-            int name_size = header.read<int16_t>();
-            if (name_size > 0 && name_size <= 0x100)
+        std::string ReadName(BinaryReader& header) {
+            int16_t name_size = header.read<int16_t>();  // Read a 16-bit integer
+        
+            if (name_size > 0 && name_size <= 0x100) {
                 return header.ReadChars(name_size);
-            else
-                return "RD_INVALID_FILE_NAME";
+            }
+        
+            return "";
         }
 };
 

@@ -14,7 +14,7 @@ public:
         if (position >= data.size()) return std::nullopt; // Indicate end of buffer
         return data[position]; 
     }
-    
+
     template <typename T>
     T& read() {
       size_t offset = position;
@@ -23,10 +23,12 @@ public:
     }
 
     std::string ReadChars(size_t count) {
-        std::string result((const char*)(&data[position]), count);
+        // if (position + count > data.size()) {
+        //     throw std::out_of_range("ReadChars: Attempt to read beyond buffer size");
+        // }
+        
+        std::string result(data.begin() + position, data.begin() + position + count);
         position += count;
         return result;
     }
-
-    bool eof() const { return position >= data.size(); }
 };
