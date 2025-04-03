@@ -158,7 +158,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         dir_offset += 12 + entry_size;
 
         if (PackUInt32('F', 'i', 'l', 'e') == entry_signature) {
-            XP3Entry entry;
+            XP3Entry entry = {};
             while (entry_size > 0) {
                 uint32_t section = header.read<uint32_t>();
                 int64_t section_size = header.read<int64_t>();
@@ -177,53 +177,54 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                     // "info"
                     case 0x6f666e69: {
                         if (entry.size != 0 || !entry.name.empty()) {
-                            header.position = dir_offset;
+                            goto NextEntry;
                         }
                         entry.m_isEncrypted = header.read<uint32_t>() != 0;
-                        int64_t file_size = header.read<int32_t>();
-                        int64_t packed_size = header.read<int32_t>();
+                        int64_t file_size = header.read<int64_t>();
+                        int64_t packed_size = header.read<int64_t>();
 
                         Logger::log("%ld", file_size);
 
                         uint64_t uint_max = std::numeric_limits<uint64_t>::max();
 
                         if (file_size >= uint_max || packed_size > uint_max || packed_size > size) {
-                            header.position = dir_offset;
+                            goto NextEntry;
                         }
                         entry.IsPacked = file_size != packed_size;
                         entry.size = (uint32_t)packed_size;
                         entry.UnpackedSize = (uint32_t)file_size;
 
                         // TODO: change this to use inferred crypt
-                        if (entry.m_isEncrypted) {
-                            entry.m_crypt = ALG_DEFAULT;
+                        entry.m_crypt = ALG_DEFAULT;
+
+                        std::string name = entry.m_crypt->UTF16ToUTF8(entry.m_crypt->ReadName(header));
+                        if (name == "") {
+                            goto NextEntry;
                         }
 
-                        std::string name = entry.m_crypt->ReadName(header);
-                        // todo: temporary test
-                        if (name == "") {
-                            header.position = dir_offset;
-                        }
+                        Logger::log("%s", name.c_str());
+                        
 
                         if (filename_map.Count() > 0) name = filename_map.Get(entry.m_hash, name);
                         if (name.size() > 0x100)
                         {
-                            header.position = dir_offset;
+                            goto NextEntry;
                         }
                         entry.name = name;
+                        break;
                     }
                 
                     // "segm"
                     case 0x6d676573: {
-                        int segment_count = (int)(section_size / 0x1c);
+                        int32_t segment_count = section_size / 0x1c;
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
-                                bool compressed  = 0 != header.read<int32_t>();
+                                bool compressed = 0 != header.read<int32_t>();
                                 long segment_offset = base_offset + header.read<int64_t>();
-                                long segment_size   = header.read<int64_t>();
+                                long segment_size = header.read<int64_t>();
                                 long segment_packed_size = header.read<int64_t>();
                                 if (segment_offset > size || segment_packed_size > size) {
-                                    header.position = dir_offset;
+                                    goto NextEntry;
                                 }
                                 XP3Segment segment = {
                                     .IsCompressed = compressed,
@@ -237,13 +238,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                         }
                         break;
                     }
-                    
-                    
                     // "adlr"
                     case 0x726c6461: {
-                        if (4 == section_size) {
-                            uint32_t hash = header.read<uint32_t>();
-                            entry.m_hash = hash;
+                        if (section_size == 4) {
+                            entry.m_hash = header.read<uint32_t>();
                         }
                         break;
                     }
@@ -279,11 +277,18 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                 }
             }
         }
+        NextEntry:
+                header.position = dir_offset;
     }
     Logger::log("Finished reading %d bytes", header_stream.size());
     Logger::log("Entry count: %d", entries.size());
-    XP3Entry entry = entries.at(1);
-    Logger::log("Entry 0 name: %s", entry.name.c_str());
+    if (entries.size() > 0) {
+        XP3Entry entry = entries.at(0);
+        Logger::log("Entry 0 name: %s", entry.name.c_str());
+    } else {
+        Logger::error("No entries found!");
+    }
+
 
     return nullptr;
 }

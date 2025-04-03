@@ -1,5 +1,7 @@
 #pragma once
 
+#include <codecvt>
+
 #include "../xp3entry.h"
 
 class ICrypt {
@@ -11,14 +13,22 @@ class ICrypt {
         virtual uint8_t Decrypt(XP3Entry *entry, long offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(XP3Entry *entry, long offset, uint8_t value) = 0;
 
-        std::string ReadName(BinaryReader& header) {
-            int16_t name_size = header.read<int16_t>();  // Read a 16-bit integer
-        
+        std::u16string ReadName(BinaryReader& header) {
+            uint16_t name_size = header.read<uint16_t>();
             if (name_size > 0 && name_size <= 0x100) {
-                return header.ReadChars(name_size);
+                std::vector<char16_t> buffer(name_size);
+                for (int i = 0; i < name_size; ++i) {
+                    buffer[i] = header.read<char16_t>();
+                }
+                return std::u16string(buffer.begin(), buffer.end());
             }
         
-            return "";
+            return u"";
+        }
+
+        std::string UTF16ToUTF8(const std::u16string& utf16_str) {
+            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+            return converter.to_bytes(utf16_str);
         }
 };
 
