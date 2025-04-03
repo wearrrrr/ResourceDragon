@@ -285,6 +285,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     if (entries.size() > 0) {
         XP3Entry entry = entries.at(0);
         Logger::log("Entry 0 name: %s", entry.name.c_str());
+        Logger::log("Entry 0 size: %d", entry.size);
     } else {
         Logger::error("No entries found!");
     }
