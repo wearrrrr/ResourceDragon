@@ -19,7 +19,7 @@ uint32_t FindString(unsigned char *section_base, size_t section_size, const std:
 }
 
 
-ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size)
+ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
 {
 
     ExeFile *exe = nullptr;

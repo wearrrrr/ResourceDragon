@@ -153,7 +153,12 @@ void HandleFileClick(DirectoryNode& node)
 
     if (format != nullptr) {
         printf("Format: %s\n", format->getTag().c_str());
-        ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size);
+        ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size, node.FileName);
+        if (arc == nullptr) {
+            Logger::error("Failed to open archive: %s! Attempted to open as: %s", node.FileName.c_str(), format->getTag().c_str());
+            free(buffer);
+            return;
+        }
         fs::remove_all("decrypt/");
         fs::create_directory("decrypt");
 

@@ -73,6 +73,7 @@ void RenderPreviewContextMenu(ImGuiIO *io) {
 
 int main(int argc, char* argv[]) {
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
+    extractor_manager.registerFormat(std::make_unique<XP3Format>());
 
     std::string path;
     if (argc < 2) {

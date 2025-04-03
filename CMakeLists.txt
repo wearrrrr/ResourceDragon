@@ -9,6 +9,8 @@ project(ResourceDragon VERSION 0.1)
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
+find_package(ZLIB REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
@@ -47,6 +49,7 @@ add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
 
+    src/BinaryReader.h
     src/common.h
 
     src/ExtractorManager.h
@@ -60,6 +63,11 @@ add_executable(ResourceDragon
 
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
+    
+    src/ArchiveFormats/XP3/Crypt/Crypt.h
+    src/ArchiveFormats/XP3/Crypt/Crypt.cpp
+    src/ArchiveFormats/XP3/xp3.h
+    src/ArchiveFormats/XP3/xp3.cpp
 
     src/GUI/Audio.h
     src/GUI/Audio.cpp
@@ -90,4 +98,4 @@ set(OPENGL_LIB_NAME opengl32)
 set(FREETYPE "")
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer ${OPENGL_LIB_NAME})
+target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer OpenSSL::SSL ${OPENGL_LIB_NAME})

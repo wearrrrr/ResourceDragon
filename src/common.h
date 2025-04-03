@@ -12,6 +12,7 @@
 #include "imgui_impl_opengl3.h"
 
 #include "ArchiveFormats/HSP/hsp.h"
+#include "ArchiveFormats/XP3/xp3.h"
 #include "ExtractorManager.h"
 
 #include "GUI/Audio.h"

@@ -9,3 +9,9 @@ struct Entry {
     uint32_t offset;
     uint32_t size;
 };
+
+struct PackedEntry : Entry
+{
+    uint32_t UnpackedSize;
+    bool IsPacked;
+};

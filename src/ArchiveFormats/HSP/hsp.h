@@ -48,8 +48,6 @@ class HSPArchive : public ArchiveFormat {
 
         uint32_t DefaultKey = 0xAC52AE58;
 
-        unsigned char *buffer;
-
         std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
 
         HSPArchive() {
@@ -59,7 +57,7 @@ class HSPArchive : public ArchiveFormat {
         
         uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
         
-        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size) override;
+        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
         bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
         std::string getTag() const override {
             return this->tag;
