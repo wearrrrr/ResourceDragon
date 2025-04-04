@@ -16,7 +16,7 @@ class DPMArchive : public ArchiveBase {
             seed_1 = 0xAA;
             seed_2 = 0x55;
         };
-        DPMArchive(std::vector<Entry> &entries, uint32_t arc_key, size_t dpm_size) {
+        DPMArchive(std::vector<Entry> entries, uint32_t arc_key, size_t dpm_size) {
             seed_1 = ((((arc_key >> 16) & 0xFF) * (arc_key & 0xFF) / 3) ^ dpm_size);
             seed_2 = ((((arc_key >> 8)  & 0xFF) * ((arc_key >> 24) & 0xFF) / 5) ^ dpm_size ^ 0xAA);
             this->entries = entries;

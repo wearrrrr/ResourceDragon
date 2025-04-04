@@ -9,7 +9,6 @@
 
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"
-#include "xp3entry.h"
 #include "Crypt/Crypt.h"
 #include "zlib.h"
 
@@ -46,6 +45,10 @@ class XP3Format : public ArchiveFormat {
 
 class XP3Archive : public ArchiveBase {
     public:
+        XP3Archive(std::vector<Entry> entries) {
+            this->entries = entries;
+        };
+
         const char *OpenStream(const Entry &entry, unsigned char *buffer) override;
         std::vector<Entry> GetEntries() override;
 };

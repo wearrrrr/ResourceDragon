@@ -142,6 +142,22 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval; // continue timer
 }
 
+bool CreateDirectoryRecursive(std::string const & dirName, std::error_code & err)
+{
+    err.clear();
+    if (!std::filesystem::create_directories(dirName, err))
+    {
+        if (std::filesystem::exists(dirName))
+        {
+            // The folder already exists:
+            err.clear();
+            return true;    
+        }
+        return false;
+    }
+    return true;
+}
+
 void HandleFileClick(DirectoryNode& node)
 {
     std::string filename = node.FileName;
@@ -165,6 +181,18 @@ void HandleFileClick(DirectoryNode& node)
         for (int i = 0; i < arc->entries.size(); i++) {
             Entry entry = arc->entries.at(i);
             const char *data = arc->OpenStream(entry, buffer);
+
+            // Create directory from entry.name if it doesn't exist
+            fs::path entryPath(entry.name);
+            if (entryPath.has_parent_path()) {
+                std::string parentDir = entryPath.parent_path().string();
+                std::error_code err;
+                if (!CreateDirectoryRecursive("decrypt/" + parentDir, err)) {
+                    Logger::error("Failed to create directory: %s", err.message().c_str());
+                    continue;
+                }
+            }
+            
             std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
             outFile.write((const char*)data, entry.size);
             outFile.close();
