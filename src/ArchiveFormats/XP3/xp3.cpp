@@ -295,7 +295,6 @@ static std::vector<uint8_t> stream;
 const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
 {
     stream.clear();
-    Logger::log("Entry segments count: %d", entry.segments.size());
     if (entry.segments.size() == 1 && !entry.isEncrypted) {
 
         Segment segment = entry.segments.at(0);
@@ -317,7 +316,30 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
         }
 
         return entry.crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
-    }
+    } 
+    // spaghetti garbage, doesn't work
+    // else {
+    //     std::vector<uint8_t> buffer_stream;
+    //     buffer_stream.resize(entry.size);
+    //     stream.resize(entry.size);
+    //     int pos = 0;
+    //     int count = 1;
+    //     entry.crypt->Decrypt2((Entry*)&entry, entry.offset, buffer_stream, pos, count);
+
+    //     if (entry.isPacked) {
+    //         uLongf decompressed_size = (uLongf)(entry.size);
+    //         uLongf compressed_size = (uLongf)(entry.packedSize);
+    //         if (uncompress(stream.data(), &decompressed_size, stream.data(), compressed_size) != Z_OK) {
+    //             Logger::error("XP3: Failed to decompress entry!");
+    //             return nullptr;
+    //         }
+    //         if (decompressed_size != entry.size) {
+    //             Logger::error("XP3: Decompressed size does not match entry size!");
+    //             return nullptr;
+    //         }
+    //     }
+    //     return entry.crypt->EntryReadFilter(entry, (const char*)buffer_stream.data(), buffer_stream.size());
+    // }
 
     return nullptr;
 }

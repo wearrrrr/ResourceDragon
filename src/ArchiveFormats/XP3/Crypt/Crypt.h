@@ -9,6 +9,7 @@ class XP3Crypt {
         bool StartupTjsNotEncrypted = false;
         bool ObfuscatedIndex = false;
 
+        virtual std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
         virtual uint8_t Decrypt(Entry *entry, long offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(Entry *entry, long offset, uint8_t value) = 0;
 
@@ -37,12 +38,25 @@ class XP3Crypt {
 
         const char* EntryReadFilter(Entry entry, const char *input, size_t size) {
             // Post processing of the entry data, before being returned by OpenStream
+            uint8_t header[5];
+            memcpy(header, input, 5);
+            uint32_t header_value = 0;
+            for (int i = 0; i < 5; ++i) {
+                header_value |= (header[i] << (i * 8));
+            }
+            Logger::log("XP3: Header value: %08X", header_value);
+
+
             return input;
         }
 };
 
 class NoCrypt : public XP3Crypt {
     public:
+        std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) override {
+            return buffer;
+        }
+
         uint8_t Decrypt(Entry *entry, long offset, uint8_t value) override {
             return value;
         }
@@ -60,7 +74,7 @@ class HibikiCrypt : XP3Crypt {
                 return (uint8_t)(value ^ (entry->hash >> 8));
         }
 
-        void Decrypt(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) {
+        std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
             for (int i = 0; i < count; ++i, ++offset)
@@ -70,6 +84,7 @@ class HibikiCrypt : XP3Crypt {
                 else
                     buffer[pos+i] ^= key2;
             }
+            return buffer;
         }
 
         // no-op
