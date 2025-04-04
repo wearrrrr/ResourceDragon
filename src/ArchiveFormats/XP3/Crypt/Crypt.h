@@ -9,9 +9,9 @@ class XP3Crypt {
         bool StartupTjsNotEncrypted = false;
         bool ObfuscatedIndex = false;
 
-        virtual std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
-        virtual uint8_t Decrypt(Entry *entry, long offset, uint8_t value) = 0;
-        virtual uint8_t Encrypt(Entry *entry, long offset, uint8_t value) = 0;
+        virtual std::vector<uint8_t> Decrypt(Entry *entry, uint32_t offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
+        virtual uint8_t Decrypt(Entry *entry, uint32_t offset, uint8_t value) = 0;
+        virtual uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) = 0;
 
         std::u16string ReadName(BinaryReader& header) {
             uint16_t name_size = header.read<uint16_t>();
@@ -40,10 +40,7 @@ class XP3Crypt {
             // Post processing of the entry data, before being returned by OpenStream
             uint8_t header[5];
             memcpy(header, input, 5);
-            uint32_t header_value = 0;
-            for (int i = 0; i < 5; ++i) {
-                header_value |= (header[i] << (i * 8));
-            }
+            uint32_t header_value = *(uint32_t*)header;
             Logger::log("XP3: Header value: %08X", header_value);
 
 
@@ -53,28 +50,28 @@ class XP3Crypt {
 
 class NoCrypt : public XP3Crypt {
     public:
-        std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        std::vector<uint8_t> Decrypt(Entry *entry, uint32_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             return buffer;
         }
 
-        uint8_t Decrypt(Entry *entry, long offset, uint8_t value) override {
+        uint8_t Decrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             return value;
         }
-        uint8_t Encrypt(Entry *entry, long offset, uint8_t value) override {
+        uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             return value;
         }
 };
 
 class HibikiCrypt : XP3Crypt {
     public:
-        uint8_t Decrypt(Entry *entry, long offset, uint8_t value) override {
+        uint8_t Decrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             if (0 != (offset & 4) || offset <= 0x64)
                 return (uint8_t)(value ^ (entry->hash >> 5));
             else
                 return (uint8_t)(value ^ (entry->hash >> 8));
         }
 
-        std::vector<uint8_t> Decrypt2(Entry *entry, long offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        std::vector<uint8_t> Decrypt(Entry *entry, uint32_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
             for (int i = 0; i < count; ++i, ++offset)
@@ -88,7 +85,7 @@ class HibikiCrypt : XP3Crypt {
         }
 
         // no-op
-        uint8_t Encrypt(Entry *entry, long offset, uint8_t value) override {
+        uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             return value;
         }
 };

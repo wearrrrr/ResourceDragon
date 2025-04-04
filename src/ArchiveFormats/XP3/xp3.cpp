@@ -3,7 +3,7 @@
 // TODO! This will need a large refactor, especially since I am planning on greatly changing how TryOpen works in the future.
 // For now, this will hardcode returning 
 
-static XP3Crypt *ALG_DEFAULT = (XP3Crypt*)new NoCrypt();
+static XP3Crypt *ALG_DEFAULT = (XP3Crypt*)new HibikiCrypt();
 
 XP3Crypt *GuessCryptAlgorithm(unsigned char *buffer, uint32_t size, std::string file_name) {
     return nullptr;
@@ -317,29 +317,13 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
 
         return entry.crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
     } 
-    // spaghetti garbage, doesn't work
-    // else {
-    //     std::vector<uint8_t> buffer_stream;
-    //     buffer_stream.resize(entry.size);
-    //     stream.resize(entry.size);
-    //     int pos = 0;
-    //     int count = 1;
-    //     entry.crypt->Decrypt2((Entry*)&entry, entry.offset, buffer_stream, pos, count);
-
-    //     if (entry.isPacked) {
-    //         uLongf decompressed_size = (uLongf)(entry.size);
-    //         uLongf compressed_size = (uLongf)(entry.packedSize);
-    //         if (uncompress(stream.data(), &decompressed_size, stream.data(), compressed_size) != Z_OK) {
-    //             Logger::error("XP3: Failed to decompress entry!");
-    //             return nullptr;
-    //         }
-    //         if (decompressed_size != entry.size) {
-    //             Logger::error("XP3: Decompressed size does not match entry size!");
-    //             return nullptr;
-    //         }
-    //     }
-    //     return entry.crypt->EntryReadFilter(entry, (const char*)buffer_stream.data(), buffer_stream.size());
-    // }
+    else {
+        // Encrypted entries
+        stream.resize(entry.size);
+        memcpy(stream.data(), buffer + entry.offset, entry.size);
+        entry.crypt->Decrypt((Entry*)&entry, entry.offset, stream, 0, stream.size());
+        return entry.crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
+    }
 
     return nullptr;
 }
