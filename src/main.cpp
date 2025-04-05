@@ -1,5 +1,4 @@
 #include "common.h"
-#include <iostream>
 
 #define DEBUG
 
@@ -48,6 +47,10 @@ void RenderFBContextMenu(ImGuiIO *io) {
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
             fs::remove_all(selectedItem.FullPath);
+            // Check if the file we are trying to delete is the currently selected file
+            if (selectedItem.FullPath == preview_state.contents.path) {
+                UnloadSelectedFile();
+            }
             ReloadRootNode(rootNode);
             ImGui::CloseCurrentPopup();
         }
@@ -83,6 +86,41 @@ int main(int argc, char* argv[]) {
     }
 
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
+
+    #ifdef linux
+    // Add inotify watch
+    inotify_fd = inotify_init();
+    if (inotify_fd < 0) {
+        std::cerr << "Error: inotify_init() failed" << std::endl;
+        return -1;
+    }
+    inotify_wd = inotify_add_watch(inotify_fd, path.c_str(), IN_MODIFY | IN_CREATE | IN_DELETE);
+    if (inotify_wd < 0) {
+        std::cerr << "Error: inotify_add_watch() failed" << std::endl;
+        close(inotify_fd);
+        return -1;
+    }
+    std::atomic<bool> inotify_running{true};
+    std::thread inotify_thread([&]() {
+        char buffer[1024];
+        while (inotify_running) {
+            int length = read(inotify_fd, buffer, sizeof(buffer));
+            if (length < 0) {
+                std::cerr << "Error: read() failed" << std::endl;
+                break;
+            }
+            int i = 0;
+            while (i < length) {
+                struct inotify_event *event = (struct inotify_event *)&buffer[i];
+                if (event->mask & (IN_MODIFY | IN_CREATE | IN_DELETE)) {
+                    ReloadRootNode(rootNode);
+                }
+                i += EVENT_SIZE + event->len;
+            }
+        }
+    });
+    inotify_thread.detach();
+    #endif
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
@@ -391,9 +429,16 @@ int main(int argc, char* argv[]) {
         SDL_GL_SwapWindow(window);
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
+
+    #ifdef linux
+    inotify_running = false;
+    close(inotify_fd);
+    #endif
     
     return 0;
 }

@@ -122,6 +122,14 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 {
     fs::path newRootPath(node.FullPath);
 
+    #ifdef linux
+    // Update inode watch
+    if (inotify_fd >= 0) {
+        inotify_rm_watch(inotify_fd, inotify_wd);
+        inotify_wd = inotify_add_watch(inotify_fd, newRootPath.c_str(), IN_MODIFY | IN_CREATE | IN_DELETE);
+    }
+    #endif
+
     if (node.FileName == "..") {
         fs::path parentPath = fs::path(rootNode.FullPath).parent_path();
         if (parentPath != fs::path(rootNode.FullPath)) {

@@ -7,6 +7,13 @@
 #include <string>
 #include <vector>
 
+#ifdef linux
+#include <atomic>
+#include <sys/inotify.h>
+#define EVENT_SIZE  (sizeof (struct inotify_event))
+#include <thread>
+#endif
+
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
@@ -96,3 +103,6 @@ inline PreviewWinState preview_state = {
 inline ExtractorManager extractor_manager;
 
 inline TextEditor editor;
+
+inline int inotify_fd;
+inline int inotify_wd;
