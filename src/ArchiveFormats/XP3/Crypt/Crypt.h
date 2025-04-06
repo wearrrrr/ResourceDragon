@@ -12,6 +12,12 @@ class XP3Crypt {
         virtual uint8_t Decrypt(Entry *entry, uint32_t offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) = 0;
 
+        virtual ~XP3Crypt() = default;
+
+        virtual std::string GetCryptName() {
+            return "Default (BAD!!)";
+        }
+
         std::u16string ReadName(BinaryReader& header) {
             uint16_t name_size = header.read<uint16_t>();
             if (name_size > 0 && name_size <= 0x100) {
@@ -37,9 +43,11 @@ class XP3Crypt {
         }
 };
 
+
 class NoCrypt : public XP3Crypt {
     public:
         std::vector<uint8_t> Decrypt(Entry *entry, uint32_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+            Logger::log("NoCrypt: Decrypting %d bytes at offset %d", count, offset);
             return buffer;
         }
 
@@ -48,6 +56,10 @@ class NoCrypt : public XP3Crypt {
         }
         uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             return value;
+        }
+
+        std::string GetCryptName() override {
+            return "NoCrypt";
         }
 };
 
@@ -63,9 +75,9 @@ class HibikiCrypt : XP3Crypt {
         std::vector<uint8_t> Decrypt(Entry *entry, uint32_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
-            for (int i = 0; i < count; ++i, ++offset)
-            {
-                if (0 != (offset & 4) || offset <= 0x64)
+            for (int i = 0; i < count; i++) {
+                offset++;
+                if ((offset & 4) != 0 || offset <= 0x64)
                     buffer[pos+i] ^= key1;
                 else
                     buffer[pos+i] ^= key2;
@@ -76,5 +88,9 @@ class HibikiCrypt : XP3Crypt {
         // no-op
         uint8_t Encrypt(Entry *entry, uint32_t offset, uint8_t value) override {
             return value;
+        }
+
+        std::string GetCryptName() override {
+            return "Hibiki";
         }
 };

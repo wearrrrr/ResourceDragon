@@ -207,6 +207,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                             goto NextEntry;
                         }
                         entry.name = name;
+                        // entry.isEncrypted = true;
                         break;
                     }
                 
@@ -215,10 +216,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                         int32_t segment_count = section_size / 0x1c;
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
-                                bool compressed = 0 != header.read<int32_t>();
+                                bool compressed = header.read<int32_t>() != 0;
                                 uint32_t segment_offset = base_offset + header.read<int64_t>();
-                                long segment_size = header.read<int64_t>();
-                                long segment_packed_size = header.read<int64_t>();
+                                uint64_t segment_size = header.read<int64_t>();
+                                uint64_t segment_packed_size = header.read<int64_t>();
                                 if (segment_offset > size || segment_packed_size > size) {
                                     goto NextEntry;
                                 }
@@ -237,7 +238,8 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                     // "adlr"
                     case 0x726c6461: {
                         if (section_size == 4) {
-                            entry.hash = header.read<uint32_t>();
+                            uint32_t hash = header.read<uint32_t>();
+                            entry.hash = hash;
                         }
                         break;
                     }
@@ -254,6 +256,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                 }
                 entries.push_back(entry);
             }
+        }
+        else if ((entry_signature >> 24) == 0x3A)
+        {
+            Logger::log("XP3: Found Yuzu entry! %08X, These are unsupported...", entry_signature);
         }
         else if (entry_size > 7)
         {
@@ -296,7 +302,6 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
 {
     stream.clear();
     if (entry.segments.size() == 1 && !entry.isEncrypted) {
-
         Segment segment = entry.segments.at(0);
         if (segment.IsCompressed) {
             stream.resize(segment.Size);
@@ -321,8 +326,8 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
         // Encrypted entries
         stream.resize(entry.size);
         memcpy(stream.data(), buffer + entry.offset, entry.size);
-        entry.crypt->Decrypt((Entry*)&entry, entry.offset, stream, 0, stream.size());
-        return entry.crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
+        std::vector<uint8_t> decrypted = entry.crypt->Decrypt((Entry*)&entry, entry.offset, stream, 0, stream.size());
+        return entry.crypt->EntryReadFilter(entry, (const char*)decrypted.data(), decrypted.size());
     }
 
     return nullptr;

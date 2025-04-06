@@ -65,7 +65,6 @@ add_executable(ResourceDragon
     src/ArchiveFormats/HSP/hsp.cpp
     
     src/ArchiveFormats/XP3/Crypt/Crypt.h
-    src/ArchiveFormats/XP3/Crypt/Crypt.cpp
     src/ArchiveFormats/XP3/xp3.h
     src/ArchiveFormats/XP3/xp3.cpp
 
