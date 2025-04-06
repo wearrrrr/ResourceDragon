@@ -195,7 +195,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                         // TODO: change this to use inferred crypt
                         entry.crypt = ALG_DEFAULT;
 
-                        std::string name = entry.crypt->UTF16ToUTF8(entry.crypt->ReadName(header));
+                        std::string name = TextConverter::UTF16ToUTF8(entry.crypt->ReadName(header));
                         if (name == "") {
                             goto NextEntry;
                         }

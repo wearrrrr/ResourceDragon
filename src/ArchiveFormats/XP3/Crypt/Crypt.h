@@ -1,6 +1,5 @@
 #pragma once
 
-#include <codecvt>
 #include "../../../GameRes/Entry.h"
 
 class XP3Crypt {
@@ -24,16 +23,6 @@ class XP3Crypt {
             }
         
             return u"";
-        }
-
-        std::string UTF16ToUTF8(const std::u16string& utf16_str) {
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-            return converter.to_bytes(utf16_str);
-        }
-
-        std::u16string UTF8ToUTF16(const std::string& utf8_str) {
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-            return converter.from_bytes(utf8_str);
         }
 
         const char* EntryReadFilter(Entry entry, const char *input, size_t size) {

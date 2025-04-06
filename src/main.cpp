@@ -162,6 +162,8 @@ int main(int argc, char* argv[]) {
     
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
+    // Add U+203B (Reference Mark) as a valid character
+    range.AddChar(0x203B);
     range.BuildRanges(&gr);
 
     #ifdef WIN32

@@ -85,6 +85,7 @@ add_executable(ResourceDragon
     src/GUI/Utils.cpp
 
     src/util/Logger.h
+    src/util/Text.h
     
 )
 

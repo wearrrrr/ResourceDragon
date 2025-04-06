@@ -9,6 +9,7 @@
 
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"
+#include "../../util/Text.h"
 #include "Crypt/Crypt.h"
 #include "zlib.h"
 

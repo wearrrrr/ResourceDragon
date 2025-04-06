@@ -245,7 +245,12 @@ void HandleFileClick(DirectoryNode& node)
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
         } else {
-            editor.SetText(preview_state.contents.data.data());
+            // Check start of file for UTF16LE BOM
+            if (preview_state.contents.data.size() >= 2 && preview_state.contents.data[0] == '\xFF' && preview_state.contents.data[1] == '\xFE') {
+                // UTF16LE BOM found, We need to convert the data to UTF-8
+                preview_state.contents.data = TextConverter::UTF16LEToUTF8(preview_state.contents.data);
+            }
+            editor.SetText(preview_state.contents.data);
             editor.SetTextChanged(false);
             editor.SetColorizerEnable(false);
         }
