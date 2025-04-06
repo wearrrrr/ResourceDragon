@@ -6,7 +6,7 @@ typedef struct XP3Crypt XP3Crypt;
 
 struct Segment {
     bool IsCompressed;
-    uint32_t Offset;
+    int64_t Offset;
     uint32_t Size;
     uint32_t PackedSize;
 };

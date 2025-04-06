@@ -86,13 +86,13 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         Logger::error("XP3: Invalid file signature!");
         return nullptr;
     }
-    uint64_t dir_offset = *based_pointer<uint64_t>(buffer, base_offset + 0x0B);
+    uint64_t dir_offset = base_offset + *based_pointer<uint64_t>(buffer, base_offset + 0x0B);
     if (dir_offset < 0x13 || dir_offset >= size) {
         Logger::error("XP3: Directory offset is invalid!");
         return nullptr;
     }
     if (*based_pointer<uint32_t>(buffer, dir_offset) == 0x80) {
-        dir_offset = base_offset + *based_pointer<uint32_t>(buffer, dir_offset + 0x9);
+        dir_offset = base_offset + *based_pointer<int64_t>(buffer, dir_offset + 0x9);
         if (dir_offset < 0x13) {
             Logger::error("XP3: Directory offset is invalid!");
             return nullptr;
@@ -115,7 +115,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             return nullptr;
         }
         header_stream.resize(header_size);
-        memcpy(header_stream.data(), buffer + dir_offset + 0x9, header_size);
+        memcpy(header_stream.data(), buffer + dir_offset + 0x9, (uint32_t)header_size);
     } else {
         uint64_t packed_size = *based_pointer<uint64_t>(buffer, dir_offset + 0x1);
         if (packed_size > std::numeric_limits<uint64_t>::max()) {
@@ -151,7 +151,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     BinaryReader header(header_stream);
     FilenameMap filename_map;
 
-    while (header.position < header.data.size() && header.peek().has_value()) {
+    while (header.peek().has_value()) {
         uint32_t entry_signature = header.read<uint32_t>();
         int64_t entry_size = header.read<int64_t>();
         if (entry_size < 0) return nullptr;
@@ -193,13 +193,21 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                         entry.packedSize = (uint32_t)packed_size;
 
                         // TODO: change this to use inferred crypt
-                        entry.crypt = ALG_DEFAULT;
+                        if (entry.isEncrypted) {
+                            entry.crypt = crypt;
+                        } else {
+                            entry.crypt = ALG_DEFAULT;
+                        }
 
                         std::string name = TextConverter::UTF16ToUTF8(entry.crypt->ReadName(header));
-                        if (name == "") {
+                        if (name.empty()) {
                             goto NextEntry;
                         }
                         
+                        // TODO: Add obfuscation regex check.
+                        if (entry.crypt->ObfuscatedIndex && false) {
+                            goto NextEntry;
+                        }
 
                         if (filename_map.Count() > 0) name = filename_map.Get(entry.hash, name);
                         if (name.size() > 0x100)
@@ -217,9 +225,10 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
                                 bool compressed = header.read<int32_t>() != 0;
-                                uint32_t segment_offset = base_offset + header.read<int64_t>();
-                                uint64_t segment_size = header.read<int64_t>();
-                                uint64_t segment_packed_size = header.read<int64_t>();
+                                int64_t segment_offset = base_offset + header.read<int64_t>();
+                                Logger::log("Segment offset: %d", segment_offset);
+                                int64_t segment_size = header.read<int64_t>();
+                                int64_t segment_packed_size = header.read<int64_t>();
                                 if (segment_offset > size || segment_packed_size > size) {
                                     goto NextEntry;
                                 }
@@ -259,7 +268,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         }
         else if ((entry_signature >> 24) == 0x3A)
         {
-            Logger::log("XP3: Found Yuzu entry! %08X, These are unsupported...", entry_signature);
+            Logger::log("XP3: Found Yuzu entry! %08X, These are unsupported for now...", entry_signature);
         }
         else if (entry_size > 7)
         {
@@ -267,7 +276,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             // 0x6C696D73 == entry_signature    // "smil"
             // 0x46696C65 == entry_signature    // "eliF"
             // 0x757A7559 == entry_signature    // "Yuzu"
-            uint hash = header.read<uint32_t>();
+            uint32_t hash = header.read<uint32_t>();
             int name_size = header.read<int16_t>();
             if (name_size > 0)
             {
@@ -280,7 +289,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             }
         }
         NextEntry:
-                header.position = dir_offset;
+            header.position = dir_offset;
     }
     Logger::log("Finished reading %d bytes", header_stream.size());
     Logger::log("Entry count: %d", entries.size());
@@ -304,6 +313,7 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
     if (entry.segments.size() == 1 && !entry.isEncrypted) {
         Segment segment = entry.segments.at(0);
         if (segment.IsCompressed) {
+            Logger::log("Compressed header!");
             stream.resize(segment.Size);
             uLongf decompressed_size = (uLongf)(segment.Size);
             uLongf compressed_size = (uLongf)(segment.PackedSize);

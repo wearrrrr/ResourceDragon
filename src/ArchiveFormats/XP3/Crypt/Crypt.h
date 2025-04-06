@@ -19,11 +19,11 @@ class XP3Crypt {
         }
 
         std::u16string ReadName(BinaryReader& header) {
-            uint16_t name_size = header.read<uint16_t>();
+            int16_t name_size = header.read<int16_t>();
             if (name_size > 0 && name_size <= 0x100) {
-                std::vector<char16_t> buffer(name_size);
+                std::vector<int16_t> buffer(name_size);
                 for (int i = 0; i < name_size; ++i) {
-                    buffer[i] = header.read<char16_t>();
+                    buffer[i] = header.read<int16_t>();
                 }
                 return std::u16string(buffer.begin(), buffer.end());
             }
@@ -36,7 +36,7 @@ class XP3Crypt {
             uint8_t header[5];
             memcpy(header, input, 5);
             uint32_t header_value = *(uint32_t*)header;
-            Logger::log("XP3: Header value: %08X", header_value);
+            // Logger::log("XP3: Header value: %08X", header_value);
 
 
             return input;
