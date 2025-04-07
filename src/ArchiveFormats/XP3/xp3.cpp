@@ -226,7 +226,6 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
                             for (int i = 0; i < segment_count; ++i) {
                                 bool compressed = header.read<int32_t>() != 0;
                                 int64_t segment_offset = base_offset + header.read<int64_t>();
-                                Logger::log("Segment offset: %d", segment_offset);
                                 int64_t segment_size = header.read<int64_t>();
                                 int64_t segment_packed_size = header.read<int64_t>();
                                 if (segment_offset > size || segment_packed_size > size) {
@@ -291,14 +290,9 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         NextEntry:
             header.position = dir_offset;
     }
-    Logger::log("Finished reading %d bytes", header_stream.size());
-    Logger::log("Entry count: %d", entries.size());
-    if (entries.size() > 0) {
-        Entry entry = entries.at(0);
-        Logger::log("Entry 0 name: %s", entry.name.c_str());
-        Logger::log("Entry 0 size: %d", entry.size);
-    } else {
+    if (entries.size() < 0) {
         Logger::error("No entries found!");
+        return nullptr;
     }
 
 

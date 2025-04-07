@@ -26,6 +26,7 @@ std::string Utils::GetLastModifiedTime(const std::string& fpath)
     } catch (const fs::filesystem_error& e) {
         return "N/A";
     }
+    return "N/A";
 }
 
 

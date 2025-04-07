@@ -2,7 +2,7 @@
 
 #include <string>
 
-typedef struct XP3Crypt XP3Crypt;
+typedef class XP3Crypt XP3Crypt;
 
 struct Segment {
     bool IsCompressed;

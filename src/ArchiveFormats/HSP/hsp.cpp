@@ -24,8 +24,8 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
 
     ExeFile *exe = nullptr;
 
-    uint32_t dpmx_offset;
-    uint32_t arc_key;
+    uint32_t dpmx_offset = 0;
+    uint32_t arc_key = 0;
     bool is_pe = ExeFile::SigCheck(buffer);
 
     // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.

@@ -33,12 +33,6 @@ class XP3Crypt {
 
         const char* EntryReadFilter(Entry entry, const char *input, size_t size) {
             // Post processing of the entry data, before being returned by OpenStream
-            uint8_t header[5];
-            memcpy(header, input, 5);
-            uint32_t header_value = *(uint32_t*)header;
-            // Logger::log("XP3: Header value: %08X", header_value);
-
-
             return input;
         }
 };
