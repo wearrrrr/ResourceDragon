@@ -42,7 +42,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
 
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
-    if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem.FileName.length() > 0 ? selectedItem.FileName.c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
@@ -69,6 +69,28 @@ void RenderPreviewContextMenu(ImGuiIO *io) {
         }
         if (ImGui::MenuItem("Save...")) {
             ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+}
+
+void RenderErrorPopup(ImGuiIO *io) {
+    ImGui::SetNextWindowSize({600, 250});
+    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
+    if (ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::TextWrapped("%s", ui_error.message.c_str());
+        ImGui::Text("Press escape to close.");
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ui_error.show = false;
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Close", {100, 0})) {
+            ui_error.show = false;
+            ImGui::CloseCurrentPopup();
+        } 
+        ImGui::SameLine();
+        if (ImGui::Button("Copy to Clipboard", {175, 0})) {
+            ImGui::SetClipboardText(ui_error.message.c_str());
         }
         ImGui::EndPopup();
     }
@@ -246,6 +268,11 @@ int main(int argc, char* argv[]) {
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             RenderFBContextMenu(&io);
+            RenderErrorPopup(&io);
+            if (ui_error.show) {
+                ImGui::OpenPopup("Error");
+                ui_error.show = false;
+            }
             DisplayDirectoryNode(rootNode, rootNode, true);
         }
 

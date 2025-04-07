@@ -82,14 +82,23 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
             {
                 if (a.FileName == "..") return true;
                 if (b.FileName == "..") return false;
-                if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
-                return Utils::ToLower(a.FileName) < Utils::ToLower(b.FileName);
+                    if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
+                    return Utils::ToLower(a.FileName) < Utils::ToLower(b.FileName);
+                }
+            );
+        }
+        catch (const fs::filesystem_error& e)
+        {
+            const char* errorMessage = e.what();
+            printf("Error accessing directory: %s\n", errorMessage);
+            // Force the user out to avoid weird behavior
+            if (parentNode.FullPath != rootNode.FullPath) {
+                parentNode = rootNode;
             }
-        );
-    }
-    catch (const fs::filesystem_error& e)
-    {
-        printf("Error accessing directory: %s\n", e.what());
+            // Show errorMessage in the GUI
+            ui_error.message = errorMessage;
+            ui_error.title = "Error accessing directory!";
+            ui_error.show = true;
     }
 }
 
@@ -279,7 +288,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 
     if (isRoot) { 
         nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
-        ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing()); 
+        ImGui::Unindent(30.0f); 
     };
 
     bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);

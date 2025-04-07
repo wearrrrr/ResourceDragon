@@ -70,8 +70,11 @@ struct PreviewWinState {
     PWinStateAudio audio;
     PWinStateTexture texture;
 };
-
-
+struct UIError {
+    std::string message;
+    std::string title;
+    bool show = false;
+};
 
 inline PreviewWinState preview_state = {
     .content_type = "",
@@ -104,5 +107,14 @@ inline ExtractorManager extractor_manager;
 
 inline TextEditor editor;
 
+inline UIError ui_error = {
+    .message = "",
+    .title = "",
+    .show = false
+};
+
+#ifdef linux
 inline int inotify_fd;
 inline int inotify_wd;
+#endif
+
