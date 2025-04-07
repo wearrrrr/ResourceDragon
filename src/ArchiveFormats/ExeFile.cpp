@@ -31,7 +31,6 @@ std::map<std::string, Pe32SectionHeader> ExeFile::ParseSectionHeaders() {
     uint32_t pe_offset = GetPEOffset(raw_contents);
 	
     PeHeader *pe_header = based_pointer<PeHeader>(raw_contents, pe_offset);
-    Pe32OptionalHeader *optional_header = based_pointer<Pe32OptionalHeader>(raw_contents, pe_offset + sizeof(PeHeader));
     uint32_t section_headers_offset = pe_offset + sizeof(PeHeader) + pe_header->mSizeOfOptionalHeader;
     
 	for (uint16_t i = 0; i < pe_header->mNumberOfSections; i++) {

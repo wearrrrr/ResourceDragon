@@ -86,7 +86,9 @@ class ExeFile {
 			raw_contents = buffer;
 			sections = ParseSectionHeaders();
 			header = GetPEHeader();
-			opt_header = GetPEOptionalHeader();
+		}
+		~ExeFile() {
+			delete[] raw_contents;
 		}
 
 		bool ContainsSection(std::string section_name);
