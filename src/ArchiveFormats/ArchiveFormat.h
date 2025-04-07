@@ -40,11 +40,11 @@ class ArchiveFormat {
         string description = "????? Resource Archive";
         uint32_t sig = 0x00000000;
 
-        uint32_t ReadUint32(unsigned char *buffer, uint32_t offset) {
+        uint32_t ReadUint32(unsigned char *buffer, uint64_t offset) {
             return *based_pointer<uint32_t>(buffer, offset);
         }
 
-        std::string ReadString(unsigned char *buffer, uint32_t offset, size_t read_amount) {
+        std::string ReadString(unsigned char *buffer, uint64_t offset, size_t read_amount) {
             std::string constructed = "";
             constructed.append(based_pointer<char>(buffer, offset));
 

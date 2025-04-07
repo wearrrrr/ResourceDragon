@@ -3,7 +3,7 @@
 // TODO! This will need a large refactor, especially since I am planning on greatly changing how TryOpen works in the future.
 // For now, this will hardcode returning 
 
-static XP3Crypt *ALG_DEFAULT = (XP3Crypt*)new HibikiCrypt();
+static XP3Crypt *ALG_DEFAULT = (XP3Crypt*)new AkabeiCrypt();
 
 XP3Crypt *GuessCryptAlgorithm(unsigned char *buffer, uint32_t size, std::string file_name) {
     return nullptr;

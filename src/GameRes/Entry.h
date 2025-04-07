@@ -15,7 +15,7 @@ struct Entry {
     std::string name;
     std::string type;
     uint32_t key;
-    uint32_t offset;
+    uint64_t offset;
     uint32_t size;
 
     uint32_t packedSize;
