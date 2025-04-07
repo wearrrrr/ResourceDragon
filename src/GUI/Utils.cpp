@@ -9,21 +9,20 @@ std::string Utils::ToLower(const std::string& str)
 
 std::string Utils::GetLastModifiedTime(const std::string& fpath)
 {
-    using namespace std::chrono;
+    namespace chrono = std::chrono;
     try {
         auto ftime = fs::last_write_time(fpath);
-        auto sctp = std::chrono::time_point_cast<system_clock::duration>(
-            ftime - fs::file_time_type::clock::now() + system_clock::now()
+        auto sctp = chrono::time_point_cast<chrono::system_clock::duration>(
+            ftime - fs::file_time_type::clock::now() + chrono::system_clock::now()
         );
 
-        std::time_t tt = system_clock::to_time_t(sctp);
+        std::time_t tt = chrono::system_clock::to_time_t(sctp);
         std::tm* lt = std::localtime(&tt);
 
         char buffer[32];
         if (std::strftime(buffer, sizeof(buffer), "%m/%d/%y at %I:%M %p", lt)) {
             return std::string(buffer);
         }
-        return "N/A";
     } catch (const fs::filesystem_error& e) {
         return "N/A";
     }
