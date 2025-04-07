@@ -157,7 +157,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         if (entry_size < 0) return nullptr;
         dir_offset += 12 + entry_size;
 
-        if (PackUInt32('F', 'i', 'l', 'e') == entry_signature) {
+        if (entry_signature == PackUInt32('F', 'i', 'l', 'e')) {
             Entry entry = {};
             while (entry_size > 0) {
                 uint32_t section = header.read<uint32_t>();
@@ -313,7 +313,6 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
     if (entry.segments.size() == 1 && !entry.isEncrypted) {
         Segment segment = entry.segments.at(0);
         if (segment.IsCompressed) {
-            Logger::log("Compressed header!");
             stream.resize(segment.Size);
             uLongf decompressed_size = (uLongf)(segment.Size);
             uLongf compressed_size = (uLongf)(segment.PackedSize);
