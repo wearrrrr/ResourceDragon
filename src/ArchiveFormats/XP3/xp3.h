@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <openssl/evp.h>
+#include "../../md5.h"
 
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"

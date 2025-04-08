@@ -233,6 +233,18 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)))
                 running = false;
 
+            if (event.type == SDL_EVENT_DROP_FILE) {
+                const char* dropped_filedir = event.drop.data;
+                // Preview the dropped file
+                fs::path dropped_path = fs::path(dropped_filedir);
+                if (fs::exists(dropped_path)) {
+                    selectedItem = CreateDirectoryNodeTreeFromPath(dropped_path);
+                    HandleFileClick(selectedItem);
+                } else {
+                    Logger::error("Dropped file does not exist: %s", dropped_filedir);
+                }
+            }
+
             if (event.key.key == SDLK_F5) {
                 ReloadRootNode(rootNode);
             }

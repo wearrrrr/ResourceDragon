@@ -12,8 +12,18 @@ cp /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libstdc++-6.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libssp-0.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll ./
+cp /usr/x86_64-w64-mingw32/bin/zlib1.dll ./
 cp ../../8bitsf.SF2 ./
 
 cd ../../
 
-printf "\x1B[1;32mCompiled successfully!\n\x1B[1;30mOutput files are in $PWD/build-mingw/Win32/\n"
+if ! [ ! -f build-mingw/Win32/ResourceDragon.exe ]; then
+    printf "\x1B[1;32mCompiled successfully!\n\x1B[1;30mOutput files are in $PWD/build-mingw/Win32/\n"
+    exit 0
+else
+    printf "\x1B[1;31mBuild Failed!! Check the build output.\n"
+    exit -1
+fi
+
+
+

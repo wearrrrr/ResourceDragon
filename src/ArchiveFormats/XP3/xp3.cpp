@@ -23,22 +23,12 @@ class FilenameMap {
     private:
         std::unordered_map<uint32_t, std::string> m_hash_map;
         std::unordered_map<std::string, std::string> m_md5_map;
+        Chocobo1::MD5 m_md5;
     
         std::string GetMd5Hash(const std::string& text) {
-            unsigned char hash[EVP_MAX_MD_SIZE];
-            unsigned int hash_len;
-            
-            EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-            EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
-            EVP_DigestUpdate(ctx, text.c_str(), text.size());
-            EVP_DigestFinal_ex(ctx, hash, &hash_len);
-            EVP_MD_CTX_free(ctx);
-    
-            std::ostringstream oss;
-            for (unsigned int i = 0; i < hash_len; ++i) {
-                oss << std::hex << std::setw(2) << std::setfill('0') << (int)(hash[i]);
-            }
-            return oss.str();
+            m_md5.reset();
+            m_md5.addData(text.c_str(), text.size());
+            return m_md5.toString();
         }
     
     public:

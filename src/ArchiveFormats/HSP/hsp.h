@@ -30,7 +30,7 @@ class DPMArchive : public ArchiveBase {
             s1 = (seed_1 + ((entry_key >> 16) ^ (entry_key + s1)));
             s2 = (seed_2 + ((entry_key >> 24) ^ ((entry_key >> 8) + s2)));
             uint8_t val = 0;
-            for (int i = 0; i < data_size; i++) {
+            for (uint32_t i = 0; i < data_size; i++) {
                 val += (s1 ^ (data[i] - s2));
                 data[i] = val;
             }

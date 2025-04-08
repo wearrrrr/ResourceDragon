@@ -1,11 +1,14 @@
 #pragma once
 
 #include <string>
+#ifdef linux
 #include "iconv.h"
+#endif
 
 class TextConverter {
     public:
         static std::string UTF16ToUTF8(const std::u16string& utf16_str) {
+            #ifdef linux
             iconv_t cd = iconv_open("UTF-8", "UTF-16LE");
             if (cd == (iconv_t)-1) {
                 return "";
@@ -27,8 +30,13 @@ class TextConverter {
             delete[] out_buf;
             iconv_close(cd);
             return result;
+            #endif
+            #ifdef _WIN32
+            return "";
+            #endif
         }
         static std::u16string UTF8ToUTF16(const std::string& utf8_str) {
+            #ifdef linux
             iconv_t cd = iconv_open("UTF-16LE", "UTF-8");
             if (cd == (iconv_t)-1) {
                 return u"";
@@ -50,6 +58,10 @@ class TextConverter {
             delete[] out_buf;
             iconv_close(cd);
             return result;
+            #endif
+            #ifdef _WIN32
+            return u"";
+            #endif
         }
         static std::string UTF8ToUTF16LE(const std::string& utf8_str) {
             std::u16string utf16_str = UTF8ToUTF16(utf8_str);
