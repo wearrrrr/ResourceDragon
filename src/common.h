@@ -70,6 +70,7 @@ struct PreviewWinState {
             const Elf32_Header *elf32;
             const Elf64_Header *elf64;
         } elf_header;
+        ElfFile *elfFile;
     } contents;
     PWinStateAudio audio;
     PWinStateTexture texture;

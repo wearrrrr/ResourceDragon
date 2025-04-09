@@ -83,9 +83,9 @@ public:
         }
     };
     ~ElfFile() {
-        if (mFileStream) {
-            free((void*)mFileStream);
-        }
+        free(mFileStream);
+        mFileStream = nullptr;
+        mFileStreamSize = 0;
     };
 
     const Elf32_Header* GetElf32Header() const {

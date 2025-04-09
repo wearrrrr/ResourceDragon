@@ -248,6 +248,9 @@ int main(int argc, char* argv[]) {
             if (event.key.key == SDLK_F5) {
                 ReloadRootNode(rootNode);
             }
+            if ((event.key.mod & (SDL_KMOD_CTRL)) && event.key.key == SDLK_D) {
+                UnloadSelectedFile();
+            }
         }
         
         ImGui_ImplSDL3_NewFrame();
@@ -409,6 +412,17 @@ int main(int argc, char* argv[]) {
                             preview_state.audio.update_timer = 0;
 
                         }
+                    }
+                } else if (content_type == "elf") {
+                    ImGui::Text("Path: %s", preview_state.contents.path.c_str());
+                    ImGui::Text("ELF Class: %s", preview_state.contents.elfFile->GetElfClass().c_str());
+                    if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
+                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
+                    } else if (auto elfHeader = preview_state.contents.elfFile->GetElf64Header()) {
+                        ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
+
+                    } else {
+                        Logger::error("Failed to read ELF header!");
                     }
                 } else {
                     // TODO: handle different potential encodings

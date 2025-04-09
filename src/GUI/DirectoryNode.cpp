@@ -254,19 +254,20 @@ void HandleFileClick(DirectoryNode& node)
             }
         } else if (ElfFile::IsValid(node.FullPath)) {
             preview_state.content_type = "elf";
-            ElfFile elfFile(node.FullPath);
+            ElfFile *elfFile = new ElfFile(node.FullPath);
 
             Logger::log("ELF Header: ");
-            Logger::log("  Type: %s", elfFile.GetElfClass().c_str());
-            if (auto elfHeader = elfFile.GetElf32Header()) {
+            Logger::log("  Type: %s", elfFile->GetElfClass().c_str());
+            if (auto elfHeader = elfFile->GetElf32Header()) {
                 Logger::log("  Entry: 0x%x", elfHeader->e_entry);
                 preview_state.contents.elf_header.elf32 = elfHeader;
-            } else if (auto elfHeader = elfFile.GetElf64Header()) {
+            } else if (auto elfHeader = elfFile->GetElf64Header()) {
                 Logger::log("  Entry: 0x%x", elfHeader->e_entry);
                 preview_state.contents.elf_header.elf64 = elfHeader;
             } else {
                 Logger::error("Failed to read ELF header!");
             }
+            preview_state.contents.elfFile = elfFile;
 
         } else {
             // Check start of file for UTF16LE BOM
