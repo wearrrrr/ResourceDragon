@@ -122,18 +122,18 @@ int main(int argc, char* argv[]) {
         close(inotify_fd);
         return -1;
     }
-    std::atomic<bool> inotify_running{true};
+    bool inotify_running = true;
     std::thread inotify_thread([&]() {
         char buffer[1024];
         while (inotify_running) {
             int length = read(inotify_fd, buffer, sizeof(buffer));
             if (length < 0) {
-                std::cerr << "Error: read() failed" << std::endl;
+                Logger::log("Error: read() failed from inotify_fd");
                 break;
             }
             int i = 0;
             while (i < length) {
-                struct inotify_event *event = (struct inotify_event *)&buffer[i];
+                inotify_event *event = (inotify_event*)&buffer[i];
                 if (event->mask & (IN_MODIFY | IN_CREATE | IN_DELETE)) {
                     ReloadRootNode(rootNode);
                 }

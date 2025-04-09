@@ -8,7 +8,6 @@
 #include <vector>
 
 #ifdef linux
-#include <atomic>
 #include <sys/inotify.h>
 #define EVENT_SIZE  (sizeof (struct inotify_event))
 #include <thread>
