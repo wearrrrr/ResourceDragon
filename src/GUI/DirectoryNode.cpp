@@ -252,6 +252,22 @@ void HandleFileClick(DirectoryNode& node)
             } else {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
+        } else if (ElfFile::IsValid(node.FullPath)) {
+            preview_state.content_type = "elf";
+            ElfFile elfFile(node.FullPath);
+
+            Logger::log("ELF Header: ");
+            Logger::log("  Type: %s", elfFile.GetElfClass().c_str());
+            if (auto elfHeader = elfFile.GetElf32Header()) {
+                Logger::log("  Entry: 0x%x", elfHeader->e_entry);
+                preview_state.contents.elf_header.elf32 = elfHeader;
+            } else if (auto elfHeader = elfFile.GetElf64Header()) {
+                Logger::log("  Entry: 0x%x", elfHeader->e_entry);
+                preview_state.contents.elf_header.elf64 = elfHeader;
+            } else {
+                Logger::error("Failed to read ELF header!");
+            }
+
         } else {
             // Check start of file for UTF16LE BOM
             if (preview_state.contents.data.size() >= 2 && preview_state.contents.data[0] == '\xFF' && preview_state.contents.data[1] == '\xFE') {

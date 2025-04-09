@@ -1,8 +1,10 @@
 build/
 build-mingw/
 decrypt/
-eXceed3.exe
 .vscode
 imgui.ini
-data.bin
+
+# Test files
+eXceed3.exe
 test.xp3
+bash

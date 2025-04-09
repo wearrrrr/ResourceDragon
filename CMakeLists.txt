@@ -56,6 +56,8 @@ add_executable(ResourceDragon
     
     src/GameRes/Entry.h
 
+    src/ArchiveFormats/ElfFile.h
+    src/ArchiveFormats/ElfFile.cpp
     src/ArchiveFormats/ExeFile.h
     src/ArchiveFormats/ExeFile.cpp
     src/ArchiveFormats/ArchiveFormat.h
@@ -85,6 +87,8 @@ add_executable(ResourceDragon
 
     src/util/Logger.h
     src/util/Text.h
+
+    src/zero_templates.h
     
 )
 

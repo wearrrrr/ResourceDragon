@@ -6,24 +6,6 @@
 #include "../GameRes/Entry.h"
 #include "../util/Logger.h"
 
-using std::string;
-
-template <typename T = void>
-[[nodiscard]] inline auto read_file_to_buffer(const char* path) {
-    long file_size = 0;
-    T* buffer = NULL;
-    if (FILE* file = fopen(path, "rb")) {
-        fseek(file, 0, SEEK_END);
-        file_size = ftell(file);
-        if ((buffer = (T*)malloc(file_size))) {
-            rewind(file);
-            fread(buffer, file_size, 1, file);
-        }
-        fclose(file);
-    }
-    return std::make_pair(buffer, file_size);
-}
-
 class ArchiveBase {
     public:
         std::vector<Entry> entries;
@@ -36,8 +18,8 @@ class ArchiveBase {
 
 class ArchiveFormat {
     public:
-        string tag = "?????";
-        string description = "????? Resource Archive";
+        std::string tag = "?????";
+        std::string description = "????? Resource Archive";
         uint32_t sig = 0x00000000;
 
         uint32_t ReadUint32(unsigned char *buffer, uint64_t offset) {

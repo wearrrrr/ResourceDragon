@@ -17,6 +17,7 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
 
+#include "ArchiveFormats/ElfFile.h"
 #include "ArchiveFormats/HSP/hsp.h"
 #include "ArchiveFormats/XP3/xp3.h"
 #include "ExtractorManager.h"
@@ -29,9 +30,9 @@
 #include "GUI/Theme/Themes.h"
 #include "GUI/Utils.h"
 
-
-
 #include "util/Logger.h"
+
+#include "zero_templates.h"
 
 struct PWinStateTexture {
     GLuint id;
@@ -65,6 +66,10 @@ struct PreviewWinState {
         std::string data;
         std::string path;
         std::string ext;
+        union {
+            const Elf32_Header *elf32;
+            const Elf64_Header *elf64;
+        } elf_header;
     } contents;
     PWinStateAudio audio;
     PWinStateTexture texture;
