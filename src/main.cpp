@@ -237,7 +237,10 @@ int main(int argc, char* argv[]) {
                 const char* dropped_filedir = event.drop.data;
                 // Preview the dropped file
                 fs::path dropped_path = fs::path(dropped_filedir);
+                fs::path dropped_path_dir = dropped_path.parent_path();
+                Logger::log("%s", dropped_path_dir.c_str());
                 if (fs::exists(dropped_path)) {
+                    rootNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir);
                     selectedItem = CreateDirectoryNodeTreeFromPath(dropped_path);
                     HandleFileClick(selectedItem);
                 } else {
@@ -324,7 +327,7 @@ int main(int argc, char* argv[]) {
             RenderPreviewContextMenu(&io);
             std::string ext = preview_state.contents.ext;
             std::string content_type = preview_state.content_type;
-            if (preview_state.contents.data.size() > 0) {
+            if (preview_state.contents.size > 0) {
                 if (content_type == "image") {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
@@ -427,9 +430,6 @@ int main(int argc, char* argv[]) {
                 } else {
                     // TODO: handle different potential encodings
                     // maybe using a dropdown for the user to select the encoding.
-
-                    std::string modified_text = editor.GetText();
-
                     if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S) && has_unsaved_changes) {
                         std::string text = editor.GetText();
                         if (!text.empty() && text.back() == '\n') {
@@ -446,7 +446,6 @@ int main(int argc, char* argv[]) {
                     }
 
                     editor.Render("TextEditor", {0, 0}, false);
-
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");

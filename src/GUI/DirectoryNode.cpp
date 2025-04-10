@@ -1,8 +1,8 @@
 #include "DirectoryNode.h"
 
 void UnloadSelectedFile() {
-    if (preview_state.contents.data.size() > 0) {
-        preview_state.contents.data = "";
+    if (preview_state.contents.size > 0) {
+        preview_state.contents.data = nullptr;
     }
     
     Image::UnloadTexture(preview_state.texture.id);
@@ -19,7 +19,8 @@ void UnloadSelectedFile() {
     preview_state.content_type = "";
 
     preview_state.contents = {
-        .data = "",
+        .data = nullptr,
+        .size = 0,
         .path = "",
         .ext = ""
     };
@@ -222,15 +223,16 @@ void HandleFileClick(DirectoryNode& node)
         free(buffer);
     } else {
         UnloadSelectedFile();
-        preview_state.contents.data = std::string((char*)buffer, size);
+        preview_state.contents.data = buffer;
+        preview_state.contents.size = size;
         preview_state.contents.path = node.FullPath;
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadTextureFromMemory(preview_state.contents.data.data(), preview_state.contents.data.size(), &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            Image::LoadTextureFromMemory(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
             preview_state.content_type = "image";
         } else if (Image::IsGif(ext)) {
-            Image::LoadGifAnimation(preview_state.contents.data.data(), preview_state.contents.data.size(), &preview_state.texture.anim);
+            Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
             preview_state.content_type = "gif";
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
@@ -270,12 +272,14 @@ void HandleFileClick(DirectoryNode& node)
             preview_state.contents.elfFile = elfFile;
 
         } else {
+            auto text = std::string((char*)buffer, size);
             // Check start of file for UTF16LE BOM
-            if (preview_state.contents.data.size() >= 2 && preview_state.contents.data[0] == '\xFF' && preview_state.contents.data[1] == '\xFE') {
-                // UTF16LE BOM found, We need to convert the data to UTF-8
-                preview_state.contents.data = TextConverter::UTF16LEToUTF8(preview_state.contents.data);
+            if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
+                preview_state.contents.conv_data = TextConverter::UTF16LEToUTF8(text);
+                editor.SetText(preview_state.contents.conv_data);
+            } else {
+                editor.SetText(text);
             }
-            editor.SetText(preview_state.contents.data);
             editor.SetTextChanged(false);
             editor.SetColorizerEnable(false);
         }

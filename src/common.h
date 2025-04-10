@@ -63,7 +63,9 @@ struct PWinStateAudio {
 struct PreviewWinState {
     std::string content_type;
     struct {
-        std::string data;
+        unsigned char *data;
+        size_t size;
+        std::string conv_data;
         std::string path;
         std::string ext;
         union {
@@ -84,7 +86,9 @@ struct UIError {
 inline PreviewWinState preview_state = {
     .content_type = "",
     .contents = {
-        .data = "",
+        .data = nullptr,
+        .size = 0,
+        .conv_data = "",
         .path = "",
         .ext = "",
     },
