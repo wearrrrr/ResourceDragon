@@ -420,10 +420,9 @@ int main(int argc, char* argv[]) {
                     ImGui::Text("Path: %s", preview_state.contents.path.c_str());
                     ImGui::Text("ELF Class: %s", preview_state.contents.elfFile->GetElfClass().c_str());
                     if (auto elfHeader = preview_state.contents.elfFile->GetElf64Header()) {
-                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
-                    } else if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
                         ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
-
+                    } else if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
+                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
                     } else {
                         Logger::error("Failed to read ELF header!");
                     }
