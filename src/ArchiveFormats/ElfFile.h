@@ -107,5 +107,5 @@ public:
         }
     }
 
-    static bool IsValid(const fs::path &elf_path);
+    static bool IsValid(unsigned char* buffer);
 };

@@ -243,18 +243,18 @@ void HandleFileClick(DirectoryNode& node)
                 Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
                 Mix_PlayMusic(current_sound, 1);
-                double duration = Mix_MusicDuration(current_sound);
+                int duration = (int)Mix_MusicDuration(current_sound);
                 preview_state.audio.music = current_sound;
                 preview_state.audio.playing = true;
                 preview_state.audio.volume = Mix_VolumeMusic(-1);
-                preview_state.audio.time.total_time_min = (int)duration / 60;
-                preview_state.audio.time.total_time_sec = (int)duration % 60;
+                preview_state.audio.time.total_time_min = duration / 60;
+                preview_state.audio.time.total_time_sec = duration % 60;
 
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             } else {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
-        } else if (ElfFile::IsValid(node.FullPath)) {
+        } else if (ElfFile::IsValid(buffer)) {
             ElfFile *elfFile = new ElfFile(node.FullPath);
             preview_state.contents.elfFile = elfFile;
             preview_state.content_type = "elf";
