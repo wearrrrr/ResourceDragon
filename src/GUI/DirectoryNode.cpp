@@ -184,44 +184,7 @@ void HandleFileClick(DirectoryNode& node)
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
-    if (format != nullptr) {
-        printf("Format: %s\n", format->getTag().c_str());
-        ArchiveBase *arc = (ArchiveBase*)format->TryOpen(buffer, size, node.FileName);
-        if (arc == nullptr) {
-            Logger::error("Failed to open archive: %s! Attempted to open as: %s", node.FileName.c_str(), format->getTag().c_str());
-            free(buffer);
-            return;
-        }
-        fs::remove_all("decrypt/");
-        fs::create_directory("decrypt");
-
-        for (int i = 0; i < arc->entries.size(); i++) {
-            Entry entry = arc->entries.at(i);
-            const char *data = arc->OpenStream(entry, buffer);
-
-            // Create directory from entry.name if it doesn't exist
-            fs::path entryPath(entry.name);
-            if (entryPath.has_parent_path()) {
-                std::string parentDir = entryPath.parent_path().string();
-                std::error_code err;
-                if (!CreateDirectoryRecursive("decrypt/" + parentDir, err)) {
-                    Logger::error("Failed to create directory: %s", err.message().c_str());
-                    continue;
-                }
-            }
-            
-            std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
-            outFile.write((const char*)data, entry.size);
-            outFile.close();
-        }
-        Logger::log("Decrypted successfully!");
-
-        ReloadRootNode(rootNode);
-
-        delete arc;
-
-        free(buffer);
-    } else {
+    if (format == nullptr) {
         UnloadSelectedFile();
         preview_state.contents.data = buffer;
         preview_state.contents.size = size;
@@ -270,7 +233,48 @@ void HandleFileClick(DirectoryNode& node)
             editor.SetTextChanged(false);
             editor.SetColorizerEnable(false);
         }
+        return;
     }
+
+    ArchiveBase *arc = format->TryOpen(buffer, size, node.FileName);
+    if (arc == nullptr) {
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node.FileName.c_str(), format->getTag().c_str());
+        free(buffer);
+        return;
+    }
+
+    Logger::log("Handling archive as %s", format->getTag().c_str());
+
+    fs::remove_all("decrypt/");
+    fs::create_directory("decrypt");
+
+    for (int i = 0; i < arc->entries.size(); i++) {
+        Entry entry = arc->entries.at(i);
+        const char *data = arc->OpenStream(entry, buffer);
+
+        // Create directory from entry.name if it doesn't exist
+        fs::path entryPath(entry.name);
+        if (entryPath.has_parent_path()) {
+            std::string parentDir = entryPath.parent_path().string();
+            std::error_code err;
+            if (!CreateDirectoryRecursive("decrypt/" + parentDir, err)) {
+                Logger::error("Failed to create directory: %s", err.message().c_str());
+                continue;
+            }
+        }
+        
+        std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
+        outFile.write((const char*)data, entry.size);
+        outFile.close();
+    }
+    Logger::log("Decrypted successfully!");
+
+    ReloadRootNode(rootNode);
+
+    delete arc;
+
+    free(buffer);
+    return;
 }
 
 
