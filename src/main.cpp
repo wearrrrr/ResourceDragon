@@ -463,26 +463,24 @@ int main(int argc, char* argv[]) {
                             if (total_time > 0.0) {
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
                                 float scrubberProgress = (float)(current_pos / total_time);
-                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2));
+                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, ImGui::GetWindowWidth() / 2.0f);
                             
                                 if (isDragging) {
-                                    Mix_PauseMusic();
-                                    if (!preview_state.audio.scrubberDragging || scrubberProgress != lastScrubberProgress) {
-                                        double new_pos = scrubberProgress * total_time;
-                                        timeToSetOnRelease = new_pos;
-                                        preview_state.audio.time.current_time_min = (int)timeToSetOnRelease / 60;
-                                        preview_state.audio.time.current_time_sec = (int)timeToSetOnRelease % 60;
-                                    }
+                                    if (!preview_state.audio.scrubberDragging)
+                                        Mix_PauseMusic();
+                            
+                                    double new_pos = scrubberProgress * total_time;
+                                    timeToSetOnRelease = new_pos;
+                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
+                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
                                     preview_state.audio.scrubberDragging = true;
-                                } else {
+                                }
+                            
+                                if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+                                    Mix_SetMusicPosition(timeToSetOnRelease);
+                                    lastScrubberProgress = scrubberProgress;
                                     Mix_ResumeMusic();
                                     preview_state.audio.scrubberDragging = false;
-                                    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                                        Mix_SetMusicPosition(timeToSetOnRelease);
-                                        preview_state.audio.time.current_time_min = (int)timeToSetOnRelease / 60;
-                                        preview_state.audio.time.current_time_sec = (int)timeToSetOnRelease % 60;
-                                        lastScrubberProgress = scrubberProgress;
-                                    }
                                 }
                             }
                             ImGui::SameLine();
