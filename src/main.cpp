@@ -10,6 +10,12 @@
 #define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
+#define PLAY_ICON "\ue800"
+#define STOP_ICON "\ue802"
+#define PAUSE_ICON "\ue803"
+#define FF_ICON "\ue804"
+#define RW_ICON "\ue805"
+
 #ifdef WIN32
 std::string separator = "\\";
 #else
@@ -95,6 +101,50 @@ void RenderErrorPopup(ImGuiIO *io) {
         ImGui::EndPopup();
     }
 }
+
+#include <imgui.h>
+#include <algorithm> // for std::clamp
+
+bool PlaybackScrubber(const char* id, float* progress, float width, float height = 16.0f) {
+    ImGui::PushID(id);
+
+    ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+    ImVec2 size(width, height);
+    ImVec2 endPos = ImVec2(cursorPos.x + size.x, cursorPos.y + size.y);
+
+    // Handle interaction
+    ImGui::InvisibleButton("##scrubber", size);
+    bool hovered = ImGui::IsItemHovered();
+    bool active = ImGui::IsItemActive();
+
+    if (hovered && ImGui::IsMouseDown(0)) {
+        float mouseX = ImGui::GetIO().MousePos.x;
+        *progress = std::clamp((mouseX - cursorPos.x) / width, 0.0f, 1.0f);
+    }
+
+    // Draw with public API only
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    // Background
+    ImU32 bgColor = ImGui::GetColorU32(ImGuiCol_FrameBg);
+    drawList->AddRectFilled(cursorPos, endPos, bgColor, height * 0.5f);
+
+    // Progress fill
+    float fillWidth = width * *progress;
+    ImVec2 fillEnd = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height);
+    ImU32 fillColor = ImGui::GetColorU32(ImGuiCol_SliderGrabActive);
+    drawList->AddRectFilled(cursorPos, fillEnd, fillColor, height * 0.5f);
+
+    // Optional knob
+    float knobRadius = height * 0.7f;
+    ImVec2 knobCenter = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height * 0.5f);
+    ImU32 knobColor = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    drawList->AddCircleFilled(knobCenter, knobRadius, knobColor);
+
+    ImGui::PopID();
+    return active;
+}
+
 
 int main(int argc, char* argv[]) {
     extractor_manager.registerFormat(std::make_unique<HSPArchive>());
@@ -188,15 +238,24 @@ int main(int argc, char* argv[]) {
     range.AddChar(0x203B);
     range.BuildRanges(&gr);
 
+    ImFontConfig iconConfig;
+    iconConfig.MergeMode = true;
+    iconConfig.GlyphMinAdvanceX = 16.0f;
+
+    const ImWchar icon_ranges[] = { 0xe800, 0xe805, 0 };
+
     #ifdef WIN32
     const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
+    const char *icon_font_path = "fonts\\player-icons.ttf"
     #else
     const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
+    const char *icon_font_path = "fonts/player-icons.ttf";
     #endif
 
     
     if (fs::exists(font_path)) {
         io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
+        io.Fonts->AddFontFromFileTTF(icon_font_path, 16, &iconConfig, icon_ranges);
     } else {
         Logger::warn("Failed to locate font file! Attempted to search: %s", font_path);
     }
@@ -225,6 +284,9 @@ int main(int argc, char* argv[]) {
     std::string preview_win_label = "Preview";
 
     bool has_unsaved_changes = false;
+    float lastScrubberProgress = -1.0f;
+
+    float timeToSetOnRelease = 0.0f;
 
     while (running) {
         SDL_Event event;
@@ -355,8 +417,8 @@ int main(int argc, char* argv[]) {
                     if (current_sound) {
                         // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
                         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
+                        TimeInfo time = preview_state.audio.time;
                         if (!curr_sound_is_midi) {
-                            TimeInfo time = preview_state.audio.time;
                             // Display progress / total time
                             ImGui::Text("Current Time: %02d:%02d / %02d:%02d", 
                                 time.current_time_min, 
@@ -365,13 +427,29 @@ int main(int argc, char* argv[]) {
                                 time.total_time_sec
                             );
                         }
+                        if (preview_state.audio.playing) {
+                            if (ImGui::Button(PAUSE_ICON, {40, 0})) {
+                                Mix_PauseMusic();
+                                preview_state.audio.playing = false;
+                            }
+                        } else {
+                            if (ImGui::Button(PLAY_ICON, {40, 0})) {
+                                Mix_ResumeMusic();
+                                preview_state.audio.playing = true;
+                                current_sound = Mix_PlayingMusic() ? current_sound : nullptr;
+                            }
+                        }
+                        ImGui::SameLine();
+                        ImGui::BeginGroup();
                         if (!curr_sound_is_midi) {
-                            if (ImGui::Button("RW", {40, 0})) {
+                            if (ImGui::Button(RW_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
                                 if (new_pos > 0) {
                                     Mix_SetMusicPosition(new_pos);
-                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
-                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
+                                    if (!preview_state.audio.scrubberDragging) {
+                                        preview_state.audio.time.current_time_min = (int)new_pos / 60;
+                                        preview_state.audio.time.current_time_sec = (int)new_pos % 60;
+                                    }
                                 } else {
                                     // Prevent going negative
                                     Mix_SetMusicPosition(0);
@@ -380,23 +458,36 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                             ImGui::SameLine();
-                        }
-                        if (preview_state.audio.playing) {
-                            if (ImGui::Button("Pause", {75, 0})) {
-                                Mix_PauseMusic();
-                                preview_state.audio.playing = false;
+                            double current_pos = Mix_GetMusicPosition(current_sound);
+                            double total_time = time.total_time_min * 60 + time.total_time_sec;
+                            if (total_time > 0.0) {
+                                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
+                                float scrubberProgress = (float)(current_pos / total_time);
+                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2));
+                            
+                                if (isDragging) {
+                                    Mix_PauseMusic();
+                                    if (!preview_state.audio.scrubberDragging || scrubberProgress != lastScrubberProgress) {
+                                        double new_pos = scrubberProgress * total_time;
+                                        timeToSetOnRelease = new_pos;
+                                        preview_state.audio.time.current_time_min = (int)timeToSetOnRelease / 60;
+                                        preview_state.audio.time.current_time_sec = (int)timeToSetOnRelease % 60;
+                                    }
+                                    preview_state.audio.scrubberDragging = true;
+                                } else {
+                                    Mix_ResumeMusic();
+                                    preview_state.audio.scrubberDragging = false;
+                                    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+                                        Mix_SetMusicPosition(timeToSetOnRelease);
+                                        preview_state.audio.time.current_time_min = (int)timeToSetOnRelease / 60;
+                                        preview_state.audio.time.current_time_sec = (int)timeToSetOnRelease % 60;
+                                        lastScrubberProgress = scrubberProgress;
+                                    }
+                                }
                             }
-                        } else {
-                            if (ImGui::Button("Play", {75, 0})) {
-                                Mix_ResumeMusic();
-                                preview_state.audio.playing = true;
-                                current_sound = Mix_PlayingMusic() ? current_sound : nullptr;
-                            }
-                        }
-                        if (!curr_sound_is_midi) {
                             ImGui::SameLine();
                             // Fast forward 5 seconds
-                            if (ImGui::Button("FF", {40, 0})) {
+                            if (ImGui::Button(FF_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
                                 if (new_pos > 0) {
                                     Mix_SetMusicPosition(new_pos);
@@ -404,10 +495,11 @@ int main(int argc, char* argv[]) {
                                     preview_state.audio.time.current_time_sec = (int)new_pos % 60;
                                 }
                             }
+                            ImGui::EndGroup();
                         }
 
                         ImGui::SameLine();
-                        if (ImGui::Button("Stop")) {
+                        if (ImGui::Button(STOP_ICON, {40, 0})) {
                             Mix_HaltMusic();
                             UnloadSelectedFile();
                             preview_state.audio.playing = false;

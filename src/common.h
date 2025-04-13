@@ -59,6 +59,8 @@ struct PWinStateAudio {
     int fade_steps;
     int fade_step;
     Mix_Fading fading;
+
+    bool scrubberDragging;
 };
 struct PreviewWinState {
     std::string content_type;
@@ -100,9 +102,10 @@ inline PreviewWinState preview_state = {
             .total_time_min = 0,
             .total_time_sec = 0,
             .current_time_min = 0,
-            .current_time_sec = 0
+            .current_time_sec = 0,
         },
         .update_timer = 0,
+        .scrubberDragging = false,
     },
     .texture = {
         .id = 0,

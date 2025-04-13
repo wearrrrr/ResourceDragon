@@ -35,8 +35,9 @@ void UnloadSelectedFile() {
         .total_time_min = 0,
         .total_time_sec = 0,
         .current_time_min = 0,
-        .current_time_sec = 0
+        .current_time_sec = 0,
     };
+    preview_state.audio.scrubberDragging = false;
     if (preview_state.audio.update_timer) {
         SDL_RemoveTimer(preview_state.audio.update_timer);
         preview_state.audio.update_timer = 0;
@@ -153,8 +154,10 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     if (current_sound) {
         double current_time = Mix_GetMusicPosition(current_sound);
-        preview_state.audio.time.current_time_min = (int)current_time / 60;
-        preview_state.audio.time.current_time_sec = (int)current_time % 60;
+        if (!preview_state.audio.scrubberDragging) {
+            preview_state.audio.time.current_time_min = (int)current_time / 60;
+            preview_state.audio.time.current_time_sec = (int)current_time % 60;
+        }
     }
     return interval; // continue timer
 }
