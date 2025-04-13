@@ -102,17 +102,13 @@ void RenderErrorPopup(ImGuiIO *io) {
     }
 }
 
-#include <imgui.h>
-#include <algorithm> // for std::clamp
-
-bool PlaybackScrubber(const char* id, float* progress, float width, float height = 16.0f) {
+bool PlaybackScrubber(const char *id, float *progress, float width, float height = 16.0f) {
     ImGui::PushID(id);
 
     ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-    ImVec2 size(width, height);
+    ImVec2 size = {width, height};
     ImVec2 endPos = ImVec2(cursorPos.x + size.x, cursorPos.y + size.y);
 
-    // Handle interaction
     ImGui::InvisibleButton("##scrubber", size);
     bool hovered = ImGui::IsItemHovered();
     bool active = ImGui::IsItemActive();
@@ -122,20 +118,16 @@ bool PlaybackScrubber(const char* id, float* progress, float width, float height
         *progress = std::clamp((mouseX - cursorPos.x) / width, 0.0f, 1.0f);
     }
 
-    // Draw with public API only
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    // Background
     ImU32 bgColor = ImGui::GetColorU32(ImGuiCol_FrameBg);
     drawList->AddRectFilled(cursorPos, endPos, bgColor, height * 0.5f);
 
-    // Progress fill
-    float fillWidth = width * *progress;
+    float fillWidth = width * (*progress);
     ImVec2 fillEnd = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height);
     ImU32 fillColor = ImGui::GetColorU32(ImGuiCol_SliderGrabActive);
     drawList->AddRectFilled(cursorPos, fillEnd, fillColor, height * 0.5f);
 
-    // Optional knob
     float knobRadius = height * 0.7f;
     ImVec2 knobCenter = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height * 0.5f);
     ImU32 knobColor = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
@@ -284,7 +276,6 @@ int main(int argc, char* argv[]) {
     std::string preview_win_label = "Preview";
 
     bool has_unsaved_changes = false;
-    float lastScrubberProgress = -1.0f;
 
     float timeToSetOnRelease = 0.0f;
 
@@ -330,8 +321,6 @@ int main(int argc, char* argv[]) {
         
         ImGui::NewFrame();
 
-        // ImGui::ShowDemoWindow();
-
         ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize(window_size);
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
@@ -353,7 +342,7 @@ int main(int argc, char* argv[]) {
                 ImGui::OpenPopup("Error");
                 ui_error.show = false;
             }
-            DisplayDirectoryNode(rootNode, rootNode, true);
+            DisplayDirectoryNode(rootNode, rootNode);
         }
 
         if (openDelPopup) {
@@ -461,13 +450,14 @@ int main(int argc, char* argv[]) {
                             double current_pos = Mix_GetMusicPosition(current_sound);
                             double total_time = time.total_time_min * 60 + time.total_time_sec;
                             if (total_time > 0.0) {
+                                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-                                float scrubberProgress = (float)(current_pos / total_time);
-                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, ImGui::GetWindowWidth() / 2.0f);
+
+                                float scrubberProgress = (preview_state.audio.scrubberDragging ? timeToSetOnRelease : current_pos) / total_time;
+                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f) - 20.0f);
                             
                                 if (isDragging) {
-                                    if (!preview_state.audio.scrubberDragging)
-                                        Mix_PauseMusic();
+                                    if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
                             
                                     double new_pos = scrubberProgress * total_time;
                                     timeToSetOnRelease = new_pos;
@@ -478,7 +468,6 @@ int main(int argc, char* argv[]) {
                             
                                 if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
                                     Mix_SetMusicPosition(timeToSetOnRelease);
-                                    lastScrubberProgress = scrubberProgress;
                                     Mix_ResumeMusic();
                                     preview_state.audio.scrubberDragging = false;
                                 }

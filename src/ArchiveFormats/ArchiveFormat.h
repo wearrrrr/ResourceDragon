@@ -26,7 +26,7 @@ class ArchiveFormat {
             return *based_pointer<uint32_t>(buffer, offset);
         }
 
-        std::string ReadString(unsigned char *buffer, uint64_t offset, size_t read_amount) {
+        std::string ReadString(unsigned char *buffer, uint64_t offset) {
             std::string constructed = "";
             constructed.append(based_pointer<char>(buffer, offset));
 

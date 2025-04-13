@@ -345,7 +345,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
 }
 
 
-void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode, bool isRoot = false)
+void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode)
 {
     ImGui::PushID(&node);
 

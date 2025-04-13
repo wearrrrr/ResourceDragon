@@ -64,7 +64,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
     entries.reserve(file_count);
 
     for (int i = 0; i < file_count; i++) {
-        std::string file_name =  ReadString(exe->raw_contents, index_offset, 0x10);
+        std::string file_name =  ReadString(exe->raw_contents, index_offset);
         index_offset += 0x14;
 
         Entry entry = {

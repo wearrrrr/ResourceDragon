@@ -93,6 +93,8 @@ inline PreviewWinState preview_state = {
         .conv_data = "",
         .path = "",
         .ext = "",
+        .elf_header = { nullptr },
+        .elfFile = nullptr,
     },
     .audio = {
         .music = nullptr,
