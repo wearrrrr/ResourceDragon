@@ -7,11 +7,11 @@ std::string Utils::ToLower(const std::string& str)
     return result;
 }
 
-std::string Utils::GetLastModifiedTime(const std::string& fpath)
+std::string Utils::GetLastModifiedTime(const fs::path& path)
 {
     namespace chrono = std::chrono;
     try {
-        auto ftime = fs::last_write_time(fpath);
+        auto ftime = fs::last_write_time(path);
         auto sctp = chrono::time_point_cast<chrono::system_clock::duration>(
             ftime - fs::file_time_type::clock::now() + chrono::system_clock::now()
         );

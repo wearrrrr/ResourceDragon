@@ -3,8 +3,11 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
-set(CMAKE_CXX_FLAGS "")
+set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
+set(CMAKE_CXX_FLAGS "-Oz")
+
+# set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address")
+# set(CMAKE_CXX_FLAGS "-fsanitize=address")
 
 project(ResourceDragon VERSION 0.1)
 
@@ -91,9 +94,6 @@ add_executable(ResourceDragon
     src/zero_templates.h
     
 )
-
-target_link_options(ResourceDragon PRIVATE -s)
-target_compile_options(ResourceDragon PRIVATE -Oz)
 
 set(OPENGL_LIB_NAME OpenGL)
 set(FREETYPE freetype)

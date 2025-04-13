@@ -46,7 +46,18 @@ void UnloadSelectedFile() {
     curr_sound_is_midi = false;
 }
 
-void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& parentPath)
+void DeleteDirectoryNodeTree(DirectoryNode* node)
+{
+    if (!node) return;
+
+    for (DirectoryNode* child : node->Children) {
+        DeleteDirectoryNodeTree(child);
+    }
+
+    delete node;
+}
+
+void AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
 {
     try 
     {
@@ -55,46 +66,51 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
         fs::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
-            DirectoryNode upNode = {
+            DirectoryNode *upNode = new DirectoryNode {
                 .FullPath = grandParentPath.string(),
                 .FileName = "..",
                 .FileSize = Utils::GetFileSize(grandParentPath),
                 .LastModified = Utils::GetLastModifiedTime(grandParentPath.string()),
                 .IsDirectory = true
             };
-            parentNode.Children.emplace_back(upNode);
+            parentNode->Children.push_back(upNode);
         }
 
         for (const auto& entry : directoryIterator)
         {
 
-            DirectoryNode childNode = {
-                .FullPath = entry.path().string(),
-                .FileName = entry.path().filename().string(),
+            DirectoryNode *childNode = new DirectoryNode {
+                .FullPath = entry.path(),
+                .FileName = entry.path().filename(),
                 .FileSize = Utils::GetFileSize(entry.path()),
-                .LastModified = Utils::GetLastModifiedTime(entry.path().string()),
+                .LastModified = Utils::GetLastModifiedTime(entry.path()),
                 .IsDirectory = entry.is_directory()
             };
 
-			parentNode.Children.push_back(childNode);
+			parentNode->Children.push_back(childNode);
         }
 
-        std::sort(parentNode.Children.begin(), parentNode.Children.end(), 
-            [](const DirectoryNode& a, const DirectoryNode& b) 
+        std::sort(parentNode->Children.begin(), parentNode->Children.end(), 
+            [](const DirectoryNode* a, const DirectoryNode* b) 
             {
-                if (a.FileName == "..") return true;
-                if (b.FileName == "..") return false;
-                    if (a.IsDirectory != b.IsDirectory) return a.IsDirectory > b.IsDirectory;
-                    return Utils::ToLower(a.FileName) < Utils::ToLower(b.FileName);
+                if (a->FileName == "..") return true;
+                if (b->FileName == "..") return false;
+                    if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
+                    return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
                 }
             );
         }
         catch (const fs::filesystem_error& e)
         {
+            for (DirectoryNode* child : parentNode->Children) {
+                DeleteDirectoryNodeTree(child);
+            }
+            parentNode->Children.clear();
+
             const char* errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
             // Force the user out to avoid weird behavior
-            if (parentNode.FullPath != rootNode.FullPath) {
+            if (parentNode->FullPath != rootNode->FullPath) {
                 parentNode = rootNode;
             }
             // Show errorMessage in the GUI
@@ -105,10 +121,10 @@ void RecursivelyAddDirectoryNodes(DirectoryNode& parentNode, const fs::path& par
 }
 
 
-DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
 {
 
-    DirectoryNode rootNode = {
+    DirectoryNode *rootNode = new DirectoryNode {
         .FullPath = rootPath.string(),
         .FileName = rootPath.string(),
         .FileSize = Utils::GetFileSize(rootPath),
@@ -116,22 +132,25 @@ DirectoryNode CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
         .IsDirectory = fs::is_directory(rootPath)
     };
 
-    if (rootNode.IsDirectory)
+    if (rootNode->IsDirectory)
     {
-        RecursivelyAddDirectoryNodes(rootNode, rootPath);
+        AddDirectoryNodes(rootNode, rootPath);
     }
 
     return rootNode;
 }
 
-void ReloadRootNode(DirectoryNode& node)
+void ReloadRootNode(DirectoryNode *node)
 {
-    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node.FullPath));
+    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath));
 }
 
-void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
+DirectoryNode *ChangeDirectory(DirectoryNode *node)
 {
-    fs::path newRootPath(node.FullPath);
+    fs::path newRootPath(node->FullPath);
+
+    Logger::log("%s", newRootPath.c_str());
+    Logger::log("%s", rootNode->FullPath.c_str());
 
     #ifdef linux
     if (inotify_fd >= 0) {
@@ -140,15 +159,16 @@ void ChangeDirectory(DirectoryNode& node, DirectoryNode& rootNode)
     }
     #endif
 
-    if (node.FileName == "..") {
-        fs::path parentPath = fs::path(rootNode.FullPath).parent_path();
-        if (parentPath != fs::path(rootNode.FullPath)) {
+    if (node->FileName == "..") {
+        fs::path parentPath = fs::path(rootNode->FullPath).parent_path();
+        if (parentPath != fs::path(rootNode->FullPath)) {
             newRootPath = parentPath;
         } else {
-            return;
+            return rootNode;
         }
     }
-    rootNode = CreateDirectoryNodeTreeFromPath(newRootPath);
+    
+    return CreateDirectoryNodeTreeFromPath(newRootPath);
 }
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
@@ -178,12 +198,12 @@ bool CreateDirectoryRecursive(std::string const & dirName, std::error_code & err
     return true;
 }
 
-void HandleFileClick(DirectoryNode& node)
+void HandleFileClick(DirectoryNode *node)
 {
-    std::string filename = node.FileName;
-    std::string ext = filename.substr(filename.find_last_of(".") + 1);
+    fs::path filename = node->FileName;
+    std::string ext = filename.extension();
 
-    auto [buffer, size] = read_file_to_buffer<unsigned char>(node.FullPath.c_str());
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
@@ -191,7 +211,7 @@ void HandleFileClick(DirectoryNode& node)
         UnloadSelectedFile();
         preview_state.contents.data = buffer;
         preview_state.contents.size = size;
-        preview_state.contents.path = node.FullPath;
+        preview_state.contents.path = node->FullPath;
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
@@ -203,8 +223,8 @@ void HandleFileClick(DirectoryNode& node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
-            Logger::log("Loading audio file: %s", node.FullPath.c_str());
-            current_sound = Mix_LoadMUS(node.FullPath.c_str());
+            Logger::log("Loading audio file: %s", node->FullPath.c_str());
+            current_sound = Mix_LoadMUS(node->FullPath.c_str());
             if (current_sound) {
                 Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
@@ -221,7 +241,7 @@ void HandleFileClick(DirectoryNode& node)
                 Logger::error("Failed to load audio: %s", SDL_GetError());
             }
         } else if (ElfFile::IsValid(buffer)) {
-            ElfFile *elfFile = new ElfFile(node.FullPath);
+            ElfFile *elfFile = new ElfFile(node->FullPath);
             preview_state.contents.elfFile = elfFile;
             preview_state.content_type = "elf";
         } else {
@@ -239,9 +259,9 @@ void HandleFileClick(DirectoryNode& node)
         return;
     }
 
-    ArchiveBase *arc = format->TryOpen(buffer, size, node.FileName);
+    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node.FileName.c_str(), format->getTag().c_str());
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
         free(buffer);
         return;
     }
@@ -281,20 +301,20 @@ void HandleFileClick(DirectoryNode& node)
 }
 
 
-void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
+void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 {
     ImGui::TableNextRow();
-    ImGui::PushID(&node);
+    ImGui::PushID(node);
 
     bool directoryClicked = false;
     bool fileClicked = false;
 
     ImGui::TableNextColumn();
 
-    bool isRoot = (&node == &rootNode);
+    bool isRoot = (node == rootNode);
     
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAllColumns;
-    if (node.IsDirectory) {
+    if (node->IsDirectory) {
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
     } else {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
@@ -305,7 +325,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
         ImGui::Unindent(30.0f); 
     };
 
-    bool isOpen = ImGui::TreeNodeEx(node.FileName.c_str(), nodeFlags);
+    bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
@@ -313,24 +333,24 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
     }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node.IsDirectory) directoryClicked = true;
+        if (node->IsDirectory) directoryClicked = true;
         else fileClicked = true;
     }
 
     ImGui::TableNextColumn();
-    if (!node.IsDirectory) {
-        ImGui::Text("%s", node.FileSize.c_str());
+    if (!node->IsDirectory) {
+        ImGui::Text("%s", node->FileSize.c_str());
     } else {
         ImGui::Text("--");
     }
 
 
     ImGui::TableNextColumn();
-    ImGui::Text("%s", node.LastModified.c_str());
+    ImGui::Text("%s", node->LastModified.c_str());
 
-    if (node.IsDirectory && isOpen) {
-        for (auto& childNode : node.Children) {
-            DisplayDirectoryNodeRecursive(childNode, rootNode);
+    if (node->IsDirectory && isOpen) {
+        for (auto childNode : node->Children) {
+            DisplayDirectoryNodeRecursive(childNode);
         }
         ImGui::TreePop();
     }
@@ -338,16 +358,18 @@ void DisplayDirectoryNodeRecursive(DirectoryNode& node, DirectoryNode& rootNode)
     if (fileClicked) {
         HandleFileClick(node);
     } else if (directoryClicked) {
-        ChangeDirectory(node, rootNode);
+        rootNode = ChangeDirectory(node);
+        DeleteDirectoryNodeTree(node);
+        Logger::log("%s", rootNode->FullPath.c_str());
     }
 
     ImGui::PopID();
 }
 
 
-void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode)
+void DisplayDirectoryNode(DirectoryNode *node)
 {
-    ImGui::PushID(&node);
+    ImGui::PushID(node);
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);
@@ -355,7 +377,7 @@ void DisplayDirectoryNode(DirectoryNode& node, DirectoryNode& rootNode)
     ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 170.0f);
     ImGui::TableHeadersRow();
 
-    DisplayDirectoryNodeRecursive(node, rootNode);
+    DisplayDirectoryNodeRecursive(node);
 
     ImGui::EndTable();
 

@@ -28,16 +28,16 @@ void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
-                ImGui::SetClipboardText(selectedItem.FileName.c_str());
+                ImGui::SetClipboardText(selectedItem->FileName.c_str());
             }
             if (ImGui::MenuItem("Location")) {
-                ImGui::SetClipboardText(selectedItem.FullPath.c_str());
+                ImGui::SetClipboardText(selectedItem->FullPath.c_str());
             }
-            if (!selectedItem.IsDirectory) {
-                if (ImGui::MenuItem("File")) {
-                    Clipboard::CopyFilePathToClipboard(selectedItem.FullPath);
-                }
-            }
+            // if (!selectedItem->IsDirectory) {
+            //     if (ImGui::MenuItem("File")) {
+            //         Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+            //     }
+            // }
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
@@ -49,12 +49,12 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem.FileName.length() > 0 ? selectedItem.FileName.c_str() : "<ITEM>");
+        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.string().size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
-            fs::remove_all(selectedItem.FullPath);
+            fs::remove_all(selectedItem->FullPath);
             // Check if the file we are trying to delete is the currently selected file
-            if (selectedItem.FullPath == preview_state.contents.path) {
+            if (selectedItem->FullPath == preview_state.contents.path) {
                 UnloadSelectedFile();
             }
             ReloadRootNode(rootNode);
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
                 ImGui::OpenPopup("Error");
                 ui_error.show = false;
             }
-            DisplayDirectoryNode(rootNode, rootNode);
+            DisplayDirectoryNode(rootNode);
         }
 
         if (openDelPopup) {
@@ -566,6 +566,9 @@ int main(int argc, char* argv[]) {
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
+
+    DeleteDirectoryNodeTree(rootNode);
+    DeleteDirectoryNodeTree(selectedItem);
 
     #ifdef linux
     inotify_running = false;
