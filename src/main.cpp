@@ -408,15 +408,6 @@ int main(int argc, char* argv[]) {
                         // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
                         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
                         TimeInfo time = preview_state.audio.time;
-                        if (!curr_sound_is_midi) {
-                            // Display progress / total time
-                            ImGui::Text("Current Time: %02d:%02d / %02d:%02d", 
-                                time.current_time_min, 
-                                time.current_time_sec,
-                                time.total_time_min, 
-                                time.total_time_sec
-                            );
-                        }
                         if (preview_state.audio.playing) {
                             if (ImGui::Button(PAUSE_ICON, {40, 0})) {
                                 Mix_PauseMusic();
@@ -448,14 +439,24 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                             ImGui::SameLine();
+                            if (!curr_sound_is_midi) {
+                                // Display progress / total time
+                                ImGui::Text("%02d:%02d / %02d:%02d", 
+                                    time.current_time_min, 
+                                    time.current_time_sec,
+                                    time.total_time_min, 
+                                    time.total_time_sec
+                                );
+                                ImGui::SameLine();
+                            }
                             double current_pos = Mix_GetMusicPosition(current_sound);
                             double total_time = time.total_time_min * 60 + time.total_time_sec;
                             if (total_time > 0.0) {
-                                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
+                                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
 
                                 float scrubberProgress = (preview_state.audio.scrubberDragging ? timeToSetOnRelease : current_pos) / total_time;
-                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f) - 20.0f);
+                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f) - 10.0f);
                             
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
@@ -508,6 +509,12 @@ int main(int argc, char* argv[]) {
                                 .current_time_min = 0,
                                 .current_time_sec = 0,
                             };
+                        }
+
+                        if (ImGui::SliderInt("Music Volume", &preview_state.audio.volumePercent, 0, 100, "%d%%")) {
+                            // Convert from percent (0–100) to SDL volume (0–128)
+                            int sdlVolume = (int)((preview_state.audio.volumePercent / 100.0f) * MIX_MAX_VOLUME);
+                            Mix_VolumeMusic(sdlVolume);
                         }
                     }
                 } else if (content_type == "elf") {

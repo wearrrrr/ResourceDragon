@@ -53,7 +53,7 @@ struct TimeInfo {
 struct PWinStateAudio {
     Mix_Music *music;
     bool playing;
-    int volume;
+    int volumePercent;
     TimeInfo time;
     SDL_TimerID update_timer;
     int fade_steps;
@@ -99,7 +99,7 @@ inline PreviewWinState preview_state = {
     .audio = {
         .music = nullptr,
         .playing = false,
-        .volume = 0,
+        .volumePercent = 100,
         .time = {
             .total_time_min = 0,
             .total_time_sec = 0,

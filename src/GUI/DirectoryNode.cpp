@@ -30,7 +30,6 @@ void UnloadSelectedFile() {
         preview_state.audio.music = nullptr;
     }
     preview_state.audio.playing = false;
-    preview_state.audio.volume = 0;
     preview_state.audio.time = {
         .total_time_min = 0,
         .total_time_sec = 0,
@@ -225,7 +224,6 @@ void HandleFileClick(DirectoryNode *node)
                 int duration = (int)Mix_MusicDuration(current_sound);
                 preview_state.audio.music = current_sound;
                 preview_state.audio.playing = true;
-                preview_state.audio.volume = Mix_VolumeMusic(-1);
                 preview_state.audio.time.total_time_min = duration / 60;
                 preview_state.audio.time.total_time_sec = duration % 60;
 
