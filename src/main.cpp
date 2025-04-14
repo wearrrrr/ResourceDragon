@@ -33,11 +33,11 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::MenuItem("Location")) {
                 ImGui::SetClipboardText(selectedItem->FullPath.c_str());
             }
-            // if (!selectedItem->IsDirectory) {
-            //     if (ImGui::MenuItem("File")) {
-            //         Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
-            //     }
-            // }
+            if (!selectedItem->IsDirectory) {
+                if (ImGui::MenuItem("File")) {
+                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                }
+            }
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
@@ -568,7 +568,6 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
 
     DeleteDirectoryNodeTree(rootNode);
-    DeleteDirectoryNodeTree(selectedItem);
 
     #ifdef linux
     inotify_running = false;

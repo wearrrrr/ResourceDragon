@@ -57,12 +57,11 @@ void DeleteDirectoryNodeTree(DirectoryNode* node)
     delete node;
 }
 
-void AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
+bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
 {
     try 
     {
         fs::directory_iterator directoryIterator(parentPath);
-
         fs::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
@@ -76,8 +75,7 @@ void AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
             parentNode->Children.push_back(upNode);
         }
 
-        for (const auto& entry : directoryIterator)
-        {
+        for (const auto& entry : directoryIterator) {
 
             DirectoryNode *childNode = new DirectoryNode {
                 .FullPath = entry.path(),
@@ -87,36 +85,28 @@ void AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
                 .IsDirectory = entry.is_directory()
             };
 
-			parentNode->Children.push_back(childNode);
+            parentNode->Children.push_back(childNode);
         }
 
         std::sort(parentNode->Children.begin(), parentNode->Children.end(), 
-            [](const DirectoryNode* a, const DirectoryNode* b) 
-            {
-                if (a->FileName == "..") return true;
-                if (b->FileName == "..") return false;
-                    if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-                    return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
-                }
-            );
-        }
-        catch (const fs::filesystem_error& e)
+        [](const DirectoryNode* a, const DirectoryNode* b) 
         {
-            for (DirectoryNode* child : parentNode->Children) {
-                DeleteDirectoryNodeTree(child);
+            if (a->FileName == "..") return true;
+            if (b->FileName == "..") return false;
+                if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
+                return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
             }
-            parentNode->Children.clear();
+        );
 
+        return true;
+    } catch (const fs::filesystem_error& e) {
             const char* errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
-            // Force the user out to avoid weird behavior
-            if (parentNode->FullPath != rootNode->FullPath) {
-                parentNode = rootNode;
-            }
             // Show errorMessage in the GUI
             ui_error.message = errorMessage;
             ui_error.title = "Error accessing directory!";
             ui_error.show = true;
+            return false;
     }
 }
 
@@ -134,7 +124,10 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
 
     if (rootNode->IsDirectory)
     {
-        AddDirectoryNodes(rootNode, rootPath);
+        bool add = AddDirectoryNodes(rootNode, rootPath);
+        if (!add) {
+            rootNode = CreateDirectoryNodeTreeFromPath(rootNode->FullPath.parent_path());
+        }
     }
 
     return rootNode;
@@ -182,7 +175,7 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval; // continue timer
 }
 
-bool CreateDirectoryRecursive(std::string const & dirName, std::error_code & err)
+bool CreateDirectoryRecursive(std::string const &dirName, std::error_code &err)
 {
     err.clear();
     if (!std::filesystem::create_directories(dirName, err))
@@ -300,6 +293,7 @@ void HandleFileClick(DirectoryNode *node)
     return;
 }
 
+std::optional<std::string> pathToReopen;
 
 void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 {
@@ -331,6 +325,14 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
         selectedItem = node;
         ImGui::OpenPopup("FBContextMenu");
     }
+
+    if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        if (node->IsDirectory) {
+            pathToReopen = node->FullPath;
+        } else {
+            HandleFileClick(node);
+        }
+    }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) directoryClicked = true;
@@ -355,14 +357,6 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
         ImGui::TreePop();
     }
 
-    if (fileClicked) {
-        HandleFileClick(node);
-    } else if (directoryClicked) {
-        rootNode = ChangeDirectory(node);
-        DeleteDirectoryNodeTree(node);
-        Logger::log("%s", rootNode->FullPath.c_str());
-    }
-
     ImGui::PopID();
 }
 
@@ -378,6 +372,12 @@ void DisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableHeadersRow();
 
     DisplayDirectoryNodeRecursive(node);
+
+    if (pathToReopen.has_value()) {
+        DeleteDirectoryNodeTree(rootNode);
+        rootNode = CreateDirectoryNodeTreeFromPath(*pathToReopen);
+        pathToReopen.reset();
+    }
 
     ImGui::EndTable();
 
