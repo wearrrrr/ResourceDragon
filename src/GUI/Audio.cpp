@@ -1,5 +1,13 @@
 #include "Audio.h"
 
+void Audio::MusicFinishedCallback() {
+    if (preview_state.audio.music && preview_state.audio.shouldLoop) {
+        Mix_PlayMusic(preview_state.audio.music, 0);
+    } else {
+        UnloadSelectedFile();
+    }
+}
+
 void Audio::InitAudioSystem() {
     SDL_AudioSpec spec;
     spec.channels = MIX_DEFAULT_CHANNELS;
@@ -27,6 +35,9 @@ void Audio::InitAudioSystem() {
         Mix_CloseAudio();
         return;
     }
+
+    Mix_HookMusicFinished(MusicFinishedCallback);
+    return;
 }
 
 const std::string audio_exts[] = {
@@ -55,7 +66,7 @@ bool Audio::PlaySound(const fs::path &path) {
         current_sound = nullptr;
         return false;
     }
-    if (!Mix_PlayMusic(current_sound, 1)) {
+    if (!Mix_PlayMusic(current_sound, 0)) {
         Logger::error("Failed to play music: %s", SDL_GetError());
         Mix_FreeMusic(current_sound);
         current_sound = nullptr;

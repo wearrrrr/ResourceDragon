@@ -194,7 +194,7 @@ bool CreateDirectoryRecursive(std::string const &dirName, std::error_code &err)
 void HandleFileClick(DirectoryNode *node)
 {
     fs::path filename = node->FileName;
-    std::string ext = filename.extension();
+    std::string ext = filename.extension().string().substr(1);
 
     auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
 

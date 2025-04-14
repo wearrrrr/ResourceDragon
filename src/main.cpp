@@ -11,6 +11,7 @@
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
 
 #define PLAY_ICON "\ue800"
+#define LOOP_ICON "\ue801"
 #define STOP_ICON "\ue802"
 #define PAUSE_ICON "\ue803"
 #define FF_ICON "\ue804"
@@ -486,13 +487,27 @@ int main(int argc, char* argv[]) {
                         }
 
                         ImGui::SameLine();
+                        bool looping = preview_state.audio.shouldLoop;
+                        if (looping) {
+                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255)); 
+                        }
+                        if (ImGui::Button(LOOP_ICON, {40, 0})) {
+                            preview_state.audio.shouldLoop = !preview_state.audio.shouldLoop;
+                        }
+                        if (looping) ImGui::PopStyleColor();
+                        ImGui::SameLine();
                         if (ImGui::Button(STOP_ICON, {40, 0})) {
                             Mix_HaltMusic();
                             UnloadSelectedFile();
                             preview_state.audio.playing = false;
                             SDL_RemoveTimer(preview_state.audio.update_timer);
                             preview_state.audio.update_timer = 0;
-
+                            preview_state.audio.time = {
+                                .total_time_min = 0,
+                                .total_time_sec = 0,
+                                .current_time_min = 0,
+                                .current_time_sec = 0,
+                            };
                         }
                     }
                 } else if (content_type == "elf") {

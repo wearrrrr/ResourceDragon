@@ -59,7 +59,7 @@ struct PWinStateAudio {
     int fade_steps;
     int fade_step;
     Mix_Fading fading;
-
+    bool shouldLoop;
     bool scrubberDragging;
 };
 struct PreviewWinState {
@@ -107,6 +107,7 @@ inline PreviewWinState preview_state = {
             .current_time_sec = 0,
         },
         .update_timer = 0,
+        .shouldLoop = false,
         .scrubberDragging = false,
     },
     .texture = {

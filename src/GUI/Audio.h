@@ -15,4 +15,6 @@ namespace Audio {
     void InitAudioSystem();
     bool IsAudio(const std::string &ext);
     bool PlaySound(const fs::path &path);
+
+    void MusicFinishedCallback();
 };
