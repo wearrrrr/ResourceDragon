@@ -54,7 +54,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
             fs::remove_all(selectedItem->FullPath);
-            // Check if the file we are trying to delete is the currently selected file
+            // If this is false, someone deleted a file that isn't selected
             if (selectedItem->FullPath == preview_state.contents.path) {
                 UnloadSelectedFile();
             }
@@ -108,7 +108,6 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
 
     ImVec2 cursorPos = ImGui::GetCursorScreenPos();
     ImVec2 size = {width, height};
-    ImVec2 endPos = ImVec2(cursorPos.x + size.x, cursorPos.y + size.y);
 
     ImGui::InvisibleButton("##scrubber", size);
     bool hovered = ImGui::IsItemHovered();
@@ -118,18 +117,17 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
         float mouseX = ImGui::GetIO().MousePos.x;
         *progress = std::clamp((mouseX - cursorPos.x) / width, 0.0f, 1.0f);
     }
-
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     ImU32 bgColor = ImGui::GetColorU32(ImGuiCol_FrameBg);
-    drawList->AddRectFilled(cursorPos, endPos, bgColor, height * 0.5f);
+    drawList->AddRectFilled(cursorPos, {cursorPos.x + size.x, cursorPos.y + size.y}, bgColor, height * 0.5f);
 
     float fillWidth = width * (*progress);
     ImVec2 fillEnd = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height);
     ImU32 fillColor = ImGui::GetColorU32(ImGuiCol_SliderGrabActive);
     drawList->AddRectFilled(cursorPos, fillEnd, fillColor, height * 0.5f);
 
-    float knobRadius = height * 0.7f;
+    float knobRadius = height * 0.75f;
     ImVec2 knobCenter = ImVec2(cursorPos.x + fillWidth, cursorPos.y + height * 0.5f);
     ImU32 knobColor = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
     drawList->AddCircleFilled(knobCenter, knobRadius, knobColor);
@@ -153,7 +151,6 @@ int main(int argc, char* argv[]) {
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
 
     #ifdef linux
-    // Add inotify watch
     inotify_fd = inotify_init();
     if (inotify_fd < 0) {
         std::cerr << "Error: inotify_init() failed" << std::endl;
@@ -227,13 +224,13 @@ int main(int argc, char* argv[]) {
     
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-    // Add U+203B (Reference Mark) as a valid character
+    // U+203B (Reference Mark), Used in a lot of CJK text, but isn't a part of ImGui's glyph range ;-;
     range.AddChar(0x203B);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
     iconConfig.MergeMode = true;
-    iconConfig.GlyphMinAdvanceX = 16.0f;
+    iconConfig.GlyphMinAdvanceX = 18.0f;
 
     const ImWchar icon_ranges[] = { 0xe800, 0xe805, 0 };
 
@@ -248,7 +245,7 @@ int main(int argc, char* argv[]) {
     
     if (fs::exists(font_path)) {
         io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
-        io.Fonts->AddFontFromFileTTF(icon_font_path, 16, &iconConfig, icon_ranges);
+        io.Fonts->AddFontFromFileTTF(icon_font_path, 18, &iconConfig, icon_ranges);
     } else {
         Logger::warn("Failed to locate font file! Attempted to search: %s", font_path);
     }
@@ -316,8 +313,8 @@ int main(int argc, char* argv[]) {
         ImVec2 window_size = io.DisplaySize;
         ImVec2 mouse_pos = io.MousePos;
 
-        static float leftPanelWidth = (window_size.x / 2.0f) - splitterWidth;
-        static float rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
+        static float left_pan_width = (window_size.x / 2.0f) - splitterWidth;
+        static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
 
         
         ImGui::NewFrame();
@@ -327,14 +324,14 @@ int main(int argc, char* argv[]) {
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
 
         ImGui::GetWindowDrawList()->AddRectFilled(
-            {leftPanelWidth, 10},
-            {leftPanelWidth + splitterWidth, window_size.y},
+            {left_pan_width, 10},
+            {left_pan_width + splitterWidth, window_size.y},
             IM_COL32(58, 58, 58, 255)
         );
 
         ImGui::End();
 
-        ImGui::SetNextWindowSize({leftPanelWidth, window_size.y}, ImGuiCond_Always);
+        ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
             RenderFBContextMenu(&io);
@@ -353,7 +350,7 @@ int main(int argc, char* argv[]) {
 
         ImGui::End();
 
-        bool hovered = (mouse_pos.x >= leftPanelWidth && mouse_pos.x <= leftPanelWidth + splitterWidth);
+        bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
 
         if (hovered)
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -363,14 +360,14 @@ int main(int argc, char* argv[]) {
 
         if (resizing)
         {
-            leftPanelWidth += io.MouseDelta.x;
+            left_pan_width += io.MouseDelta.x;
         }
 
-        leftPanelWidth = std::max(minPanelSize, std::min(leftPanelWidth, window_size.x - minPanelSize - splitterWidth));
-        rightPanelWidth = window_size.x - leftPanelWidth - splitterWidth;
+        left_pan_width = std::max(minPanelSize, std::min(left_pan_width, window_size.x - minPanelSize - splitterWidth));
+        right_pan_width = window_size.x - left_pan_width - splitterWidth;
 
-        ImGui::SetNextWindowSize({rightPanelWidth, window_size.y});
-        ImGui::SetNextWindowPos({leftPanelWidth + splitterWidth, 0});
+        ImGui::SetNextWindowSize({right_pan_width, window_size.y});
+        ImGui::SetNextWindowPos({left_pan_width + splitterWidth, 0});
         std::string preview_win_title = preview_win_label;
         if (has_unsaved_changes) preview_win_title += " *";
         else preview_win_title += " ";
@@ -585,6 +582,7 @@ int main(int argc, char* argv[]) {
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
+    
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
