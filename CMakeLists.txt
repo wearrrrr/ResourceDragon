@@ -92,7 +92,6 @@ add_executable(ResourceDragon
     src/util/Text.h
 
     src/zero_templates.h
-    
 )
 
 set(OPENGL_LIB_NAME OpenGL)
