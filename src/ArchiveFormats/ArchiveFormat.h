@@ -21,8 +21,14 @@ class ArchiveFormat {
         std::string description = "????? Resource Archive";
         uint32_t sig = 0x00000000;
 
-        uint32_t ReadUint32(unsigned char *buffer, uint64_t offset) {
-            return *based_pointer<uint32_t>(buffer, offset);
+        template<typename T>
+        T Read(unsigned char* buffer, size_t offset) const {
+            return *based_pointer<T>(buffer, offset);
+        }
+
+        // This assumes the magic is at the start of the file, which *should* be true for most files.
+        uint32_t ReadMagic(unsigned char *buffer) const {
+            return Read<uint32_t>(buffer, 0);
         }
 
         std::string ReadString(unsigned char *buffer, uint64_t offset) {

@@ -51,14 +51,14 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
         Logger::error("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
     }
 
-    uint32_t file_count = ReadUint32(buffer, dpmx_offset + 8);
+    uint32_t file_count = Read<uint32_t>(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
     
-    uint32_t index_offset = (dpmx_offset + 0x10) + ReadUint32(exe->raw_contents, dpmx_offset + 0xC);
+    uint32_t index_offset = (dpmx_offset + 0x10) + Read<uint32_t>(exe->raw_contents, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
 
-    dpmx_offset += ReadUint32(exe->raw_contents, dpmx_offset + 0x4);
+    dpmx_offset += Read<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
     
     std::vector<Entry> entries;
     entries.reserve(file_count);
@@ -69,9 +69,9 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
 
         Entry entry = {
             .name = file_name,
-            .key = ReadUint32(exe->raw_contents, index_offset),
-            .offset = ReadUint32(exe->raw_contents, index_offset + 0x4) + dpmx_offset,
-            .size = ReadUint32(exe->raw_contents, index_offset + 0x8)
+            .key = Read<uint32_t>(exe->raw_contents, index_offset),
+            .offset = Read<uint32_t>(exe->raw_contents, index_offset + 0x4) + dpmx_offset,
+            .size = Read<uint32_t>(exe->raw_contents, index_offset + 0x8)
         };
 
         index_offset += 0xC;
@@ -118,7 +118,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         return DefaultKey;
     };
 
-    return ReadUint32(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
+    return Read<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
 }
 
 bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const

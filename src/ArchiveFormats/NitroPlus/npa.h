@@ -5,7 +5,7 @@
 
 
 class NPAFormat : public ArchiveFormat {
-    std::string tag = "NPP";
+    std::string tag = "NitroPlus.NPA";
     std::string description = "Nitro+ Resource Archive";
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
