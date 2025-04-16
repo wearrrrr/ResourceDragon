@@ -77,10 +77,10 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
         for (const auto& entry : directoryIterator) {
 
             DirectoryNode *childNode = new DirectoryNode {
-                .FullPath = entry.path(),
-                .FileName = entry.path().filename(),
+                .FullPath = entry.path().string(),
+                .FileName = entry.path().filename().string(),
                 .FileSize = Utils::GetFileSize(entry.path()),
-                .LastModified = Utils::GetLastModifiedTime(entry.path()),
+                .LastModified = Utils::GetLastModifiedTime(entry.path().string()),
                 .IsDirectory = entry.is_directory()
             };
 
@@ -93,7 +93,7 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
             if (a->FileName == "..") return true;
             if (b->FileName == "..") return false;
                 if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-                return Utils::ToLower(a->FileName.string()) < Utils::ToLower(b->FileName.string());
+                return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
             }
         );
 
@@ -110,14 +110,14 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
 }
 
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
 {
 
     DirectoryNode *rootNode = new DirectoryNode {
-        .FullPath = rootPath.string(),
-        .FileName = rootPath.string(),
+        .FullPath = rootPath,
+        .FileName = rootPath,
         .FileSize = Utils::GetFileSize(rootPath),
-        .LastModified = Utils::GetLastModifiedTime(rootPath.string()),
+        .LastModified = Utils::GetLastModifiedTime(rootPath),
         .IsDirectory = fs::is_directory(rootPath)
     };
 
@@ -125,7 +125,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
     {
         bool add = AddDirectoryNodes(rootNode, rootPath);
         if (!add) {
-            rootNode = CreateDirectoryNodeTreeFromPath(rootNode->FullPath.parent_path());
+            rootNode = CreateDirectoryNodeTreeFromPath(fs::path(rootNode->FullPath).parent_path().string());
         }
     }
 
@@ -134,12 +134,12 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath)
 
 void ReloadRootNode(DirectoryNode *node)
 {
-    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath));
+    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
 }
 
 DirectoryNode *ChangeDirectory(DirectoryNode *node)
 {
-    fs::path newRootPath(node->FullPath);
+    std::string newRootPath(node->FullPath);
 
     Logger::log("%s", newRootPath.c_str());
     Logger::log("%s", rootNode->FullPath.c_str());
@@ -154,7 +154,7 @@ DirectoryNode *ChangeDirectory(DirectoryNode *node)
     if (node->FileName == "..") {
         fs::path parentPath = fs::path(rootNode->FullPath).parent_path();
         if (parentPath != fs::path(rootNode->FullPath)) {
-            newRootPath = parentPath;
+            newRootPath = parentPath.string();
         } else {
             return rootNode;
         }
@@ -192,10 +192,10 @@ bool CreateDirectoryRecursive(std::string const &dirName, std::error_code &err)
 
 void HandleFileClick(DirectoryNode *node)
 {
-    std::string filename = node->FileName.string();
+    std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
 
-    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.string().c_str());
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
@@ -203,7 +203,7 @@ void HandleFileClick(DirectoryNode *node)
         UnloadSelectedFile();
         preview_state.contents.data = buffer;
         preview_state.contents.size = size;
-        preview_state.contents.path = node->FullPath.string();
+        preview_state.contents.path = node->FullPath;
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
@@ -216,7 +216,7 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
             Logger::log("Loading audio file: %s", node->FullPath.c_str());
-            current_sound = Mix_LoadMUS(node->FullPath.string().c_str());
+            current_sound = Mix_LoadMUS(node->FullPath.c_str());
             if (current_sound) {
                 Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
@@ -250,7 +250,7 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
-    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName.string());
+    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
     if (arc == nullptr) {
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
         free(buffer);
@@ -317,7 +317,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
         ImGui::Unindent(30.0f); 
     };
 
-    bool isOpen = ImGui::TreeNodeEx(node->FileName.string().c_str(), nodeFlags);
+    bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
@@ -326,7 +326,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
-            pathToReopen = node->FullPath.string();
+            pathToReopen = node->FullPath;
         } else {
             HandleFileClick(node);
         }

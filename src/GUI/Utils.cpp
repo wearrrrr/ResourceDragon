@@ -7,7 +7,7 @@ std::string Utils::ToLower(const std::string& str)
     return result;
 }
 
-std::string Utils::GetLastModifiedTime(const fs::path& path)
+std::string Utils::GetLastModifiedTime(const std::string& path)
 {
     namespace chrono = std::chrono;
     try {

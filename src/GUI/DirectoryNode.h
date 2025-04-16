@@ -6,8 +6,8 @@ namespace fs = std::filesystem;
 
 struct DirectoryNode
 {
-    fs::path FullPath;
-    fs::path FileName;
+    std::string FullPath;
+    std::string FileName;
     std::string FileSize;
     std::string LastModified;
     std::vector<DirectoryNode*> Children;
@@ -17,7 +17,7 @@ struct DirectoryNode
 inline DirectoryNode *rootNode;
 inline DirectoryNode *selectedItem;
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const fs::path& rootPath);
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath);
 DirectoryNode *ChangeDirectory(DirectoryNode *node);
 
 void ReloadRootNode(DirectoryNode *node);

@@ -29,14 +29,14 @@ void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
-                ImGui::SetClipboardText(selectedItem->FileName.string().c_str());
+                ImGui::SetClipboardText(selectedItem->FileName.c_str());
             }
             if (ImGui::MenuItem("Location")) {
-                ImGui::SetClipboardText(selectedItem->FullPath.string().c_str());
+                ImGui::SetClipboardText(selectedItem->FullPath.c_str());
             }
             if (!selectedItem->IsDirectory) {
                 if (ImGui::MenuItem("File")) {
-                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath.string());
+                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
                 }
             }
             ImGui::EndMenu();
@@ -50,7 +50,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.string().size() > 0 ? selectedItem->FileName.string().c_str() : "<ITEM>");
+        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
             fs::remove_all(selectedItem->FullPath);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         path = argv[1];
     }
 
-    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path));
+    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path).string());
 
     #ifdef linux
     inotify_fd = inotify_init();
@@ -289,12 +289,12 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_EVENT_DROP_FILE) {
                 const char* dropped_filedir = event.drop.data;
                 // Preview the dropped file
-                fs::path dropped_path = fs::path(dropped_filedir);
-                fs::path dropped_path_dir = dropped_path.parent_path();
+                auto dropped_path = fs::path(dropped_filedir);
+                auto dropped_path_dir = dropped_path.parent_path();
                 Logger::log("%s", dropped_path_dir.c_str());
                 if (fs::exists(dropped_path)) {
-                    rootNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir);
-                    selectedItem = CreateDirectoryNodeTreeFromPath(dropped_path);
+                    rootNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
+                    selectedItem = CreateDirectoryNodeTreeFromPath(dropped_path.string());
                     HandleFileClick(selectedItem);
                 } else {
                     Logger::error("Dropped file does not exist: %s", dropped_filedir);
