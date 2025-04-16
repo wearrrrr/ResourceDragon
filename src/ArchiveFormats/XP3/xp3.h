@@ -51,5 +51,4 @@ class XP3Archive : public ArchiveBase {
         };
 
         const char *OpenStream(const Entry &entry, unsigned char *buffer) override;
-        std::vector<Entry> GetEntries() override;
 };

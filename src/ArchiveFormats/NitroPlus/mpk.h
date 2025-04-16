@@ -1,11 +1,7 @@
-#pragma once
-
-#include <algorithm>
 #include "../ArchiveFormat.h"
 
-
-class NPAFormat : public ArchiveFormat {
-    std::string tag = "NPP";
+class MPKFormat : public ArchiveFormat {
+    std::string tag = "MPK";
     std::string description = "Nitro+ Resource Archive";
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;

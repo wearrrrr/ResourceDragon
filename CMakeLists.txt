@@ -59,12 +59,11 @@ add_executable(ResourceDragon
     
     src/GameRes/Entry.h
 
+    src/ArchiveFormats/ArchiveFormat.h
     src/ArchiveFormats/ElfFile.h
     src/ArchiveFormats/ElfFile.cpp
     src/ArchiveFormats/ExeFile.h
     src/ArchiveFormats/ExeFile.cpp
-    src/ArchiveFormats/ArchiveFormat.h
-    src/ArchiveFormats/ArchiveFormat.cpp
 
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
@@ -72,6 +71,8 @@ add_executable(ResourceDragon
     src/ArchiveFormats/NitroPlus/nitroplus.h
     src/ArchiveFormats/NitroPlus/npa.h
     src/ArchiveFormats/NitroPlus/npa.cpp
+    src/ArchiveFormats/NitroPlus/mpk.h
+    src/ArchiveFormats/NitroPlus/mpk.cpp
 
     src/ArchiveFormats/XP3/Crypt/Crypt.h
     src/ArchiveFormats/XP3/xp3.h

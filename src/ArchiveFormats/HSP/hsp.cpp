@@ -140,11 +140,6 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::
     return false;
 }
 
-std::vector<Entry> DPMArchive::GetEntries()
-{
-    return this->entries;
-}
-
 const char *DPMArchive::OpenStream(const Entry &entry, unsigned char *buffer)
 {
     unsigned char *data = buffer + entry.offset;

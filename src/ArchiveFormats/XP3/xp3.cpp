@@ -325,8 +325,3 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
 
     return nullptr;
 }
-
-std::vector<Entry> XP3Archive::GetEntries()
-{
-    return std::vector<Entry>();
-}
