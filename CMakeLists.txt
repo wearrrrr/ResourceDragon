@@ -31,7 +31,6 @@ set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_opengl3.h
         vendored/imgui/imgui.h
         vendored/imgui/imgui.cpp
-        vendored/imgui/imgui_demo.cpp
         vendored/imgui/imgui_draw.cpp
         vendored/imgui/imgui_tables.cpp
         vendored/imgui/imgui_widgets.cpp

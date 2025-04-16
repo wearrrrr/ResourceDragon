@@ -93,7 +93,7 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
             if (a->FileName == "..") return true;
             if (b->FileName == "..") return false;
                 if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-                return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
+                return Utils::ToLower(a->FileName.string()) < Utils::ToLower(b->FileName.string());
             }
         );
 
@@ -195,7 +195,7 @@ void HandleFileClick(DirectoryNode *node)
     std::string filename = node->FileName.string();
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
 
-    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.string().c_str());
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
@@ -203,7 +203,7 @@ void HandleFileClick(DirectoryNode *node)
         UnloadSelectedFile();
         preview_state.contents.data = buffer;
         preview_state.contents.size = size;
-        preview_state.contents.path = node->FullPath;
+        preview_state.contents.path = node->FullPath.string();
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
@@ -216,7 +216,7 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
             Logger::log("Loading audio file: %s", node->FullPath.c_str());
-            current_sound = Mix_LoadMUS(node->FullPath.c_str());
+            current_sound = Mix_LoadMUS(node->FullPath.string().c_str());
             if (current_sound) {
                 Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
@@ -250,7 +250,7 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
-    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
+    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName.string());
     if (arc == nullptr) {
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
         free(buffer);
@@ -317,7 +317,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
         ImGui::Unindent(30.0f); 
     };
 
-    bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
+    bool isOpen = ImGui::TreeNodeEx(node->FileName.string().c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
@@ -326,7 +326,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
-            pathToReopen = node->FullPath;
+            pathToReopen = node->FullPath.string();
         } else {
             HandleFileClick(node);
         }

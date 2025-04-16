@@ -29,14 +29,14 @@ void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
-                ImGui::SetClipboardText(selectedItem->FileName.c_str());
+                ImGui::SetClipboardText(selectedItem->FileName.string().c_str());
             }
             if (ImGui::MenuItem("Location")) {
-                ImGui::SetClipboardText(selectedItem->FullPath.c_str());
+                ImGui::SetClipboardText(selectedItem->FullPath.string().c_str());
             }
             if (!selectedItem->IsDirectory) {
                 if (ImGui::MenuItem("File")) {
-                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath.string());
                 }
             }
             ImGui::EndMenu();
@@ -50,7 +50,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.string().size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
+        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.string().size() > 0 ? selectedItem->FileName.string().c_str() : "<ITEM>");
         ImGui::Text("This cannot be undone!");
         if (ImGui::Button("Confirm", {100, 0})) {
             fs::remove_all(selectedItem->FullPath);
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
 
     #ifdef WIN32
     const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
-    const char *icon_font_path = "fonts\\player-icons.ttf"
+    const char *icon_font_path = "fonts\\player-icons.ttf";
     #else
     const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
     const char *icon_font_path = "fonts/player-icons.ttf";

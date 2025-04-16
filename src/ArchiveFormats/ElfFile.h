@@ -54,7 +54,7 @@ class ElfFile {
 private:
     unsigned char *mFileStream;
     size_t mFileStreamSize;
-    std::string mFilePath;
+    fs::path mFilePath;
     union {
         Elf32_Header elf32;
         Elf64_Header elf64;
@@ -62,9 +62,9 @@ private:
     ElfClass mElfClass = ElfClass::NONE;
     bool mIsValid = true;
 public:
-    ElfFile(const std::string& filePath) {
+    ElfFile(const fs::path& filePath) {
         mFilePath = filePath;
-        auto [buffer, size] = read_file_to_buffer<unsigned char>(filePath.c_str());
+        auto [buffer, size] = read_file_to_buffer<unsigned char>(filePath.string().c_str());
         if (size < sizeof(Elf32_Header)) {
             return;
         }
