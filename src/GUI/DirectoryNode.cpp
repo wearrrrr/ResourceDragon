@@ -262,12 +262,13 @@ void HandleFileClick(DirectoryNode *node)
     fs::remove_all("decrypt/");
     fs::create_directory("decrypt");
 
-    for (int i = 0; i < arc->entries.size(); i++) {
-        Entry entry = arc->entries.at(i);
+    for (int i = 0; i < arc->GetEntries().size(); i++) {
+
+        Entry *entry = arc->GetEntries().at(i);
         const char *data = arc->OpenStream(entry, buffer);
 
         // Create directory from entry.name if it doesn't exist
-        fs::path entryPath(entry.name);
+        fs::path entryPath(entry->name);
         if (entryPath.has_parent_path()) {
             std::string parentDir = entryPath.parent_path().string();
             std::error_code err;
@@ -277,8 +278,8 @@ void HandleFileClick(DirectoryNode *node)
             }
         }
         
-        std::ofstream outFile("decrypt/" + entry.name, std::ios::binary);
-        outFile.write((const char*)data, entry.size);
+        std::ofstream outFile("decrypt/" + entry->name, std::ios::binary);
+        outFile.write((const char*)data, entry->size);
         outFile.close();
     }
     Logger::log("Decrypted successfully!");

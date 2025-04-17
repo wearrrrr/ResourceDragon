@@ -8,10 +8,8 @@
 
 class ArchiveBase {
     public:
-        std::vector<Entry> entries;
-
-        virtual const char* OpenStream(const Entry &entry, unsigned char *buffer) = 0;
-
+        virtual const char* OpenStream(const Entry *entry, unsigned char *buffer) = 0;
+        virtual std::vector<Entry*> GetEntries() = 0;
         virtual ~ArchiveBase() = default;
 };
 
@@ -21,9 +19,30 @@ class ArchiveFormat {
         std::string description = "????? Resource Archive";
         uint32_t sig = 0x00000000;
 
+        size_t buffer_position = 0;
+
         template<typename T>
         T Read(unsigned char* buffer, size_t offset) const {
             return *based_pointer<T>(buffer, offset);
+        }
+        template<typename T>
+        T Read(unsigned char* buffer) {
+            T read = *based_pointer<T>(buffer, buffer_position);
+            buffer_position += sizeof(T);
+            return read;
+        }
+
+        void Read(void *dest, unsigned char *src, size_t size) {
+            memcpy(dest, src + buffer_position, size);
+            buffer_position += size;
+        }
+
+        void Seek(size_t new_position) {
+            buffer_position = new_position;
+        }
+
+        size_t GetBufferHead() {
+            return buffer_position;
         }
 
         // This assumes the magic is at the start of the file, which *should* be true for most files.

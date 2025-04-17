@@ -8,6 +8,8 @@
 // TODO: Make generic ArchiveFile class to inherit from, so that I don't have to set variables on this class directly.
 class DPMArchive : public ArchiveBase {
     public:
+        std::vector<Entry> entries;
+
         uint32_t arc_key;
         size_t dpm_size;
         uint8_t seed_1;
@@ -36,8 +38,13 @@ class DPMArchive : public ArchiveBase {
             }
             return;
         };
-
-        const char* OpenStream(const Entry &entry, unsigned char *buffer) override;
+        std::vector<Entry*> GetEntries() override {
+            std::vector<Entry*> basePtrs;
+            for (auto& entry : entries)
+                basePtrs.push_back(&entry);
+            return basePtrs;
+        }
+        const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
 };
 
 class HSPArchive : public ArchiveFormat {

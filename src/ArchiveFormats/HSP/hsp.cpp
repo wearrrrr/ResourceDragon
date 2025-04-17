@@ -140,12 +140,12 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::
     return false;
 }
 
-const char *DPMArchive::OpenStream(const Entry &entry, unsigned char *buffer)
+const char *DPMArchive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
-    unsigned char *data = buffer + entry.offset;
+    unsigned char *data = buffer + entry->offset;
 
-    if (entry.key) {
-        DecryptEntry(data, entry.size, entry.key);
+    if (entry->key) {
+        DecryptEntry(data, entry->size, entry->key);
     }
 
     return (const char*)(data);

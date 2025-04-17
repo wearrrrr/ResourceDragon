@@ -31,7 +31,7 @@ class XP3Crypt {
             return u"";
         }
 
-        const char* EntryReadFilter(Entry entry, const char *input, size_t size) {
+        const char* EntryReadFilter(const Entry *entry, const char *input, size_t size) {
             // Post processing of the entry data, before being returned by OpenStream
             return input;
         }

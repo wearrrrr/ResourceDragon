@@ -34,9 +34,13 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::MenuItem("Location")) {
                 ImGui::SetClipboardText(selectedItem->FullPath.c_str());
             }
-            if (!selectedItem->IsDirectory) {
-                if (ImGui::MenuItem("File")) {
-                    Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+            // TODO: We need to be clearing selectedItem's pointer every frame if nothing is hovering, but for now this is here 
+            // this prevents shit from breaking.
+            if (selectedItem) {
+                if (!selectedItem->IsDirectory) {
+                    if (ImGui::MenuItem("File")) {
+                        Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                    }
                 }
             }
             ImGui::EndMenu();

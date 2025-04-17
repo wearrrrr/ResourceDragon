@@ -46,9 +46,16 @@ class XP3Format : public ArchiveFormat {
 
 class XP3Archive : public ArchiveBase {
     public:
+        std::vector<Entry> entries;
         XP3Archive(std::vector<Entry> entries) {
             this->entries = entries;
         };
 
-        const char *OpenStream(const Entry &entry, unsigned char *buffer) override;
+        std::vector<Entry*> GetEntries() override {
+            std::vector<Entry*> basePtrs;
+            for (auto& entry : entries)
+                basePtrs.push_back(&entry);
+            return basePtrs;
+        }
+        const char *OpenStream(const Entry *entry, unsigned char *buffer) override;
 };

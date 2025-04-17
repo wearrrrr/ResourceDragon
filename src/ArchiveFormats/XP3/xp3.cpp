@@ -291,11 +291,11 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
 static std::vector<uint8_t> stream;
 
-const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
+const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
     stream.clear();
-    if (entry.segments.size() == 1 && !entry.isEncrypted) {
-        Segment segment = entry.segments.at(0);
+    if (entry->segments.size() == 1 && !entry->isEncrypted) {
+        Segment segment = entry->segments.at(0);
         if (segment.IsCompressed) {
             stream.resize(segment.Size);
             uLongf decompressed_size = (uLongf)(segment.Size);
@@ -309,18 +309,18 @@ const char *XP3Archive::OpenStream(const Entry &entry, unsigned char *buffer)
                 return nullptr;
             }
         } else {
-            stream.resize(entry.size);
-            memcpy(stream.data(), buffer + entry.offset, entry.size);
+            stream.resize(entry->size);
+            memcpy(stream.data(), buffer + entry->offset, entry->size);
         }
 
-        return entry.crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
+        return entry->crypt->EntryReadFilter(entry, (const char*)stream.data(), stream.size());
     } 
     else {
         // Encrypted entries
-        stream.resize(entry.size);
-        memcpy(stream.data(), buffer + entry.offset, entry.size);
-        std::vector<uint8_t> decrypted = entry.crypt->Decrypt((Entry*)&entry, entry.offset, stream, 0, stream.size());
-        return entry.crypt->EntryReadFilter(entry, (const char*)decrypted.data(), decrypted.size());
+        stream.resize(entry->size);
+        memcpy(stream.data(), buffer + entry->offset, entry->size);
+        std::vector<uint8_t> decrypted = entry->crypt->Decrypt((Entry*)&entry, entry->offset, stream, 0, stream.size());
+        return entry->crypt->EntryReadFilter(entry, (const char*)decrypted.data(), decrypted.size());
     }
 
     return nullptr;

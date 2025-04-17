@@ -1,5 +1,12 @@
 #include "../ArchiveFormat.h"
 
+struct MPKEntry : Entry {
+    uint32_t Id;
+    int64_t Offset;
+    bool Compressed;
+    int64_t CompressedSize;
+};
+
 class MPKFormat : public ArchiveFormat {
     std::string tag = "NitroPlus.MPK";
     std::string description = "Nitro+ Resource Archive";
@@ -10,4 +17,19 @@ class MPKFormat : public ArchiveFormat {
     std::string getTag() const override {
         return this->tag;
     }
+};
+
+class MPKArchive : public ArchiveBase {
+    std::vector<MPKEntry> entries;
+    public:
+        MPKArchive(const std::vector<MPKEntry> &entries) {
+            this->entries = entries;
+        }
+        std::vector<Entry*> GetEntries() override {
+            std::vector<Entry*> basePtrs;
+            for (auto& entry : entries)
+                basePtrs.push_back(&entry);
+            return basePtrs;
+        }
+        const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
 };
