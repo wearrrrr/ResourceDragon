@@ -386,7 +386,9 @@ int main(int argc, char* argv[]) {
                     PWinStateTexture *texture = &preview_state.texture;
                     ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
                     if (texture->id) {
-                        ImGui::SetCursorPos({(ImGui::GetWindowSize().x - texture->size.x) * 0.5f, 50});
+                        if (image_size.x < window_size.x) {
+                            ImGui::SetCursorPos({(ImGui::GetWindowSize().x - texture->size.x) * 0.5f, 50});
+                        }
                         ImGui::Image(texture->id, image_size);
                     } else {
                         ImGui::Text("Failed to load image!");

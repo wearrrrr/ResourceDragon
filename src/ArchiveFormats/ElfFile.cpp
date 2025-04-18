@@ -1,7 +1,5 @@
 #include "ElfFile.h"
 
-
-
 bool ElfFile::IsValid(unsigned char* buffer)
 {
     // Check that the file is valid and that it matches the ELF magic number
