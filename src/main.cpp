@@ -272,14 +272,13 @@ int main(int argc, char* argv[]) {
 
     float splitterWidth = 10.0f;
     float minPanelSize = 400.0f;
-    static bool resizing = false;
-
+    
+    bool resizing = false;
     bool running = true;
-    ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
-
-    std::string preview_win_label = "Preview";
-
     bool has_unsaved_changes = false;
+    
+    ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
+    std::string preview_win_label = "Preview";
 
     float timeToSetOnRelease = 0.0f;
 
