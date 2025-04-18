@@ -1,19 +1,9 @@
 #pragma once
 
-#include <limits>
-#include <unordered_map>
 #include <string>
-#include <sstream>
-#include <iomanip>
-#include "../../md5.h"
-
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"
-#include "../../util/Text.h"
 #include "Crypt/Crypt.h"
-#include "zlib.h"
-
-
 
 enum XP3HeaderType {
     XP3_HEADER_UNPACKED = 0,

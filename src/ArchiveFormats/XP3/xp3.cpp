@@ -1,3 +1,9 @@
+#include <limits>
+#include <unordered_map>
+#include "../../md5.h"
+#include "../../util/Text.h"
+#include "zlib.h"
+
 #include "xp3.h"
 
 // TODO! This will need a large refactor, especially since I am planning on greatly changing how TryOpen works in the future.

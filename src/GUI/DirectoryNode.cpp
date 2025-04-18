@@ -1,4 +1,5 @@
 #include "DirectoryNode.h"
+#include "../util/Text.h"
 #include "../common.h"
 
 void UnloadSelectedFile() {

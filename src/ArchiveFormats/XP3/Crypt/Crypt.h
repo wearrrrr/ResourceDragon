@@ -1,9 +1,14 @@
 #pragma once
 
+#include <iomanip>
+#include <sstream>
+
 #include "../../../GameRes/Entry.h"
+#include "../../../BinaryReader.h"
+#include "../../../util/Logger.h"
 
 class XP3Crypt {
-    public:
+public:
         bool HashAfterCrypt = false;
         bool StartupTjsNotEncrypted = false;
         bool ObfuscatedIndex = false;
