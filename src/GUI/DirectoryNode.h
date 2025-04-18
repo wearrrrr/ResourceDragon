@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../common.h"
-
-namespace fs = std::filesystem;
+#include <string>
+#include <vector>
 
 struct DirectoryNode
 {

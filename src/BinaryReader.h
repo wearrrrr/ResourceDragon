@@ -1,7 +1,7 @@
 #include <vector>
 #include <cstdint>
 #include <optional>
-#include <iostream>
+#include <string>
 
 class BinaryReader {
 

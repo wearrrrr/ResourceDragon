@@ -1,3 +1,4 @@
+#include <iostream>
 #include "common.h"
 
 #define DEBUG
@@ -247,7 +248,6 @@ int main(int argc, char* argv[]) {
     const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
     const char *icon_font_path = "fonts/player-icons.ttf";
     #endif
-
     
     if (fs::exists(font_path)) {
         io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
@@ -580,7 +580,7 @@ int main(int argc, char* argv[]) {
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
-        
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window);

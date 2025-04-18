@@ -1,4 +1,5 @@
 #include "DirectoryNode.h"
+#include "../common.h"
 
 void UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
