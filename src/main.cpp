@@ -459,8 +459,10 @@ int main(int argc, char* argv[]) {
                                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
 
-                                float scrubberProgress = (preview_state.audio.scrubberDragging ? timeToSetOnRelease : current_pos) / total_time;
-                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f) - 10.0f);
+                                float visual_pos = std::max(current_pos - 0.3, 0.0);
+                                float scrubberProgress = visual_pos / total_time;
+                                scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
+                                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
                             
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
@@ -478,7 +480,7 @@ int main(int argc, char* argv[]) {
                                     preview_state.audio.scrubberDragging = false;
                                 }
                             }
-                            ImGui::SameLine();
+                            ImGui::SameLine(0.0f, 16.0f);
                             // Fast forward 5 seconds
                             if (ImGui::Button(FF_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
