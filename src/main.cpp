@@ -141,12 +141,16 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
     return active;
 }
 
+template <class T>
+inline void RegisterFormat() {
+    extractor_manager.registerFormat(std::make_unique<T>());
+}
 
 int main(int argc, char* argv[]) {
-    extractor_manager.registerFormat(std::make_unique<HSPArchive>());
-    extractor_manager.registerFormat(std::make_unique<NitroPlus::MPK>());
-    extractor_manager.registerFormat(std::make_unique<NitroPlus::NPA>());
-    extractor_manager.registerFormat(std::make_unique<XP3Format>());
+    RegisterFormat<HSPArchive>();
+    RegisterFormat<PFSArchive>();
+    RegisterFormat<NitroPlus::MPK>();
+    RegisterFormat<XP3Format>();
 
     std::string path;
     if (argc < 2) {

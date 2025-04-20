@@ -5,7 +5,29 @@
 #include "../ArchiveFormat.h"
 #include "../../GameRes/Entry.h"
 
-// TODO: Make generic ArchiveFile class to inherit from, so that I don't have to set variables on this class directly.
+class HSPArchive : public ArchiveFormat {
+    public:
+        std::string tag = "HSP";
+        std::string description = "Hot Soup Processor 3 Resource Archive";
+
+        uint32_t DefaultKey = 0xAC52AE58;
+
+        std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
+
+        HSPArchive() {
+            sig = PackUInt('D', 'P', 'M', 'X');
+        };
+
+        
+        uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
+        
+        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
+        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
+        std::string getTag() const override {
+            return this->tag;
+        }
+};
+
 class DPMArchive : public ArchiveBase {
     public:
         std::vector<Entry> entries;
@@ -45,27 +67,4 @@ class DPMArchive : public ArchiveBase {
             return basePtrs;
         }
         const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
-};
-
-class HSPArchive : public ArchiveFormat {
-    public:
-        std::string tag = "HSP";
-        std::string description = "Hot Soup Processor 3 Resource Archive";
-
-        uint32_t DefaultKey = 0xAC52AE58;
-
-        std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
-
-        HSPArchive() {
-            sig = PackUInt('D', 'P', 'M', 'X');
-        };
-
-        
-        uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
-        
-        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
-        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
-        std::string getTag() const override {
-            return this->tag;
-        }
 };

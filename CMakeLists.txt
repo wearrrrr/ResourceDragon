@@ -67,6 +67,9 @@ add_executable(ResourceDragon
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
     
+    src/ArchiveFormats/PFS/pfs.h
+    src/ArchiveFormats/PFS/pfs.cpp
+
     src/ArchiveFormats/NitroPlus/nitroplus.h
     src/ArchiveFormats/NitroPlus/npa.h
     src/ArchiveFormats/NitroPlus/npa.cpp
