@@ -146,11 +146,15 @@ inline void RegisterFormat() {
     extractor_manager.registerFormat(std::make_unique<T>());
 }
 
-int main(int argc, char* argv[]) {
+inline void RegisterFormats() {
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSArchive>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<XP3Format>();
+}
+
+int main(int argc, char* argv[]) {
+    RegisterFormats();
 
     std::string path;
     if (argc < 2) {
