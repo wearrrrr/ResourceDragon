@@ -148,7 +148,7 @@ inline void RegisterFormat() {
 
 inline void RegisterFormats() {
     RegisterFormat<HSPArchive>();
-    RegisterFormat<PFSArchive>();
+    RegisterFormat<PFSFormat>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<XP3Format>();
 }

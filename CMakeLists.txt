@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_CXX_FLAGS "-Oz")
 set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
@@ -99,6 +99,9 @@ add_executable(ResourceDragon
     src/util/Text.h
 
     src/zero_templates.h
+
+    src/md5.h
+    src/sha1.h
 )
 
 set(OPENGL_LIB_NAME OpenGL)

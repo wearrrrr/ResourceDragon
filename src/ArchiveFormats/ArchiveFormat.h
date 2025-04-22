@@ -57,6 +57,10 @@ class ArchiveFormat {
             return constructed;
         }
 
+        std::string ReadStringWithLength(const unsigned char* buffer, int length) {
+            return std::string(reinterpret_cast<const char*>(buffer), length);
+        }
+
         ExeFile* ConvertToExeFile(unsigned char *buffer) {
             return new ExeFile(buffer);
         }
