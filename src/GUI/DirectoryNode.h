@@ -17,7 +17,6 @@ inline DirectoryNode *rootNode;
 inline DirectoryNode *selectedItem;
 
 DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath);
-DirectoryNode *ChangeDirectory(DirectoryNode *node);
 
 void ReloadRootNode(DirectoryNode *node);
 void HandleFileClick(DirectoryNode *node);

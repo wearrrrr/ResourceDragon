@@ -51,14 +51,14 @@ void DeleteDirectoryNodeTree(DirectoryNode* node)
 {
     if (!node) return;
 
-    for (DirectoryNode* child : node->Children) {
+    for (DirectoryNode *child : node->Children) {
         DeleteDirectoryNodeTree(child);
     }
 
     delete node;
 }
 
-bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
+bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path &parentPath)
 {
     try 
     {
@@ -100,7 +100,7 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path& parentPath)
         );
 
         return true;
-    } catch (const fs::filesystem_error& e) {
+    } catch (const fs::filesystem_error &e) {
             const char* errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
             // Show errorMessage in the GUI
@@ -139,32 +139,6 @@ void ReloadRootNode(DirectoryNode *node)
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
 }
 
-DirectoryNode *ChangeDirectory(DirectoryNode *node)
-{
-    std::string newRootPath(node->FullPath);
-
-    Logger::log("%s", newRootPath.c_str());
-    Logger::log("%s", rootNode->FullPath.c_str());
-
-    #ifdef linux
-    if (inotify_fd >= 0) {
-        inotify_rm_watch(inotify_fd, inotify_wd);
-        inotify_wd = inotify_add_watch(inotify_fd, newRootPath.c_str(), IN_MODIFY | IN_CREATE | IN_DELETE);
-    }
-    #endif
-
-    if (node->FileName == "..") {
-        fs::path parentPath = fs::path(rootNode->FullPath).parent_path();
-        if (parentPath != fs::path(rootNode->FullPath)) {
-            newRootPath = parentPath.string();
-        } else {
-            return rootNode;
-        }
-    }
-    
-    return CreateDirectoryNodeTreeFromPath(newRootPath);
-}
-
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     if (current_sound) {
         double current_time = Mix_GetMusicPosition(current_sound);
@@ -173,7 +147,7 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
             preview_state.audio.time.current_time_sec = (int)current_time % 60;
         }
     }
-    return interval; // continue timer
+    return interval;
 }
 
 bool CreateDirectoryRecursive(std::string const &dirName, std::error_code &err)

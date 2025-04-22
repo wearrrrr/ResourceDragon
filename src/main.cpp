@@ -417,7 +417,6 @@ int main(int argc, char* argv[]) {
                 } else if (content_type == "audio") {
                     // Display audio controls
                     if (current_sound) {
-                        // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
                         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
                         TimeInfo time = preview_state.audio.time;
                         if (preview_state.audio.playing) {
@@ -434,6 +433,7 @@ int main(int argc, char* argv[]) {
                         }
                         ImGui::SameLine();
                         ImGui::BeginGroup();
+                        // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
                         if (!curr_sound_is_midi) {
                             if (ImGui::Button(RW_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
@@ -452,7 +452,6 @@ int main(int argc, char* argv[]) {
                             }
                             ImGui::SameLine();
                             if (!curr_sound_is_midi) {
-                                // Display progress / total time
                                 ImGui::Text("%02d:%02d / %02d:%02d", 
                                     time.current_time_min, 
                                     time.current_time_sec,
@@ -489,7 +488,6 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                             ImGui::SameLine(0.0f, 16.0f);
-                            // Fast forward 5 seconds
                             if (ImGui::Button(FF_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
                                 if (new_pos > 0) {
