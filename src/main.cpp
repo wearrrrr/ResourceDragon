@@ -439,10 +439,8 @@ int main(int argc, char* argv[]) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
                                 if (new_pos > 0) {
                                     Mix_SetMusicPosition(new_pos);
-                                    if (!preview_state.audio.scrubberDragging) {
-                                        preview_state.audio.time.current_time_min = (int)new_pos / 60;
-                                        preview_state.audio.time.current_time_sec = (int)new_pos % 60;
-                                    }
+                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
+                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
                                 } else {
                                     // Prevent going negative
                                     Mix_SetMusicPosition(0);
