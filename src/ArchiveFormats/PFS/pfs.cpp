@@ -1,4 +1,5 @@
 #include "pfs.h"
+#include <fstream>
 
 ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
 {
@@ -34,9 +35,13 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
         return nullptr;
     }
     unsigned char *index_buf = (unsigned char*)malloc(index_size);
-
     Seek(7);
+
     Read(index_buf, buffer, index_size);
+
+    // std::ofstream outFile("index_buf", std::ios::binary);
+    // outFile.write((const char*)index_buf, index_size);
+    // outFile.close();
     
     std::vector<Entry> entries;
     
@@ -98,11 +103,15 @@ unsigned char* DecryptEntry(const unsigned char* archive_buf, const Entry *entry
     unsigned char* output = new unsigned char[entry->size];
     memcpy(output, archive_buf + entry->offset, entry->size);
 
-    int32_t key_len = key.size();
-    int32_t base_pos = entry->offset % key_len;
+    int32_t m_base_pos = entry->offset % key.size();
+
+    Logger::log("[DecryptEntry] entry_offset=%u size=%u key_len=%zu m_base_pos=%d", entry->offset, entry->size, key.size(), m_base_pos);
+    Logger::log("Key (first 5 bytes): %02X %02X %02X %02X %02X", key[0], key[1], key[2], key[3], key[4]);
 
     for (uint32_t i = 0; i < entry->size; ++i) {
-        output[i] ^= key[(base_pos + i) % key_len];
+        uint64_t stream_pos = i;
+        int32_t key_index = (m_base_pos + stream_pos) % key.size();
+        output[i] ^= key[key_index];
     }
 
     return output;
