@@ -45,7 +45,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     
     std::vector<Entry> entries;
     
-    int index_offset = 4;
+    int32_t index_offset = 4;
     for (int i = 0; i < 5; ++i) {
         if (index_offset + 4 > index_size) {
             Logger::error("Unexpected end of index when reading name length.");
@@ -99,31 +99,17 @@ bool PFSFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::s
     return false;
 }
 
-unsigned char* DecryptEntry(const unsigned char* archive_buf, const Entry *entry, const std::vector<uint8_t> &key) {
-    unsigned char* output = new unsigned char[entry->size];
-    memcpy(output, archive_buf + entry->offset, entry->size);
-
-    int32_t m_base_pos = entry->offset % key.size();
-
-    Logger::log("[DecryptEntry] entry_offset=%u size=%u key_len=%zu m_base_pos=%d", entry->offset, entry->size, key.size(), m_base_pos);
-    Logger::log("Key (first 5 bytes): %02X %02X %02X %02X %02X", key[0], key[1], key[2], key[3], key[4]);
-
-    for (uint32_t i = 0; i < entry->size; ++i) {
-        uint64_t stream_pos = i;
-        int32_t key_index = (m_base_pos + stream_pos) % key.size();
-        output[i] ^= key[key_index];
-    }
-
-    return output;
-}
-
-
 const char* PFSArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
+    unsigned char* output = new unsigned char[entry->size];
+    memcpy(output, buffer + entry->offset, entry->size);
+
     if (!key.empty()) {
-        return (const char*)DecryptEntry(buffer, entry, key);
-    } else {
-        unsigned char* raw = new unsigned char[entry->size];
-        memcpy(raw, buffer + entry->offset, entry->size);
-        return (const char*)raw;
+        size_t base_offset = entry->offset % key.size();
+        for (size_t i = 0; i < entry->size; ++i) {
+            size_t stream_pos = i;
+            output[i] ^= key[(base_offset + stream_pos) % key.size()];
+        }
     }
+
+    return (const char*)(output);
 }
