@@ -46,7 +46,6 @@ public:
 class NoCrypt : public XP3Crypt {
     public:
         std::vector<uint8_t> Decrypt(Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
-            Logger::log("NoCrypt: Decrypting %d bytes at offset %d", count, offset);
             return buffer;
         }
 

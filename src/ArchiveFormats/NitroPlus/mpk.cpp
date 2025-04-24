@@ -56,7 +56,7 @@ ArchiveBase *MPKFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
 bool MPKFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
 {
-    if (ReadMagic(buffer) == sig) {
+    if (ReadMagic<uint32_t>(buffer) == sig) {
         return true;
     }
     

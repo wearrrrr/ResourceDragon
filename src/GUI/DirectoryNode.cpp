@@ -191,10 +191,8 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
-            Logger::log("Loading audio file: %s", node->FullPath.c_str());
             current_sound = Mix_LoadMUS(node->FullPath.c_str());
             if (current_sound) {
-                Logger::log("Audio loaded successfully!");
                 preview_state.content_type = "audio";
                 Mix_PlayMusic(current_sound, 1);
                 int duration = (int)Mix_MusicDuration(current_sound);

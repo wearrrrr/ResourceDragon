@@ -45,9 +45,9 @@ class ArchiveFormat {
             return buffer_position;
         }
 
-        // This assumes the magic is at the start of the file, which *should* be true for most files.
-        uint32_t ReadMagic(unsigned char *buffer) const {
-            return Read<uint32_t>(buffer, 0);
+        template<typename T>
+        T ReadMagic(unsigned char *buffer) const {
+            return *based_pointer<T>(buffer, 0);
         }
 
         std::string ReadString(unsigned char *buffer, uint64_t offset) {

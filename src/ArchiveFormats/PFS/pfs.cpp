@@ -89,7 +89,7 @@ bool PFSFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::s
         return false;
     }
 
-    if (*based_pointer<uint16_t>(buffer, 0) == PackUInt16('p', 'f')) {
+    if (ReadMagic<uint16_t>(buffer) == PackUInt16('p', 'f')) {
         return true;
     }
 
