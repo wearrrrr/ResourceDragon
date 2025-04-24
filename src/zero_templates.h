@@ -28,20 +28,12 @@ static T *based_pointer(void *base, size_t offset) {
   return (T *)(uintptr_t(base) + offset);
 }
 
-static inline constexpr int16_t PackSInt16(uint8_t c1, uint8_t c2 = 0) {
-  return c2 << 8 | c1;
-}
-static inline constexpr int32_t PackSInt32(uint8_t c1, uint8_t c2 = 0, uint8_t c3 = 0, uint8_t c4 = 0) {
-  return c4 << 24 | c3 << 16 | c2 << 8 | c1;
-}
 static inline constexpr uint16_t PackUInt16(uint8_t c1, uint8_t c2 = 0) {
   return c2 << 8 | c1;
 }
-static inline constexpr uint32_t PackUInt32(uint8_t c1, uint8_t c2 = 0,
-                                            uint8_t c3 = 0, uint8_t c4 = 0) {
+static inline constexpr uint32_t PackUInt32(uint8_t c1, uint8_t c2 = 0, uint8_t c3 = 0, uint8_t c4 = 0) {
   return c4 << 24 | c3 << 16 | c2 << 8 | c1;
 }
-static inline constexpr uint32_t PackUInt(uint8_t c1, uint8_t c2 = 0,
-                                          uint8_t c3 = 0, uint8_t c4 = 0) {
+static inline constexpr uint32_t PackUInt(uint8_t c1, uint8_t c2 = 0, uint8_t c3 = 0, uint8_t c4 = 0) {
   return PackUInt32(c1, c2, c3, c4);
 }

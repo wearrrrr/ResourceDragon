@@ -67,9 +67,9 @@ const char *MPKArchive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
     MPKEntry *mpkEntry = (MPKEntry*)entry;
 
-    unsigned char* entry_offset = buffer + mpkEntry->Offset;
+    unsigned char *entry_offset = buffer + mpkEntry->Offset;
     
-    char* data = new char[mpkEntry->size];
+    char *data = new char[mpkEntry->size];
     memcpy(data, entry_offset, mpkEntry->size);
     return data;
 }

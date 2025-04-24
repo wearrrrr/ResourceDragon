@@ -101,7 +101,7 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path &parentPath)
 
         return true;
     } catch (const fs::filesystem_error &e) {
-            const char* errorMessage = e.what();
+            const char *errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
             // Show errorMessage in the GUI
             ui_error.message = errorMessage;

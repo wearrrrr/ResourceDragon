@@ -153,7 +153,7 @@ inline void RegisterFormats() {
     RegisterFormat<XP3Format>();
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     RegisterFormats();
 
     std::string path;
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
                 running = false;
 
             if (event.type == SDL_EVENT_DROP_FILE) {
-                const char* dropped_filedir = event.drop.data;
+                const char *dropped_filedir = event.drop.data;
                 // Preview the dropped file
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();

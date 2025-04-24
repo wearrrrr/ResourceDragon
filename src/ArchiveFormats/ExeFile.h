@@ -10,7 +10,7 @@
 #include "../zero_templates.h"
 
 struct PeHeader {
-	uint32_t mMagic; // PE\0\0 or 0x00004550
+	uint32_t mMagic; // PE\0\0
 	uint16_t mMachine;
 	uint16_t mNumberOfSections;
 	uint32_t mTimeDateStamp;
@@ -68,17 +68,16 @@ struct Pe32SectionHeader {
 
 class ExeFile {
     public:
-		unsigned char* raw_contents;
+		unsigned char *buffer;
 		PeHeader header;
-		Pe32OptionalHeader opt_header;
 		std::map<std::string, Pe32SectionHeader> sections;
 		ExeFile(unsigned char *buffer) {
-			raw_contents = buffer;
-			sections = ParseSectionHeaders();
-			header = GetPEHeader();
+			this->buffer = buffer;
+			this->header = GetPEHeader();
+			this->sections = ParseSectionHeaders();
 		}
 		~ExeFile() {
-			delete[] raw_contents;
+			delete[] buffer;
 		}
 
 		bool ContainsSection(std::string section_name);

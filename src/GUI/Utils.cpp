@@ -36,7 +36,7 @@ std::string Utils::GetFileSize(const fs::path& path)
         if (fs::exists(path) && fs::is_regular_file(path)) {
             uintmax_t size = fs::file_size(path);
 
-            static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
+            static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
             int unitIndex = 0;
             double decimal_size = (double)(size);
 

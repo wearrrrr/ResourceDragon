@@ -5,7 +5,7 @@ uint32_t FindString(unsigned char *section_base, size_t section_size, const std:
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
 
-    unsigned char* data = section_base;
+    unsigned char *data = section_base;
     size_t pattern_size = pattern.size();
     size_t max_offset = section_size - pattern_size;
 
