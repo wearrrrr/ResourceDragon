@@ -20,13 +20,15 @@ class PFSFormat : public ArchiveFormat {
 };
 
 class PFSArchive : public ArchiveBase {
+    PFSFormat *pfs_fmt;
     std::vector<Entry> entries;
     std::vector<uint8_t> key;
     public:
         PFSArchive(const std::vector<Entry> &entries) {
             this->entries = entries;
         }
-        PFSArchive(const std::vector<Entry> &entries, std::vector<uint8_t> key) {
+        PFSArchive(PFSFormat *arc_fmt, const std::vector<Entry> &entries, std::vector<uint8_t> key) {
+            this->pfs_fmt = arc_fmt;
             this->entries = entries;
             this->key = key;
         }

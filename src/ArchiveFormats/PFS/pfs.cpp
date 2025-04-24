@@ -22,10 +22,7 @@ ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t version) {
     uint32_t index_size = Read<uint32_t>(buffer, 3);
     int32_t file_count = Read<int32_t>(buffer, 7);
-
-    Logger::log("Index size: %u", index_size);
-    Logger::log("File count: %d", file_count);
-
+    
     if (!IsSaneFileCount(file_count)) {
         Logger::error("File count is %d. This is way too high!", file_count);
         return nullptr;
@@ -46,7 +43,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     std::vector<Entry> entries;
     
     int32_t index_offset = 4;
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < file_count; ++i) {
         if (index_offset + 4 > index_size) {
             Logger::error("Unexpected end of index when reading name length.");
             break;
@@ -83,7 +80,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
 
     free(index_buf);
 
-    return new PFSArchive(entries, key.toVector());
+    return new PFSArchive(this, entries, key.toVector());
 }
 
 bool PFSFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
@@ -103,12 +100,11 @@ const char* PFSArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
     unsigned char* output = new unsigned char[entry->size];
     memcpy(output, buffer + entry->offset, entry->size);
 
-    if (!key.empty()) {
-        size_t base_offset = entry->offset % key.size();
-        for (size_t i = 0; i < entry->size; ++i) {
-            size_t stream_pos = i;
-            output[i] ^= key[(base_offset + stream_pos) % key.size()];
-        }
+    int32_t start_pos = pfs_fmt->buffer_position % key.size();
+    pfs_fmt->buffer_position += entry->size;
+    for (int i = 0; i < entry->size; ++i)
+    {
+        output[i] ^= key[i % key.size()];
     }
 
     return (const char*)(output);

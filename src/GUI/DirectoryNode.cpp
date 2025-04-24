@@ -238,10 +238,15 @@ void HandleFileClick(DirectoryNode *node)
     fs::remove_all("decrypt/");
     fs::create_directory("decrypt");
 
-    for (int i = 0; i < arc->GetEntries().size(); i++) {
+    std::vector<Entry*> entries = arc->GetEntries();
 
-        Entry *entry = arc->GetEntries().at(i);
+    for (int i = 0; i < entries.size(); i++) {
+        Entry *entry = entries.at(i);
         const char *data = arc->OpenStream(entry, buffer);
+
+        #ifdef linux
+        std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+        #endif
 
         // Create directory from entry.name if it doesn't exist
         fs::path entryPath(entry->name);
