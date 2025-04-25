@@ -33,6 +33,7 @@
 #include "GUI/Utils.h"
 
 #include "util/Logger.h"
+#include "util/Text.h"
 
 #include "zero_templates.h"
 

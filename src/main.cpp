@@ -72,8 +72,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
             }
 
             ImGuiIO& io = ImGui::GetIO();
-            if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
-                ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 ImGui::CloseCurrentPopup();
             }
         } else {
@@ -436,7 +435,6 @@ int main(int argc, char *argv[]) {
                             if (ImGui::Button(PLAY_ICON, {40, 0})) {
                                 Mix_ResumeMusic();
                                 preview_state.audio.playing = true;
-                                current_sound = Mix_PlayingMusic() ? current_sound : nullptr;
                             }
                         }
                         ImGui::SameLine();
@@ -445,16 +443,9 @@ int main(int argc, char *argv[]) {
                         if (!curr_sound_is_midi) {
                             if (ImGui::Button(RW_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
-                                if (new_pos > 0) {
-                                    Mix_SetMusicPosition(new_pos);
-                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
-                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
-                                } else {
-                                    // Prevent going negative
-                                    Mix_SetMusicPosition(0);
-                                    preview_state.audio.time.current_time_min = 0;
-                                    preview_state.audio.time.current_time_sec = 0;
-                                }
+                                new_pos > 0 
+                                    ? Mix_SetMusicPosition(new_pos) 
+                                    : Mix_SetMusicPosition(0);
                             }
                             ImGui::SameLine();
                             if (!curr_sound_is_midi) {
@@ -496,24 +487,20 @@ int main(int argc, char *argv[]) {
                             ImGui::SameLine(0.0f, 16.0f);
                             if (ImGui::Button(FF_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
-                                if (new_pos > 0) {
-                                    Mix_SetMusicPosition(new_pos);
-                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
-                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
-                                }
+                                Mix_SetMusicPosition(new_pos);
                             }
                             ImGui::EndGroup();
                         }
 
                         ImGui::SameLine();
                         bool looping = preview_state.audio.shouldLoop;
-                        if (looping) {
-                            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255)); 
-                        }
+
+                        if (looping) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255)); 
                         if (ImGui::Button(LOOP_ICON, {40, 0})) {
                             preview_state.audio.shouldLoop = !preview_state.audio.shouldLoop;
                         }
                         if (looping) ImGui::PopStyleColor();
+
                         ImGui::SameLine();
                         if (ImGui::Button(STOP_ICON, {40, 0})) {
                             Mix_HaltMusic();
@@ -534,6 +521,26 @@ int main(int argc, char *argv[]) {
                             int sdlVolume = (int)((preview_state.audio.volumePercent / 100.0f) * MIX_MAX_VOLUME);
                             Mix_VolumeMusic(sdlVolume);
                         }
+
+                        std::string titleTag = std::string(Mix_GetMusicTitleTag(current_sound));
+                        if (!(Text::trim(titleTag) == "")) {
+                            ImGui::Text("Title: %s", titleTag.c_str());
+                        }
+                        std::string copyrightTag = std::string(Mix_GetMusicCopyrightTag(current_sound));
+                        if (!(Text::trim(copyrightTag) == "")) {
+                            ImGui::Text("Author: %s", copyrightTag.c_str());
+                        }
+
+                        int freq, channels;
+                        SDL_AudioFormat format;
+                        if (Mix_QuerySpec(&freq, &format, &channels)) {
+                            ImGui::Text("Current Sample Rate: %d kHz", freq / 1000);
+                            // If there's more than 2 channels, then I guess this will report as mono..
+                            // But I've never really seen any audio files with more than 2, so it's *probably* fine.
+                            ImGui::Text("Channels: %s", channels == 2 ? "2 (Stereo)" : "1 (Mono)");
+                            
+                        }
+
                     }
                 } else if (content_type == "elf") {
                     ImGui::Text("Path: %s", preview_state.contents.path.c_str());
