@@ -526,9 +526,17 @@ int main(int argc, char *argv[]) {
                         if (!(Text::trim(titleTag) == "")) {
                             ImGui::Text("Title: %s", titleTag.c_str());
                         }
+                        std::string authorTag = std::string(Mix_GetMusicArtistTag(current_sound));
+                        if (!(Text::trim(authorTag) == "")) {
+                            ImGui::Text("Artist: %s", authorTag.c_str());
+                        }
+                        std::string albumTag = std::string(Mix_GetMusicAlbumTag(current_sound));
+                        if (!(Text::trim(albumTag) == "")) {
+                            ImGui::Text("Album: %s", albumTag.c_str());
+                        }
                         std::string copyrightTag = std::string(Mix_GetMusicCopyrightTag(current_sound));
                         if (!(Text::trim(copyrightTag) == "")) {
-                            ImGui::Text("Author: %s", copyrightTag.c_str());
+                            ImGui::Text("Copyright: %s", copyrightTag.c_str());
                         }
 
                         int freq, channels;
