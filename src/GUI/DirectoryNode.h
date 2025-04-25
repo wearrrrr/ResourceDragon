@@ -20,7 +20,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath);
 
 void ReloadRootNode(DirectoryNode *node);
 void HandleFileClick(DirectoryNode *node);
-void DisplayDirectoryNodeRecursive(DirectoryNode *node);
 void DisplayDirectoryNode(DirectoryNode *node);
+void SetupDisplayDirectoryNode(DirectoryNode *node);
 void UnloadSelectedFile();
 void DeleteDirectoryNodeTree(DirectoryNode* node);

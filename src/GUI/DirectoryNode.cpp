@@ -273,7 +273,7 @@ void HandleFileClick(DirectoryNode *node)
 
 std::optional<std::string> pathToReopen;
 
-void DisplayDirectoryNodeRecursive(DirectoryNode *node)
+void DisplayDirectoryNode(DirectoryNode *node)
 {
     ImGui::TableNextRow();
     ImGui::PushID(node);
@@ -286,11 +286,9 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
     bool isRoot = (node == rootNode);
     
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAllColumns;
-    if (node->IsDirectory) {
-        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
-    } else {
-        nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    }
+    node->IsDirectory 
+        ? nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow 
+        : nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
     if (isRoot) { 
         nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
@@ -299,17 +297,9 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 
     bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
 
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        selectedItem = node;
-        ImGui::OpenPopup("FBContextMenu");
-    }
-
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node->IsDirectory) {
-            pathToReopen = node->FullPath;
-        } else {
-            HandleFileClick(node);
-        }
+        if (node->IsDirectory) pathToReopen = node->FullPath;
+        else HandleFileClick(node);
     }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -317,20 +307,20 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
         else fileClicked = true;
     }
 
-    ImGui::TableNextColumn();
-    if (!node->IsDirectory) {
-        ImGui::Text("%s", node->FileSize.c_str());
-    } else {
-        ImGui::Text("--");
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        selectedItem = node;
+        ImGui::OpenPopup("FBContextMenu");
     }
 
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", node->FileSize.c_str());
 
     ImGui::TableNextColumn();
     ImGui::Text("%s", node->LastModified.c_str());
 
     if (node->IsDirectory && isOpen) {
         for (auto childNode : node->Children) {
-            DisplayDirectoryNodeRecursive(childNode);
+            DisplayDirectoryNode(childNode);
         }
         ImGui::TreePop();
     }
@@ -339,7 +329,7 @@ void DisplayDirectoryNodeRecursive(DirectoryNode *node)
 }
 
 
-void DisplayDirectoryNode(DirectoryNode *node)
+void SetupDisplayDirectoryNode(DirectoryNode *node)
 {
     ImGui::PushID(node);
 
@@ -349,7 +339,7 @@ void DisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 170.0f);
     ImGui::TableHeadersRow();
 
-    DisplayDirectoryNodeRecursive(node);
+    DisplayDirectoryNode(node);
 
     if (pathToReopen.has_value()) {
         DeleteDirectoryNodeTree(rootNode);

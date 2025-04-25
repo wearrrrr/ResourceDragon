@@ -30,6 +30,7 @@ std::string Utils::GetLastModifiedTime(const std::string& path)
 }
 
 
+// TODO: support directories by getting file count possibly?
 std::string Utils::GetFileSize(const fs::path& path)
 {
     try {
@@ -58,5 +59,5 @@ std::string Utils::GetFileSize(const fs::path& path)
         Logger::error("Error getting file size for %s: %s\n", path.string().c_str(), e.what());
     }
 
-    return "0 B";
+    return "--";
 }

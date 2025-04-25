@@ -38,7 +38,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
 
     exe = ConvertToExeFile(buffer);
     for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
-        if (std::memcmp(&exe->raw_contents[i], &sig, sizeof(sig)) == 0) {
+        if (std::memcmp(&exe->buffer[i], &sig, sizeof(sig)) == 0) {
             if (iter > 0) {
                 dpmx_offset = i;
                 arc_key = FindExeKey(exe, dpmx_offset);
@@ -55,23 +55,23 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
 
     if (!IsSaneFileCount(file_count)) return nullptr;
     
-    uint32_t index_offset = (dpmx_offset + 0x10) + Read<uint32_t>(exe->raw_contents, dpmx_offset + 0xC);
+    uint32_t index_offset = (dpmx_offset + 0x10) + Read<uint32_t>(exe->buffer, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
 
-    dpmx_offset += Read<uint32_t>(exe->raw_contents, dpmx_offset + 0x4);
+    dpmx_offset += Read<uint32_t>(exe->buffer, dpmx_offset + 0x4);
     
     std::vector<Entry> entries;
     entries.reserve(file_count);
 
     for (int i = 0; i < file_count; i++) {
-        std::string file_name =  ReadString(exe->raw_contents, index_offset);
+        std::string file_name =  ReadString(exe->buffer, index_offset);
         index_offset += 0x14;
 
         Entry entry = {
             .name = file_name,
-            .key = Read<uint32_t>(exe->raw_contents, index_offset),
-            .offset = Read<uint32_t>(exe->raw_contents, index_offset + 0x4) + dpmx_offset,
-            .size = Read<uint32_t>(exe->raw_contents, index_offset + 0x8)
+            .key = Read<uint32_t>(exe->buffer, index_offset),
+            .offset = Read<uint32_t>(exe->buffer, index_offset + 0x4) + dpmx_offset,
+            .size = Read<uint32_t>(exe->buffer, index_offset + 0x8)
         };
 
         index_offset += 0xC;
@@ -86,7 +86,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_byte
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     uint32_t base = section->pointerToRawData;
     uint32_t size = section->sizeOfRawData;
-    uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->raw_contents, base), size, offset_bytes);
+    uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->buffer, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
 }
@@ -118,7 +118,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         return DefaultKey;
     };
 
-    return Read<uint32_t>(exe->raw_contents, (found_section_offset + key_pos) + 0x17);
+    return Read<uint32_t>(exe->buffer, (found_section_offset + key_pos) + 0x17);
 }
 
 bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const

@@ -51,27 +51,36 @@ void RenderFBContextMenu(ImGuiIO *io) {
         ImGui::EndPopup();
     }
 
-
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
-        ImGui::Text("This cannot be undone!");
-        if (ImGui::Button("Confirm", {100, 0})) {
-            fs::remove_all(selectedItem->FullPath);
-            // If this is false, someone deleted a file that isn't selected
-            if (selectedItem->FullPath == preview_state.contents.path) {
-                UnloadSelectedFile();
+        if (selectedItem) {
+            ImGui::TextWrapped("Are you sure you'd like to delete %s?", 
+                selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
+            ImGui::Text("This cannot be undone!");
+            if (ImGui::Button("Confirm", {100, 0})) {
+                fs::remove_all(selectedItem->FullPath);
+                if (selectedItem->FullPath == preview_state.contents.path) {
+                    UnloadSelectedFile();
+                }
+                ReloadRootNode(rootNode);
+                ImGui::CloseCurrentPopup();
             }
-            ReloadRootNode(rootNode);
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Close", {100, 0})) {
-            ImGui::CloseCurrentPopup();
+            ImGui::SameLine();
+            if (ImGui::Button("Close", {100, 0})) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGuiIO& io = ImGui::GetIO();
+            if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+                ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                ImGui::CloseCurrentPopup();
+            }
+        } else {
+            Logger::error("Somehow, you've opened this dialog box without a file right clicked on, that should be impossible!");
         }
         ImGui::EndPopup();
-    };
+    }
 }
 
 void RenderPreviewContextMenu(ImGuiIO *io) {
@@ -328,7 +337,6 @@ int main(int argc, char *argv[]) {
 
         static float left_pan_width = (window_size.x / 2.0f) - splitterWidth;
         static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
-
         
         ImGui::NewFrame();
 
@@ -353,7 +361,7 @@ int main(int argc, char *argv[]) {
                 ImGui::OpenPopup("Error");
                 ui_error.show = false;
             }
-            DisplayDirectoryNode(rootNode);
+            SetupDisplayDirectoryNode(rootNode);
         }
 
         if (openDelPopup) {
