@@ -97,7 +97,7 @@ bool PFSFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::s
 }
 
 const char* PFSArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
-    unsigned char* output = new unsigned char[entry->size];
+    unsigned char* output = (unsigned char*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
     int32_t start_pos = pfs_fmt->buffer_position % key.size();

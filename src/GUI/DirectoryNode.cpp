@@ -2,6 +2,9 @@
 #include "../util/Text.h"
 #include "../common.h"
 
+ArchiveBase *loaded_arc_base = nullptr;
+unsigned char *current_buffer = nullptr;
+
 void UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;
@@ -73,23 +76,33 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 {
     try 
     {
-        if (node->IsVirtualRoot) {
-            CreateUpNode(node, fs::path(node->FullPath).parent_path());
-
-            // TODO: Fetch virtual node content here! This is currently incomplete because I am lazy :D
-
-            return true;
-        }
-
-
-        fs::directory_iterator directoryIterator(parentPath);
         fs::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
             CreateUpNode(node, grandParentPath);
         }
 
-        for (const auto& entry : directoryIterator) {
+        if (node->IsVirtualRoot) {
+            std::vector<Entry *> entries = loaded_arc_base->GetEntries();
+            for (const auto entry : entries) {
+                std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+                DirectoryNode *current = node;
+                
+                DirectoryNode *fileNode = new DirectoryNode {
+                    .FullPath = entry->name,
+                    .FileName = entry->name,
+                    .FileSize = Utils::GetFileSize(entry->size),
+                    .LastModified = "Unknown",
+                    .IsDirectory = false,
+                };
+                current->Children.push_back(fileNode);
+            }
+        
+            return true;
+        }
+
+        fs::directory_iterator directoryIterator(parentPath);
+        for (const auto &entry : directoryIterator) {
             DirectoryNode *childNode = new DirectoryNode {
                 .FullPath = entry.path().string(),
                 .FileName = entry.path().filename().string(),
@@ -187,7 +200,35 @@ void HandleFileClick(DirectoryNode *node)
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
 
-    auto [buffer, size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
+    Logger::log("%s", node->FullPath.c_str());
+    unsigned char *buffer;
+    size_t size = 0;
+
+    if (rootNode->IsVirtualRoot && !node->IsDirectory) {
+        auto entries = loaded_arc_base->GetEntries();
+
+        Entry *found_entry = nullptr;
+
+        for (const auto &entry : entries) {
+            if (entry->name == node->FullPath) {
+                found_entry = entry;
+            }
+        }
+
+        if (found_entry) {
+            if (current_buffer) {
+                const char *arc_read = loaded_arc_base->OpenStream(found_entry, current_buffer);
+                buffer = (unsigned char*)arc_read;
+                size = found_entry->size;
+            }
+        }
+    } else {
+        auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
+        buffer = fs_buffer;
+        size = fs_size;
+    }
+
+    
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
@@ -207,6 +248,8 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
+            // TODO: This will not work with virtual archives.
+            // Extracting into /tmp/ or %TEMP% and loading from there might work.
             current_sound = Mix_LoadMUS(node->FullPath.c_str());
             if (current_sound) {
                 preview_state.content_type = "audio";
@@ -240,9 +283,20 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
+    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
+    if (arc == nullptr) {
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
+        goto hfc_end;
+    }
+
+    loaded_arc_base = arc;
+    current_buffer = (unsigned char*)malloc(size);
+    memcpy(current_buffer, buffer, size);
+
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
     rootNode->IsVirtualRoot = true;
 
+hfc_end:
     free(buffer);
     return;
 }

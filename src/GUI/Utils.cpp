@@ -61,3 +61,23 @@ std::string Utils::GetFileSize(const fs::path& path)
 
     return "--";
 }
+
+std::string Utils::GetFileSize(uint32_t size) {
+    static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+    int unitIndex = 0;
+    double decimal_size = (double)(size);
+
+    while (decimal_size >= 1024.0 && unitIndex < 4) {
+        decimal_size /= 1024.0;
+        unitIndex++;
+    }
+
+    std::ostringstream oss;
+    if (unitIndex == 0) {
+        oss << size << " " << units[unitIndex];
+    } else {
+        oss << std::fixed << std::setprecision(2) << decimal_size << " " << units[unitIndex];
+    }
+
+    return oss.str();
+}

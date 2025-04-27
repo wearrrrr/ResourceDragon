@@ -100,12 +100,12 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         return nullptr;
     }
 
-    Logger::log("XP3 Header type: %s", header_type == XP3_HEADER_UNPACKED ? "Unpacked" : "Packed");
+    // Logger::log("XP3 Header type: %s", header_type == XP3_HEADER_UNPACKED ? "Unpacked" : "Packed");
 
     std::vector<uint8_t> header_stream;
     if (header_type == XP3_HEADER_UNPACKED) {
         int64_t header_size = *based_pointer<int64_t>(buffer, dir_offset + 0x1);
-        Logger::log("XP3 Header size: %d", header_size);
+        // Logger::log("XP3 Header size: %d", header_size);
         if (header_size > std::numeric_limits<int64_t>::max()) {
             Logger::error("XP3: Header size is invalid!");
             return nullptr;
@@ -136,7 +136,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             Logger::error("XP3: Decompressed size does not match header size!");
             return nullptr;
         }
-        Logger::log("XP3 Header size after decompression: %lu", decompressed_size);
+        // Logger::log("XP3 Header size after decompression: %lu", decompressed_size);
     }
 
     XP3Crypt *crypt = QueryCryptAlgorithm(buffer, size, file_name);

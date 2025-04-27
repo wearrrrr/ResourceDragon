@@ -8,6 +8,9 @@
 
 class ArchiveBase {
     public:
+        unsigned char *buffer;
+        size_t buf_size;
+
         virtual const char* OpenStream(const Entry *entry, unsigned char *buffer) = 0;
         virtual std::vector<Entry*> GetEntries() = 0;
         virtual ~ArchiveBase() = default;
