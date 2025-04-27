@@ -11,6 +11,7 @@ struct DirectoryNode
     std::string LastModified;
     std::vector<DirectoryNode*> Children;
     bool IsDirectory;
+    bool IsVirtualRoot;
 };
 
 inline DirectoryNode *rootNode;

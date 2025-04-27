@@ -58,26 +58,38 @@ void DeleteDirectoryNodeTree(DirectoryNode* node)
     delete node;
 }
 
-bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path &parentPath)
+inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
+    DirectoryNode *upNode = new DirectoryNode {
+        .FullPath = grandParentPath.string(),
+        .FileName = "..",
+        .FileSize = "--",
+        .LastModified = "N/A",
+        .IsDirectory = true
+    };
+    node->Children.push_back(upNode);
+}
+
+bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath, bool isVirtual = false)
 {
     try 
     {
+        if (isVirtual) {
+            CreateUpNode(node, fs::path(node->FullPath).parent_path());
+
+            // TODO: Fetch virtual node content here! This is currently incomplete because I am lazy :D
+
+            return true;
+        }
+
+
         fs::directory_iterator directoryIterator(parentPath);
         fs::path grandParentPath = parentPath.parent_path();
         if (!grandParentPath.empty() && grandParentPath != parentPath)
         {
-            DirectoryNode *upNode = new DirectoryNode {
-                .FullPath = grandParentPath.string(),
-                .FileName = "..",
-                .FileSize = Utils::GetFileSize(grandParentPath),
-                .LastModified = Utils::GetLastModifiedTime(grandParentPath.string()),
-                .IsDirectory = true
-            };
-            parentNode->Children.push_back(upNode);
+            CreateUpNode(node, grandParentPath);
         }
 
         for (const auto& entry : directoryIterator) {
-
             DirectoryNode *childNode = new DirectoryNode {
                 .FullPath = entry.path().string(),
                 .FileName = entry.path().filename().string(),
@@ -85,11 +97,13 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path &parentPath)
                 .LastModified = Utils::GetLastModifiedTime(entry.path().string()),
                 .IsDirectory = entry.is_directory()
             };
-
-            parentNode->Children.push_back(childNode);
+            node->Children.push_back(childNode);
         }
+        
 
-        std::sort(parentNode->Children.begin(), parentNode->Children.end(), 
+
+
+        std::sort(node->Children.begin(), node->Children.end(), 
         [](const DirectoryNode* a, const DirectoryNode* b) 
         {
             if (a->FileName == "..") return true;
@@ -115,23 +129,30 @@ bool AddDirectoryNodes(DirectoryNode *parentNode, const fs::path &parentPath)
 DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
 {
 
-    DirectoryNode *rootNode = new DirectoryNode {
+    DirectoryNode *newRootNode = new DirectoryNode {
         .FullPath = rootPath,
         .FileName = rootPath,
         .FileSize = Utils::GetFileSize(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .IsDirectory = fs::is_directory(rootPath)
+        .IsDirectory = fs::is_directory(rootPath),
+        .IsVirtualRoot = !fs::is_directory(rootPath),
     };
 
-    if (rootNode->IsDirectory)
+    
+    if (newRootNode->IsVirtualRoot) {
+        AddDirectoryNodes(newRootNode, rootPath, true);
+        return newRootNode;
+    }
+
+    if (newRootNode->IsDirectory)
     {
-        bool add = AddDirectoryNodes(rootNode, rootPath);
-        if (!add) {
-            rootNode = CreateDirectoryNodeTreeFromPath(fs::path(rootNode->FullPath).parent_path().string());
+        bool newNodes = AddDirectoryNodes(newRootNode, rootPath);
+        if (!newNodes) {
+            newRootNode = CreateDirectoryNodeTreeFromPath(fs::path(newRootNode->FullPath).parent_path().string());
         }
     }
 
-    return rootNode;
+    return newRootNode;
 }
 
 void ReloadRootNode(DirectoryNode *node)
@@ -141,23 +162,22 @@ void ReloadRootNode(DirectoryNode *node)
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     if (current_sound) {
-        double current_time = Mix_GetMusicPosition(current_sound);
+        int current_time = (int)Mix_GetMusicPosition(current_sound);
         if (!preview_state.audio.scrubberDragging) {
-            preview_state.audio.time.current_time_min = (int)current_time / 60;
-            preview_state.audio.time.current_time_sec = (int)current_time % 60;
+            preview_state.audio.time.current_time_min = current_time / 60;
+            preview_state.audio.time.current_time_sec = current_time % 60;
         }
     }
     return interval;
 }
 
-bool CreateDirectoryRecursive(std::string const &dirName, std::error_code &err)
+bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
 {
     err.clear();
     if (!std::filesystem::create_directories(dirName, err))
     {
         if (std::filesystem::exists(dirName))
         {
-            // The folder already exists:
             err.clear();
             return true;    
         }
@@ -224,48 +244,8 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
-    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
-    if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
-        free(buffer);
-        return;
-    }
-
-    Logger::log("Handling archive as %s", format->getTag().c_str());
-
-    fs::remove_all("decrypt/");
-    fs::create_directory("decrypt");
-
-    std::vector<Entry*> entries = arc->GetEntries();
-
-    for (int i = 0; i < entries.size(); i++) {
-        Entry *entry = entries.at(i);
-        const char *data = arc->OpenStream(entry, buffer);
-
-        #ifdef linux
-        std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
-        #endif
-
-        // Create directory from entry.name if it doesn't exist
-        fs::path entryPath(entry->name);
-        if (entryPath.has_parent_path()) {
-            std::string parentDir = entryPath.parent_path().string();
-            std::error_code err;
-            if (!CreateDirectoryRecursive("decrypt/" + parentDir, err)) {
-                Logger::error("Failed to create directory: %s", err.message().c_str());
-                continue;
-            }
-        }
-        
-        std::ofstream outFile("decrypt/" + entry->name, std::ios::binary);
-        outFile.write((const char*)data, entry->size);
-        outFile.close();
-    }
-    Logger::log("Decrypted successfully!");
-
-    ReloadRootNode(rootNode);
-
-    delete arc;
+    rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
+    rootNode->IsVirtualRoot = true;
 
     free(buffer);
     return;
@@ -298,8 +278,12 @@ void DisplayDirectoryNode(DirectoryNode *node)
     bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node->IsDirectory) pathToReopen = node->FullPath;
-        else HandleFileClick(node);
+        if (node->IsDirectory) { 
+            pathToReopen = node->FullPath;
+            if (node->IsVirtualRoot) {
+                rootNode = node;
+            }
+        } else HandleFileClick(node);
     }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -317,6 +301,12 @@ void DisplayDirectoryNode(DirectoryNode *node)
 
     ImGui::TableNextColumn();
     ImGui::Text("%s", node->LastModified.c_str());
+
+    if (node->IsVirtualRoot) {
+        for (auto childNode : node->Children) {
+            DisplayDirectoryNode(childNode);
+        }
+    }
 
     if (node->IsDirectory && isOpen) {
         for (auto childNode : node->Children) {
