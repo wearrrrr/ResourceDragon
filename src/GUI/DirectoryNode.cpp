@@ -69,11 +69,11 @@ inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
     node->Children.push_back(upNode);
 }
 
-bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath, bool isVirtual = false)
+bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 {
     try 
     {
-        if (isVirtual) {
+        if (node->IsVirtualRoot) {
             CreateUpNode(node, fs::path(node->FullPath).parent_path());
 
             // TODO: Fetch virtual node content here! This is currently incomplete because I am lazy :D
@@ -128,26 +128,22 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath, bool isV
 
 DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
 {
-
+    bool is_dir = fs::is_directory(rootPath);
     DirectoryNode *newRootNode = new DirectoryNode {
         .FullPath = rootPath,
         .FileName = rootPath,
         .FileSize = Utils::GetFileSize(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .IsDirectory = fs::is_directory(rootPath),
-        .IsVirtualRoot = !fs::is_directory(rootPath),
+        .IsDirectory = is_dir,
+        .IsVirtualRoot = !is_dir,
     };
 
-    
-    if (newRootNode->IsVirtualRoot) {
-        AddDirectoryNodes(newRootNode, rootPath, true);
-        return newRootNode;
-    }
-
+    bool add = AddDirectoryNodes(newRootNode, rootPath);
     if (newRootNode->IsDirectory)
     {
-        bool newNodes = AddDirectoryNodes(newRootNode, rootPath);
-        if (!newNodes) {
+        if (!add) {
+            // TODO: fs::path is bad.
+            // ideally I would roll my own path parser but I don't think I'm masochistic enough to do that.
             newRootNode = CreateDirectoryNodeTreeFromPath(fs::path(newRootNode->FullPath).parent_path().string());
         }
     }
