@@ -40,7 +40,11 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (selectedItem) {
                 if (!selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
-                        Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                        if (rootNode->IsVirtualRoot) {
+                            Logger::error("Copying virtual files to the clipboard is currently not supported!");
+                        } else {
+                            Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                        }
                     }
                 }
             }

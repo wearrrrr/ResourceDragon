@@ -199,8 +199,6 @@ void HandleFileClick(DirectoryNode *node)
 {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-
-    Logger::log("%s", node->FullPath.c_str());
     unsigned char *buffer;
     size_t size = 0;
 
@@ -248,9 +246,13 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
-            // TODO: This will not work with virtual archives.
-            // Extracting into /tmp/ or %TEMP% and loading from there might work.
-            current_sound = Mix_LoadMUS(node->FullPath.c_str());
+            std::string path = node->FullPath.c_str();
+            if (rootNode->IsVirtualRoot) {
+                SDL_IOStream * snd_io = SDL_IOFromConstMem(buffer, size);
+                current_sound = Mix_LoadMUS_IO(snd_io, true);
+            } else {
+                current_sound = Mix_LoadMUS(path.c_str());
+            }
             if (current_sound) {
                 preview_state.content_type = "audio";
                 Mix_PlayMusic(current_sound, 1);
@@ -259,7 +261,6 @@ void HandleFileClick(DirectoryNode *node)
                 preview_state.audio.playing = true;
                 preview_state.audio.time.total_time_min = duration / 60;
                 preview_state.audio.time.total_time_sec = duration % 60;
-
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             } else {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
@@ -278,7 +279,7 @@ void HandleFileClick(DirectoryNode *node)
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);
-            editor.SetColorizerEnable(false);
+            editor.SetColorizerEnable(true);
         }
         return;
     }
