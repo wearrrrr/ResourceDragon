@@ -120,6 +120,18 @@ inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
     node->Children.push_back(upNode);
 }
 
+inline void SortChildren(DirectoryNode *node) {
+    std::sort(node->Children.begin(), node->Children.end(), 
+    [](const DirectoryNode* a, const DirectoryNode* b) 
+    {
+        if (a->FileName == "..") return true;
+        if (b->FileName == "..") return false;
+            if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
+            return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
+        }
+    );
+}
+
 bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 {
     try 
@@ -145,7 +157,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
                 };
                 current->Children.push_back(fileNode);
             }
-        
+            SortChildren(node);
             return true;
         }
 
@@ -160,20 +172,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
             };
             node->Children.push_back(childNode);
         }
-        
-
-
-
-        std::sort(node->Children.begin(), node->Children.end(), 
-        [](const DirectoryNode* a, const DirectoryNode* b) 
-        {
-            if (a->FileName == "..") return true;
-            if (b->FileName == "..") return false;
-                if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-                return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
-            }
-        );
-
+        SortChildren(node);
         return true;
     } catch (const fs::filesystem_error &e) {
             const char *errorMessage = e.what();
