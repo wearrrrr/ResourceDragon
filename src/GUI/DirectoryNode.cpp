@@ -5,6 +5,54 @@
 ArchiveBase *loaded_arc_base = nullptr;
 unsigned char *current_buffer = nullptr;
 
+Entry *selected_entry = nullptr;
+
+bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
+{
+    err.clear();
+    if (!std::filesystem::create_directories(dirName, err))
+    {
+        if (std::filesystem::exists(dirName))
+        {
+            err.clear();
+            return true;    
+        }
+        return false;
+    }
+    return true;
+}
+
+void VirtualArc_ExtractEntry() {
+    if (!loaded_arc_base) {
+        Logger::error("No loaded archive! This is a bug!");
+    }
+    if (!selected_entry) {
+        Logger::error("No selected entry found! This is a bug!");
+        return;
+    }
+
+    const char *extracted = loaded_arc_base->OpenStream(selected_entry, current_buffer);
+
+    Logger::log("%s", selected_entry->name.c_str());
+
+    #ifdef linux
+    std::replace(selected_entry->name.begin(), selected_entry->name.end(), '\\', '/');
+    #endif
+
+    fs::path entryPath(selected_entry->name);
+    if (entryPath.has_parent_path()) {
+        std::string parentDir = entryPath.parent_path().string();
+        std::error_code err;
+        if (!CreateDirectoryRecursive("extracted/" + parentDir, err)) {
+            Logger::error("Failed to create directory: %s", err.message().c_str());
+        }
+    }
+    
+    std::ofstream outFile("extracted/" + selected_entry->name, std::ios::binary);
+    outFile.write(extracted, selected_entry->size);
+    outFile.close();
+}
+
 void UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;
@@ -154,11 +202,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
     bool add = AddDirectoryNodes(newRootNode, rootPath);
     if (newRootNode->IsDirectory)
     {
-        if (!add) {
-            // TODO: fs::path is bad.
-            // ideally I would roll my own path parser but I don't think I'm masochistic enough to do that.
-            newRootNode = CreateDirectoryNodeTreeFromPath(fs::path(newRootNode->FullPath).parent_path().string());
-        }
+        if (!add) newRootNode = CreateDirectoryNodeTreeFromPath(fs::path(newRootNode->FullPath).parent_path().string());
     }
 
     return newRootNode;
@@ -178,21 +222,6 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
         }
     }
     return interval;
-}
-
-bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
-{
-    err.clear();
-    if (!std::filesystem::create_directories(dirName, err))
-    {
-        if (std::filesystem::exists(dirName))
-        {
-            err.clear();
-            return true;    
-        }
-        return false;
-    }
-    return true;
 }
 
 void HandleFileClick(DirectoryNode *node)
@@ -313,21 +342,7 @@ void DisplayDirectoryNode(DirectoryNode *node)
     bool fileClicked = false;
 
     ImGui::TableNextColumn();
-
-    bool isRoot = (node == rootNode);
-    
-    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAllColumns;
-    node->IsDirectory 
-        ? nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow 
-        : nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-
-    if (isRoot) { 
-        nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
-        ImGui::Unindent(30.0f); 
-    };
-
-    bool isOpen = ImGui::TreeNodeEx(node->FileName.c_str(), nodeFlags);
-
+    ImGui::Selectable(node->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) { 
             pathToReopen = node->FullPath;
@@ -344,6 +359,14 @@ void DisplayDirectoryNode(DirectoryNode *node)
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
+        if (loaded_arc_base) {
+            auto entries = loaded_arc_base->GetEntries();
+            for (const auto &entry : entries) {
+                if (entry->name == node->FullPath) {
+                    selected_entry = entry;
+                }
+            }
+        }
         ImGui::OpenPopup("FBContextMenu");
     }
 
@@ -357,13 +380,6 @@ void DisplayDirectoryNode(DirectoryNode *node)
         for (auto childNode : node->Children) {
             DisplayDirectoryNode(childNode);
         }
-    }
-
-    if (node->IsDirectory && isOpen) {
-        for (auto childNode : node->Children) {
-            DisplayDirectoryNode(childNode);
-        }
-        ImGui::TreePop();
     }
 
     ImGui::PopID();
@@ -381,6 +397,11 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableHeadersRow();
 
     DisplayDirectoryNode(node);
+    if (node->IsDirectory) {
+        for (auto childNode : node->Children) {
+            DisplayDirectoryNode(childNode);
+        }
+    }
 
     if (pathToReopen.has_value()) {
         DeleteDirectoryNodeTree(rootNode);

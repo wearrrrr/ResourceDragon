@@ -50,6 +50,9 @@ void RenderFBContextMenu(ImGuiIO *io) {
             }
             ImGui::EndMenu();
         }
+        if (rootNode->IsVirtualRoot) {
+            if (ImGui::MenuItem("Extract")) VirtualArc_ExtractEntry();
+        }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;
         ImGui::EndPopup();
@@ -253,6 +256,8 @@ int main(int argc, char *argv[]) {
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     // U+203B (Reference Mark), Used in a lot of CJK text, but isn't a part of ImGui's glyph range ;-;
     range.AddChar(0x203B);
+    // U+25B6 (Black Right-Pointing Triangle)
+    range.AddChar(0x25B6);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
