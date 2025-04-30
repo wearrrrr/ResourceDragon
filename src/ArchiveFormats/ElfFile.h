@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 #define EI_NIDENT 16
 
 struct Elf32_Header {
-  unsigned char e_ident[EI_NIDENT]; // ELF identification
+  unsigned char e_ident[EI_NIDENT];
   uint16_t e_type;
   uint16_t e_machine;
   uint32_t e_version;
@@ -26,7 +26,7 @@ struct Elf32_Header {
   uint16_t e_shstrndx;
 };
 struct Elf64_Header {
-  unsigned char e_ident[EI_NIDENT]; // ELF identification
+  unsigned char e_ident[EI_NIDENT];
   uint16_t e_type;
   uint16_t e_machine;
   uint32_t e_version;
@@ -42,12 +42,15 @@ struct Elf64_Header {
   uint16_t e_shstrndx;
 };
 
-enum class ElfClass { NONE, ELF32, ELF64 };
+enum class ElfClass { 
+  NONE,
+  ELF32,
+  ELF64
+};
 
 class ElfFile {
 private:
   unsigned char *mFileStream;
-  size_t mFileStreamSize;
   fs::path mFilePath;
   union {
     Elf32_Header elf32;
@@ -65,7 +68,6 @@ public:
       return;
     }
     mFileStream = buffer;
-    mFileStreamSize = size;
 
     if (mFileStream[4] == 1) {
       mElfHeader.elf32 = *(Elf32_Header *)(mFileStream);
@@ -81,14 +83,13 @@ public:
   ~ElfFile() {
     free(mFileStream);
     mFileStream = nullptr;
-    mFileStreamSize = 0;
   };
 
-  const Elf32_Header *GetElf32Header() const {
+  const Elf32_Header* GetElf32Header() const {
     return mElfClass == ElfClass::ELF32 ? &mElfHeader.elf32 : nullptr;
   }
 
-  const Elf64_Header *GetElf64Header() const {
+  const Elf64_Header* GetElf64Header() const {
     return mElfClass == ElfClass::ELF64 ? &mElfHeader.elf64 : nullptr;
   }
 

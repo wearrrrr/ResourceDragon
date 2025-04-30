@@ -574,7 +574,7 @@ int main(int argc, char *argv[]) {
                     }
                 } else {
                     // TODO: handle different potential encodings
-                    // maybe using a dropdown for the user to select the encoding.
+                    // add a dropdown for the user to select the encoding.
                     if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S) && has_unsaved_changes) {
                         std::string text = editor.GetText();
                         if (!text.empty() && text.back() == '\n') {
