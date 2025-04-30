@@ -40,25 +40,32 @@ void VirtualArc_ExtractEntry() {
         Logger::error("No selected entry found! This is a bug!");
         return;
     }
+    if (!current_buffer) {
+        Logger::error("current_buffer is not initialized! This is a bug!");
+        return;
+    }
 
     const char *extracted = loaded_arc_base->OpenStream(selected_entry, current_buffer);
-
-    free(current_buffer);
-    current_buffer = nullptr;
 
     Logger::log("%s", selected_entry->name.c_str());
 
     #ifdef linux
     std::replace(selected_entry->name.begin(), selected_entry->name.end(), '\\', '/');
     #endif
+    #ifdef _WIN32
+    std::replace(selected_entry->name.begin(), selected_entry->name.end(), '/', '\\');
+    #endif
+
 
     fs::path entryPath(selected_entry->name);
+    std::error_code err;
+    std::string extraPath = "";
     if (entryPath.has_parent_path()) {
-        std::string parentDir = entryPath.parent_path().string();
-        std::error_code err;
-        if (!CreateDirectoryRecursive("extracted/" + parentDir, err)) {
-            Logger::error("Failed to create directory: %s", err.message().c_str());
-        }
+        auto parentDir = entryPath.parent_path().string();
+        extraPath = parentDir;
+    }
+    if (!CreateDirectoryRecursive("extracted/" + extraPath, err)) {
+        Logger::error("Failed to create directory: %s", err.message().c_str());
     }
     
     std::ofstream outFile("extracted/" + selected_entry->name, std::ios::binary);
@@ -157,6 +164,9 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
             for (const auto entry : entries) {
                 #ifdef linux
                 std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+                #endif
+                #ifdef _WIN32
+                std::replace(selected_entry->name.begin(), selected_entry->name.end(), '/', '\\');
                 #endif
         
                 fs::path entryPath(entry->name);
@@ -431,7 +441,7 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
             if (node->Parent) {
                 rootNode = node->Parent;
             } else {
-                pathToReopen = fs::path(node->FullPath).parent_path();
+                pathToReopen = fs::path(node->FullPath).parent_path().string();
                 if (current_buffer) {
                     free(current_buffer);
                     current_buffer = nullptr;
@@ -439,8 +449,6 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
             }
         }
     }
-    ImGui::TableNextColumn();
-    ImGui::TextUnformatted("");
     ImGui::TableNextColumn();
     ImGui::TextUnformatted("");
 
