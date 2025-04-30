@@ -95,7 +95,9 @@ void UnloadSelectedFile() {
         .data = nullptr,
         .size = 0,
         .path = "",
-        .ext = ""
+        .ext = "",
+        .elf_header = {},
+        .elfFile = nullptr,
     };
 
     if (preview_state.audio.music) {
@@ -135,6 +137,7 @@ inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
         .FileName = "..",
         .FileSize = "--",
         .LastModified = "N/A",
+        .Children = {},
         .IsDirectory = true
     };
     node->Children.push_back(upNode);
@@ -142,14 +145,12 @@ inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
 
 inline void SortChildren(DirectoryNode *node) {
     std::sort(node->Children.begin(), node->Children.end(), 
-    [](const DirectoryNode* a, const DirectoryNode* b) 
-    {
+    [](const DirectoryNode* a, const DirectoryNode* b) {
         if (a->FileName == "..") return true;
         if (b->FileName == "..") return false;
             if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
             return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
-        }
-    );
+    });
 }
 
 bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
@@ -188,6 +189,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
+                            .Children = {},
                             .IsDirectory = !isLast
                         };
                         current->Children.push_back(newNode);
@@ -203,11 +205,13 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
         
         fs::directory_iterator directoryIterator(parentPath);
         for (const auto &entry : directoryIterator) {
+            std::string path = entry.path().string();
             DirectoryNode *childNode = new DirectoryNode {
-                .FullPath = entry.path().string(),
+                .FullPath = path,
                 .FileName = entry.path().filename().string(),
-                .FileSize = Utils::GetFileSize(entry.path()),
-                .LastModified = Utils::GetLastModifiedTime(entry.path().string()),
+                .FileSize = Utils::GetFileSize(path),
+                .LastModified = Utils::GetLastModifiedTime(path),
+                .Children = {},
                 .IsDirectory = entry.is_directory()
             };
             node->Children.push_back(childNode);
@@ -235,6 +239,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .FileSize = Utils::GetFileSize(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
         .Parent = parent,
+        .Children = {},
         .IsDirectory = is_dir,
         .IsVirtualRoot = !is_dir,
     };

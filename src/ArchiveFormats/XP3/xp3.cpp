@@ -181,7 +181,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
                         uint64_t uint_max = std::numeric_limits<uint64_t>::max();
 
-                        if (file_size >= uint_max || packed_size > uint_max || packed_size > size) {
+                        if ((uint64_t)file_size >= uint_max || (uint64_t)packed_size > uint_max || packed_size > size) {
                             goto NextEntry;
                         }
                         entry.isPacked = file_size != packed_size;

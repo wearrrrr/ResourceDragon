@@ -21,7 +21,7 @@ ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 
 ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t version) {
     uint32_t index_size = Read<uint32_t>(buffer, 3);
-    int32_t file_count = Read<int32_t>(buffer, 7);
+    uint32_t file_count = Read<uint32_t>(buffer, 7);
     
     if (!IsSaneFileCount(file_count)) {
         Logger::error("File count is %d. This is way too high!", file_count);
@@ -42,14 +42,14 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     
     std::vector<Entry> entries;
     
-    int32_t index_offset = 4;
-    for (int i = 0; i < file_count; ++i) {
+    uint32_t index_offset = 4;
+    for (uint32_t i = 0; i < file_count; ++i) {
         if (index_offset + 4 > index_size) {
             Logger::error("Unexpected end of index when reading name length.");
             break;
         }
     
-        int32_t name_length = Read<int32_t>(index_buf, index_offset);
+        uint32_t name_length = Read<uint32_t>(index_buf, index_offset);
         if (index_offset + 4 + name_length + 8 + 8 > index_size) {
             Logger::error("Index overrun when reading entry %d", i);
             break;
@@ -100,9 +100,8 @@ const char* PFSArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
     unsigned char* output = (unsigned char*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
-    int32_t start_pos = pfs_fmt->buffer_position % key.size();
     pfs_fmt->buffer_position += entry->size;
-    for (int i = 0; i < entry->size; ++i)
+    for (uint32_t i = 0; i < entry->size; ++i)
     {
         output[i] ^= key[i % key.size()];
     }

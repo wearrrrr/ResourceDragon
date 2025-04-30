@@ -59,9 +59,6 @@ struct PWinStateAudio {
   int volumePercent;
   struct TimeInfo time;
   SDL_TimerID update_timer;
-  int fade_steps;
-  int fade_step;
-  Mix_Fading fading;
   bool shouldLoop;
   bool scrubberDragging;
 };

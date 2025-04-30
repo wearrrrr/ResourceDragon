@@ -1,6 +1,6 @@
 #include "hsp.h"
 
-uint32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
+int32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
 {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
@@ -63,7 +63,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
     std::vector<Entry> entries;
     entries.reserve(file_count);
 
-    for (int i = 0; i < file_count; i++) {
+    for (uint32_t i = 0; i < file_count; i++) {
         std::string file_name =  ReadString(exe->buffer, index_offset);
         index_offset += 0x14;
 
@@ -71,7 +71,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
             .name = file_name,
             .key = Read<uint32_t>(exe->buffer, index_offset),
             .offset = Read<uint32_t>(exe->buffer, index_offset + 0x4) + dpmx_offset,
-            .size = Read<uint32_t>(exe->buffer, index_offset + 0x8)
+            .size = Read<uint32_t>(exe->buffer, index_offset + 0x8),
         };
 
         index_offset += 0xC;
@@ -86,7 +86,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_byte
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     uint32_t base = section->pointerToRawData;
     uint32_t size = section->sizeOfRawData;
-    uint32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->buffer, base), size, offset_bytes);
+    int32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->buffer, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
 }
@@ -95,7 +95,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
     std::vector<unsigned char> offset_bytes(offset_str.begin(), offset_str.end());
-    uint32_t key_pos = -1;
+    int32_t key_pos = -1;
     uint32_t found_section_offset = 0x0;
 
     if (exe->ContainsSection(".rdata")) {

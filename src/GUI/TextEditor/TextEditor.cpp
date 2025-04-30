@@ -1269,7 +1269,6 @@ void TextEditor::SetText(const std::string &aText)
 	for (auto chr : aText)
 	{
 		if (chr == '\r') continue;
- 		
 		if (chr == '\n') {
 			mLines.emplace_back(Line());
 		} else {

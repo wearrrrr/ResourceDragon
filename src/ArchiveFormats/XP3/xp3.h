@@ -29,7 +29,7 @@ class XP3Format : public ArchiveFormat {
             return this->tag;
         };
 
-        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override {
+        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &_ext) const override {
             return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
         };
 };

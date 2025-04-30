@@ -15,7 +15,6 @@ struct Segment {
 
 struct Entry {
     std::string name;
-    std::string type;
     uint32_t key;
     uint64_t offset;
     uint32_t size;

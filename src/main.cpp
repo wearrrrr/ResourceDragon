@@ -78,7 +78,6 @@ void RenderFBContextMenu(ImGuiIO *io) {
                 ImGui::CloseCurrentPopup();
             }
 
-            ImGuiIO& io = ImGui::GetIO();
             if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 ImGui::CloseCurrentPopup();
             }
@@ -89,7 +88,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     }
 }
 
-void RenderPreviewContextMenu(ImGuiIO *io) {
+void RenderPreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
             Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
@@ -254,10 +253,9 @@ int main(int argc, char *argv[]) {
     
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
+    range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
     // U+203B (Reference Mark), Used in a lot of CJK text, but isn't a part of ImGui's glyph range ;-;
     range.AddChar(0x203B);
-    // U+25B6 (Black Right-Pointing Triangle)
-    range.AddChar(0x25B6);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
@@ -402,7 +400,7 @@ int main(int argc, char *argv[]) {
         else preview_win_title += " ";
         preview_win_title += "###Preview";
         if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
-            RenderPreviewContextMenu(&io);
+            RenderPreviewContextMenu();
             std::string ext = preview_state.contents.ext;
             std::string content_type = preview_state.content_type;
             if (preview_state.contents.size > 0) {
@@ -425,7 +423,7 @@ int main(int argc, char *argv[]) {
                     ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
 
                     uint32_t now = SDL_GetTicks();
-                    int frame_delay = anim.delays[texture->frame];
+                    uint32_t frame_delay = (uint32_t)anim.delays[texture->frame];
                     if (now - texture->last_frame_time >= frame_delay) {
                         texture->frame = (texture->frame + 1) % anim.frame_count;
                         texture->last_frame_time = now;
@@ -563,7 +561,12 @@ int main(int argc, char *argv[]) {
                     ImGui::Text("Path: %s", preview_state.contents.path.c_str());
                     ImGui::Text("ELF Class: %s", preview_state.contents.elfFile->GetElfClass().c_str());
                     if (auto elfHeader = preview_state.contents.elfFile->GetElf64Header()) {
+                        #ifdef _WIN32
+                        ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
+                        #else
                         ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
+                        #endif
+
                     } else if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
                         ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
                     } else {
