@@ -38,7 +38,7 @@ class TextConverter {
         }
         static std::u16string UTF8ToUTF16(const std::string& utf8_str) {
             #ifdef linux
-            iconv_t cd = iconv_open("UTF-16LE", "UTF-8");
+            iconv_t cd = iconv_open("UTF-16", "UTF-8");
             if (cd == (iconv_t)-1) {
                 return u"";
             }

@@ -10,15 +10,16 @@ struct DirectoryNode
     std::string FileName;
     std::string FileSize;
     std::string LastModified;
+    DirectoryNode *Parent = nullptr;
     std::vector<DirectoryNode*> Children;
-    bool IsDirectory;
-    bool IsVirtualRoot;
+    bool IsDirectory = false;
+    bool IsVirtualRoot = false;
 };
 
 inline DirectoryNode *rootNode;
 inline DirectoryNode *selectedItem;
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath);
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent = nullptr);
 
 void ReloadRootNode(DirectoryNode *node);
 void HandleFileClick(DirectoryNode *node);

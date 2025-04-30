@@ -70,7 +70,6 @@ struct PreviewWinState {
   struct {
     unsigned char *data;
     size_t size;
-    std::string conv_data;
     std::string path;
     std::string ext;
     union {
@@ -93,7 +92,6 @@ inline PreviewWinState preview_state = {
     .contents = {
           .data = nullptr,
           .size = 0,
-          .conv_data = "",
           .path = "",
           .ext = "",
           .elf_header = { nullptr },

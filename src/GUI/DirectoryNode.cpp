@@ -7,6 +7,16 @@ unsigned char *current_buffer = nullptr;
 
 Entry *selected_entry = nullptr;
 
+Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
+    for (const auto &entry : entries) {
+        if (node->FullPath.contains(entry->name)) {
+            return entry;
+        }
+    }
+    return nullptr;
+}
+
+
 bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
 {
     err.clear();
@@ -32,6 +42,9 @@ void VirtualArc_ExtractEntry() {
     }
 
     const char *extracted = loaded_arc_base->OpenStream(selected_entry, current_buffer);
+
+    free(current_buffer);
+    current_buffer = nullptr;
 
     Logger::log("%s", selected_entry->name.c_str());
 
@@ -137,30 +150,47 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
     try 
     {
         fs::path grandParentPath = parentPath.parent_path();
-        if (!grandParentPath.empty() && grandParentPath != parentPath)
-        {
-            CreateUpNode(node, grandParentPath);
-        }
 
         if (node->IsVirtualRoot) {
             std::vector<Entry *> entries = loaded_arc_base->GetEntries();
+        
             for (const auto entry : entries) {
+                #ifdef linux
                 std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+                #endif
+        
+                fs::path entryPath(entry->name);
                 DirectoryNode *current = node;
-                
-                DirectoryNode *fileNode = new DirectoryNode {
-                    .FullPath = entry->name,
-                    .FileName = entry->name,
-                    .FileSize = Utils::GetFileSize(entry->size),
-                    .LastModified = "Unknown",
-                    .IsDirectory = false,
-                };
-                current->Children.push_back(fileNode);
+        
+                for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
+                    std::string part = it->string();
+                    bool isLast = (std::next(it) == entryPath.end());
+        
+                    auto found = std::find_if(current->Children.begin(), current->Children.end(),
+                        [&part](const DirectoryNode* child) {
+                            return child->FileName == part;
+                        }
+                    );
+        
+                    if (found == current->Children.end()) {
+                        DirectoryNode *newNode = new DirectoryNode{
+                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + "/" + part),
+                            .FileName = part,
+                            .FileSize = isLast ? Utils::GetFileSize(entry->size) : "--",
+                            .LastModified = isLast ? "Unknown" : "N/A",
+                            .IsDirectory = !isLast
+                        };
+                        current->Children.push_back(newNode);
+                        current = newNode;
+                    } else {
+                        current = *found;
+                    }
+                }
             }
             SortChildren(node);
             return true;
         }
-
+        
         fs::directory_iterator directoryIterator(parentPath);
         for (const auto &entry : directoryIterator) {
             DirectoryNode *childNode = new DirectoryNode {
@@ -186,7 +216,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 }
 
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent)
 {
     bool is_dir = fs::is_directory(rootPath);
     DirectoryNode *newRootNode = new DirectoryNode {
@@ -194,6 +224,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath)
         .FileName = rootPath,
         .FileSize = Utils::GetFileSize(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
+        .Parent = parent,
         .IsDirectory = is_dir,
         .IsVirtualRoot = !is_dir,
     };
@@ -227,34 +258,35 @@ void HandleFileClick(DirectoryNode *node)
 {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    unsigned char *buffer;
+    unsigned char *buffer = nullptr;
     size_t size = 0;
 
     if (rootNode->IsVirtualRoot && !node->IsDirectory) {
-        auto entries = loaded_arc_base->GetEntries();
+        std::string nodePath = node->FullPath;
 
-        Entry *found_entry = nullptr;
+        selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
 
-        for (const auto &entry : entries) {
-            if (entry->name == node->FullPath) {
-                found_entry = entry;
-            }
-        }
-
-        if (found_entry) {
+        if (selected_entry) {
             if (current_buffer) {
-                const char *arc_read = loaded_arc_base->OpenStream(found_entry, current_buffer);
+                const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 buffer = (unsigned char*)arc_read;
-                size = found_entry->size;
+                size = selected_entry->size;
+            } else {
+                Logger::error("current_buffer is not initialized, aborting.");
+                return;
             }
         }
     } else {
+        // Regular file system handling
         auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
         buffer = fs_buffer;
         size = fs_size;
     }
 
-    
+    if (buffer == nullptr) {
+        Logger::error("Unable to resolve what buffer should be! Aborting.");
+        return;
+    }
 
     ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
 
@@ -301,8 +333,8 @@ void HandleFileClick(DirectoryNode *node)
             auto text = std::string((char*)buffer, size);
             // Check start of file for UTF16LE BOM
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
-                preview_state.contents.conv_data = TextConverter::UTF16LEToUTF8(text);
-                editor.SetText(preview_state.contents.conv_data);
+                std::u16string utf16((char16_t*)text.data() + 2, (text.size() - 2) / 2);
+                editor.SetText(TextConverter::UTF16ToUTF8(utf16));
             } else {
                 editor.SetText(text);
             }
@@ -319,6 +351,12 @@ void HandleFileClick(DirectoryNode *node)
     }
 
     loaded_arc_base = arc;
+
+    if (current_buffer) {
+        free(current_buffer);
+        current_buffer = nullptr;
+    }
+
     current_buffer = (unsigned char*)malloc(size);
     memcpy(current_buffer, buffer, size);
 
@@ -326,7 +364,9 @@ void HandleFileClick(DirectoryNode *node)
     rootNode->IsVirtualRoot = true;
 
 hfc_end:
-    free(buffer);
+    if (buffer != nullptr) {
+        free(buffer);
+    }
     return;
 }
 
@@ -337,34 +377,28 @@ void DisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableNextRow();
     ImGui::PushID(node);
 
-    bool directoryClicked = false;
-    bool fileClicked = false;
-
     ImGui::TableNextColumn();
     ImGui::Selectable(node->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
-    if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node->IsDirectory) { 
-            pathToReopen = node->FullPath;
-            if (node->IsVirtualRoot) {
-                rootNode = node;
-            }
-        } else HandleFileClick(node);
-    }
     
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node->IsDirectory) directoryClicked = true;
-        else fileClicked = true;
+        if (node->IsDirectory) { 
+            if (rootNode->IsVirtualRoot) {
+                node->IsVirtualRoot = true;
+                node->Parent = rootNode;
+                SortChildren(node);
+                rootNode = node;
+            } else {
+                pathToReopen = node->FullPath;
+            }
+        } else {
+            HandleFileClick(node);
+        }
     }
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
         if (loaded_arc_base) {
-            auto entries = loaded_arc_base->GetEntries();
-            for (const auto &entry : entries) {
-                if (entry->name == node->FullPath) {
-                    selected_entry = entry;
-                }
-            }
+            selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
         }
         ImGui::OpenPopup("FBContextMenu");
     }
@@ -375,14 +409,9 @@ void DisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableNextColumn();
     ImGui::Text("%s", node->LastModified.c_str());
 
-    if (node->IsVirtualRoot) {
-        for (auto childNode : node->Children) {
-            DisplayDirectoryNode(childNode);
-        }
-    }
-
     ImGui::PopID();
 }
+
 
 
 void SetupDisplayDirectoryNode(DirectoryNode *node)
@@ -395,11 +424,28 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
     ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 170.0f);
     ImGui::TableHeadersRow();
 
-    DisplayDirectoryNode(node);
-    if (node->IsDirectory) {
-        for (auto childNode : node->Children) {
-            DisplayDirectoryNode(childNode);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable("..", false, ImGuiSelectableFlags_AllowDoubleClick)) {
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            if (node->Parent) {
+                rootNode = node->Parent;
+            } else {
+                pathToReopen = fs::path(node->FullPath).parent_path();
+                if (current_buffer) {
+                    free(current_buffer);
+                    current_buffer = nullptr;
+                }
+            }
         }
+    }
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted("");
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted("");
+
+    for (auto childNode : node->Children) {
+        DisplayDirectoryNode(childNode);
     }
 
     if (pathToReopen.has_value()) {
