@@ -4,7 +4,7 @@
 
 ArchiveBase *loaded_arc_base = nullptr;
 unsigned char *current_buffer = nullptr;
-
+std::unique_ptr<unsigned char[]> buffer_owned;
 Entry *selected_entry = nullptr;
 
 Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
@@ -104,6 +104,7 @@ void UnloadSelectedFile() {
         Mix_FreeMusic(preview_state.audio.music);
         preview_state.audio.music = nullptr;
     }
+    preview_state.audio.buffer.reset();
     preview_state.audio.playing = false;
     preview_state.audio.time = {
         .total_time_min = 0,
@@ -273,29 +274,29 @@ void HandleFileClick(DirectoryNode *node)
 {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    unsigned char *buffer = nullptr;
+    unsigned char* buffer = nullptr;
     size_t size = 0;
 
     if (rootNode->IsVirtualRoot && !node->IsDirectory) {
-        std::string nodePath = node->FullPath;
-
         selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
-
+    
         if (selected_entry) {
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
-                buffer = (unsigned char*)arc_read;
                 size = selected_entry->size;
+                buffer_owned = std::make_unique<unsigned char[]>(size);
+                memcpy(buffer_owned.get(), arc_read, size);
+                buffer = buffer_owned.get();
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
                 return;
             }
         }
     } else {
-        // Regular file system handling
         auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
-        buffer = fs_buffer;
         size = fs_size;
+        buffer_owned = std::unique_ptr<unsigned char[]>(fs_buffer); // take ownership directly
+        buffer = buffer_owned.get();
     }
 
     if (buffer == nullptr) {
@@ -313,7 +314,7 @@ void HandleFileClick(DirectoryNode *node)
         preview_state.contents.ext = ext;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadTextureFromMemory(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
             preview_state.content_type = "image";
         } else if (Image::IsGif(ext)) {
             Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
@@ -321,12 +322,12 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
-            std::string path = node->FullPath.c_str();
             if (rootNode->IsVirtualRoot) {
-                SDL_IOStream * snd_io = SDL_IOFromConstMem(buffer, size);
+                preview_state.audio.buffer = std::move(buffer_owned);
+                SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer.get(), size);
                 current_sound = Mix_LoadMUS_IO(snd_io, true);
             } else {
-                current_sound = Mix_LoadMUS(path.c_str());
+                current_sound = Mix_LoadMUS(node->FullPath.c_str());
             }
             if (current_sound) {
                 preview_state.content_type = "audio";
@@ -368,24 +369,18 @@ void HandleFileClick(DirectoryNode *node)
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
         goto hfc_end;
     }
-
     loaded_arc_base = arc;
 
     if (current_buffer) {
         free(current_buffer);
-        current_buffer = nullptr;
     }
-
-    current_buffer = (unsigned char*)malloc(size);
+    current_buffer = (unsigned char *)malloc(size);
     memcpy(current_buffer, buffer, size);
 
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
     rootNode->IsVirtualRoot = true;
 
 hfc_end:
-    if (buffer != nullptr) {
-        free(buffer);
-    }
     return;
 }
 

@@ -74,7 +74,7 @@ void Image::UnloadAnimation(GifAnimation* animation)
 }
 
 
-bool Image::LoadImageSDL(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height) {
+bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height) {
     int image_width = 0;
     int image_height = 0;
     unsigned char *image_data;
@@ -117,13 +117,6 @@ bool Image::LoadImageSDL(const void* data, size_t data_size, GLuint *out_texture
     *out_texture = image_texture;
     *out_width = image_width;
     *out_height = image_height;
-
-    return true;
-}
-
-bool Image::LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height)
-{
-    LoadImageSDL(data, data_size, out_texture, out_width, out_height);
 
     return true;
 }

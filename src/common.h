@@ -56,6 +56,7 @@ struct TimeInfo {
 struct PWinStateAudio {
   Mix_Music *music;
   bool playing;
+  std::unique_ptr<unsigned char[]> buffer;
   int volumePercent;
   struct TimeInfo time;
   SDL_TimerID update_timer;
@@ -97,6 +98,7 @@ inline PreviewWinState preview_state = {
     .audio = {
           .music = nullptr,
           .playing = false,
+          .buffer = nullptr,
           .volumePercent = 100,
           .time = {
                   .total_time_min = 0,
