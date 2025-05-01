@@ -127,25 +127,12 @@ void DeleteDirectoryNodeTree(DirectoryNode* node)
     delete node;
 }
 
-inline void CreateUpNode(DirectoryNode *node, const fs::path grandParentPath) {
-    DirectoryNode *upNode = new DirectoryNode {
-        .FullPath = grandParentPath.string(),
-        .FileName = "..",
-        .FileSize = "--",
-        .LastModified = "N/A",
-        .Children = {},
-        .IsDirectory = true
-    };
-    node->Children.push_back(upNode);
-}
-
 inline void SortChildren(DirectoryNode *node) {
     std::sort(node->Children.begin(), node->Children.end(), 
     [](const DirectoryNode* a, const DirectoryNode* b) {
-        if (a->FileName == "..") return true;
-        if (b->FileName == "..") return false;
-            if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-            return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
+        if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
+        
+        return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
     });
 }
 
@@ -153,8 +140,6 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 {
     try 
     {
-        fs::path grandParentPath = parentPath.parent_path();
-
         if (node->IsVirtualRoot) {
             std::vector<Entry *> entries = loaded_arc_base->GetEntries();
         
@@ -162,10 +147,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
                 #ifdef linux
                 std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
                 #endif
-                #ifdef _WIN32
-                std::replace(selected_entry->name.begin(), selected_entry->name.end(), '/', '\\');
-                #endif
-        
+
                 fs::path entryPath(entry->name);
                 DirectoryNode *current = node;
         
@@ -195,22 +177,20 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
                     }
                 }
             }
-            SortChildren(node);
-            return true;
-        }
-        
-        fs::directory_iterator directoryIterator(parentPath);
-        for (const auto &entry : directoryIterator) {
-            std::string path = entry.path().string();
-            DirectoryNode *childNode = new DirectoryNode {
-                .FullPath = path,
-                .FileName = entry.path().filename().string(),
-                .FileSize = Utils::GetFileSize(path),
-                .LastModified = Utils::GetLastModifiedTime(path),
-                .Children = {},
-                .IsDirectory = entry.is_directory()
-            };
-            node->Children.push_back(childNode);
+        } else {
+            fs::directory_iterator directoryIterator(parentPath);
+            for (const auto &entry : directoryIterator) {
+                std::string path = entry.path().string();
+                DirectoryNode *childNode = new DirectoryNode {
+                    .FullPath = path,
+                    .FileName = entry.path().filename().string(),
+                    .FileSize = Utils::GetFileSize(path),
+                    .LastModified = Utils::GetLastModifiedTime(path),
+                    .Children = {},
+                    .IsDirectory = entry.is_directory()
+                };
+                node->Children.push_back(childNode);
+            }
         }
         SortChildren(node);
         return true;
@@ -240,11 +220,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .IsVirtualRoot = !is_dir,
     };
 
-    bool add = AddDirectoryNodes(newRootNode, rootPath);
-    if (newRootNode->IsDirectory)
-    {
-        if (!add) newRootNode = CreateDirectoryNodeTreeFromPath(fs::path(newRootNode->FullPath).parent_path().string());
-    }
+    AddDirectoryNodes(newRootNode, rootPath);
 
     return newRootNode;
 }
@@ -347,7 +323,7 @@ void HandleFileClick(DirectoryNode *node)
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);
-            if (size <= 0x100000) {
+            if (size <= 200000) {
                 editor.SetColorizerEnable(true);
             } else {
                 editor.SetColorizerEnable(false);
@@ -370,7 +346,6 @@ void HandleFileClick(DirectoryNode *node)
     memcpy(current_buffer, buffer, size);
 
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
-    rootNode->IsVirtualRoot = true;
 
 hfc_end:
     return;
@@ -454,7 +429,7 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
 
     if (pathToReopen.has_value()) {
         DeleteDirectoryNodeTree(rootNode);
-        rootNode = CreateDirectoryNodeTreeFromPath(*pathToReopen);
+        rootNode = CreateDirectoryNodeTreeFromPath(pathToReopen.value());
         pathToReopen.reset();
     }
 
