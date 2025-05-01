@@ -9,7 +9,7 @@ Entry *selected_entry = nullptr;
 
 Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
-        if (node->FullPath.contains(entry->name)) {
+        if (node->FullPath.find(entry->name) != std::string::npos) {
             return entry;
         }
     }
@@ -348,13 +348,17 @@ void HandleFileClick(DirectoryNode *node)
             auto text = std::string((char*)buffer, size);
             // Check start of file for UTF16LE BOM
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
-                std::u16string utf16((char16_t*)text.data() + 2, (text.size() - 2) / 2);
+                std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
                 editor.SetText(TextConverter::UTF16ToUTF8(utf16));
             } else {
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);
-            editor.SetColorizerEnable(true);
+            if (size <= 0x100000) {
+                editor.SetColorizerEnable(true);
+            } else {
+                editor.SetColorizerEnable(false);
+            }
         }
         return;
     }

@@ -857,6 +857,13 @@ void TextEditor::HandleKeyboardInputs()
 				io.AddInputCharacter('\\');
 			}
 		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Slash)) {
+			if (io.KeyShift) {
+				io.AddInputCharacter('?');
+			} else {
+				io.AddInputCharacter('/');
+			}
+		}
 		if (ImGui::IsKeyPressed(ImGuiKey_Period)) {
 			if (io.KeyShift) {
 				io.AddInputCharacter('>');
