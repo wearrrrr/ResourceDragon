@@ -47,18 +47,21 @@ class DPMArchive : public ArchiveBase {
             this->arc_key = arc_key;
             this->dpm_size = dpm_size;
         };
-        void DecryptEntry(unsigned char *data, uint32_t data_size, uint32_t entry_key) {
+        unsigned char* DecryptEntry(unsigned char *data, uint32_t data_size, uint32_t entry_key) {
             // TODO: These values seem to swap between games? Maybe different versions of the engine..?
+            unsigned char *buffer = new unsigned char[data_size];
+            memcpy(buffer, data, data_size);
+            
             uint8_t s1 = 0x55;
             uint8_t s2 = 0xAA;
             s1 = (seed_1 + ((entry_key >> 16) ^ (entry_key + s1)));
             s2 = (seed_2 + ((entry_key >> 24) ^ ((entry_key >> 8) + s2)));
             uint8_t val = 0;
             for (uint32_t i = 0; i < data_size; i++) {
-                val += (s1 ^ (data[i] - s2));
-                data[i] = val;
+                val += (s1 ^ (buffer[i] - s2));
+                buffer[i] = val;
             }
-            return;
+            return buffer;
         };
         std::vector<Entry*> GetEntries() override {
             std::vector<Entry*> basePtrs;
