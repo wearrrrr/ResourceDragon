@@ -4,7 +4,6 @@
 
 ArchiveBase *loaded_arc_base = nullptr;
 unsigned char *current_buffer = nullptr;
-std::unique_ptr<unsigned char[]> buffer_owned;
 Entry *selected_entry = nullptr;
 
 Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
@@ -81,30 +80,26 @@ void UnloadSelectedFile() {
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
     
-    preview_state.texture = {
-        .id = 0,
-        .size = {0, 0},
-        .anim = {},
-        .frame = 0,
-        .last_frame_time = 0
-    };
+    preview_state.texture.id = 0;
+    preview_state.texture.size = {0, 0};
+    preview_state.texture.anim = {};
+    preview_state.texture.frame = 0;
+    preview_state.texture.last_frame_time = 0;
 
     preview_state.content_type = "";
 
-    preview_state.contents = {
-        .data = nullptr,
-        .size = 0,
-        .path = "",
-        .ext = "",
-        .elf_header = {},
-        .elfFile = nullptr,
-    };
+    preview_state.contents.data = nullptr;
+    preview_state.contents.size = 0;
+    preview_state.contents.path = "";
+    preview_state.contents.ext = "";
+    preview_state.contents.elf_header = {};
+    preview_state.contents.elfFile = nullptr;
 
     if (preview_state.audio.music) {
         Mix_FreeMusic(preview_state.audio.music);
         preview_state.audio.music = nullptr;
     }
-    preview_state.audio.buffer.reset();
+    preview_state.audio.buffer = nullptr;
     preview_state.audio.playing = false;
     preview_state.audio.time = {
         .total_time_min = 0,
@@ -284,9 +279,7 @@ void HandleFileClick(DirectoryNode *node)
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
-                buffer_owned = std::make_unique<unsigned char[]>(size);
-                memcpy(buffer_owned.get(), arc_read, size);
-                buffer = buffer_owned.get();
+                buffer = (unsigned char*)arc_read;
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
                 return;
@@ -295,8 +288,7 @@ void HandleFileClick(DirectoryNode *node)
     } else {
         auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
         size = fs_size;
-        buffer_owned = std::unique_ptr<unsigned char[]>(fs_buffer); // take ownership directly
-        buffer = buffer_owned.get();
+        buffer = fs_buffer;
     }
 
     if (buffer == nullptr) {
@@ -323,8 +315,8 @@ void HandleFileClick(DirectoryNode *node)
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
             if (rootNode->IsVirtualRoot) {
-                preview_state.audio.buffer = std::move(buffer_owned);
-                SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer.get(), size);
+                preview_state.audio.buffer = buffer;
+                SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
                 current_sound = Mix_LoadMUS_IO(snd_io, true);
             } else {
                 current_sound = Mix_LoadMUS(node->FullPath.c_str());

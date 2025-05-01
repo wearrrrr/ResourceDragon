@@ -56,7 +56,7 @@ struct TimeInfo {
 struct PWinStateAudio {
   Mix_Music *music;
   bool playing;
-  std::unique_ptr<unsigned char[]> buffer;
+  unsigned char *buffer;
   int volumePercent;
   struct TimeInfo time;
   SDL_TimerID update_timer;
