@@ -1,9 +1,12 @@
 #pragma once
 
 #include <string>
+#include <zlib.h>
+
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"
 #include "Crypt/Crypt.h"
+#include "../../util/Text.h"
 
 enum XP3HeaderType {
     XP3_HEADER_UNPACKED = 0,

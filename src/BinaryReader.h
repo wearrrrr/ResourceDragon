@@ -13,7 +13,7 @@ public:
     explicit BinaryReader(const std::vector<uint8_t>& buffer) : data(buffer), position(0) {}
 
     std::optional<uint8_t> peek() const {
-        if (position >= data.size()) return std::nullopt; // Indicate end of buffer
+        if (position >= data.size()) return std::nullopt;
         return data[position]; 
     }
 

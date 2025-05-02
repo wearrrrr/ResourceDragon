@@ -13,14 +13,14 @@ public:
         bool StartupTjsNotEncrypted = false;
         bool ObfuscatedIndex = false;
 
-        virtual std::vector<uint8_t> Decrypt(Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
-        virtual uint8_t Decrypt(Entry *entry, uint64_t offset, uint8_t value) = 0;
+        virtual std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
+        virtual uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) = 0;
 
         virtual ~XP3Crypt() = default;
 
         virtual std::string GetCryptName() {
-            return "Default (BAD!!)";
+            return "Default";
         }
 
         std::u16string ReadName(BinaryReader& header) {
@@ -35,21 +35,16 @@ public:
         
             return u"";
         }
-
-        const char* EntryReadFilter(const Entry *entry, const char *input, size_t size) {
-            // Post processing of the entry data, before being returned by OpenStream
-            return input;
-        }
 };
 
 
 class NoCrypt : public XP3Crypt {
     public:
-        std::vector<uint8_t> Decrypt(Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             return buffer;
         }
 
-        uint8_t Decrypt(Entry *entry, uint64_t offset, uint8_t value) override {
+        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
             return value;
         }
         uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
@@ -61,16 +56,16 @@ class NoCrypt : public XP3Crypt {
         }
 };
 
-class HibikiCrypt : XP3Crypt {
+class HibikiCrypt : public XP3Crypt {
     public:
-        uint8_t Decrypt(Entry *entry, uint64_t offset, uint8_t value) override {
+        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
             if (0 != (offset & 4) || offset <= 0x64)
                 return (uint8_t)(value ^ (entry->hash >> 5));
             else
                 return (uint8_t)(value ^ (entry->hash >> 8));
         }
 
-        std::vector<uint8_t> Decrypt(Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
             for (int i = 0; i < count; i++) {
@@ -107,19 +102,23 @@ class AkabeiCrypt : public XP3Crypt {
             return oss.str();
         }
     
-        uint8_t Decrypt(Entry *entry, uint64_t offset, uint8_t value) override {
+        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
             int key_pos = (int)(offset) & 0x1F;
             auto key = GetKey(entry->hash);
             return value ^ key[key_pos];
         }
     
-        std::vector<uint8_t> Decrypt(Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+            std::vector<uint8_t> out = buffer;
+            
             auto key = GetKey(entry->hash);
+            Logger::log("AkabeiCrypt: Key is %x", key.data());
             int key_pos = (int)(offset);
             for (int i = 0; i < count; ++i) {
-                buffer[pos + i] ^= key[key_pos++ & 0x1F];
+                out[pos + i] ^= key[key_pos++ & 0x1F];
             }
-            return buffer;
+            Logger::log("AkabeiCrypt: Decrypting %d bytes at offset 0x%08X with key %x", count, (uint32_t)offset, key.data());
+            return out;
         }
     
         uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
@@ -140,5 +139,59 @@ class AkabeiCrypt : public XP3Crypt {
                 hash = ((hash & 0xFFFFFFFE) << 23) | (hash >> 8);
             }
             return key;
+        }
+};
+
+class NekoworksCrypt : public XP3Crypt {
+    std::vector<uint8_t> m_key;
+    public:
+        NekoworksCrypt() : m_key({0x15, 0x48, 0xE2, 0x9C}) {}
+        NekoworksCrypt(const std::vector<uint8_t> &key) {
+            m_key = key;
+        }
+
+        std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+            if (m_key.empty()) {
+                Logger::error("NekoworksCrypt: Key is empty");
+                return buffer;
+            }
+
+            auto key = InitKey(entry->hash);
+            for (int i = 0; i < count; ++i)
+            {
+                buffer[pos+i] ^= key[(offset + i) % 31];
+            }
+            return buffer;
+        }
+
+        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
+            if (m_key.empty()) {
+                Logger::error("NekoworksCrypt: Key is empty");
+                return value;
+            }
+
+            auto key = InitKey(entry->hash);
+            return value ^ key[offset % 31];
+        }
+        
+        // no-op
+        uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
+            Logger::warn("NekoworksCrypt: Encrypt is not supported");
+            return value;
+        }
+
+        std::vector<uint8_t> InitKey(uint32_t hash) {
+            hash &= 0x7FFFFFFF;
+            hash = (hash << 31) | hash;
+            auto key = m_key;
+            for (int i = 0; i < 31; ++i) {
+                key[i] ^= (uint8_t)hash;
+                hash = (hash & 0xFFFFFFFE) << 23 | hash >> 8;
+            }
+            return m_key;
+        }
+
+        std::string GetCryptName() override {
+            return "Nekoworks";
         }
 };
