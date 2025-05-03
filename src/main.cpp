@@ -19,6 +19,7 @@
 #define RW_ICON "\ue805"
 
 bool openDelPopup = false;
+bool running = true;
 
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
@@ -71,12 +72,28 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::Button("Close", {100, 0})) {
                 ImGui::CloseCurrentPopup();
             }
-
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-                ImGui::CloseCurrentPopup();
-            }
         } else {
             Logger::error("Somehow, you've opened this dialog box without a file right clicked on, that should be impossible!");
+        }
+        ImGui::EndPopup();
+    }
+}
+
+void RenderQuitMenu(ImGuiIO *io) {
+    ImGui::SetNextWindowSize({600, 175});
+    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
+    if (ImGui::BeginPopupModal("Quit Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::TextWrapped("Are you sure you'd like to quit?");
+        if (ImGui::Button("Confirm", {100, 0})) {
+            running = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close", {100, 0})) {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
@@ -290,8 +307,9 @@ int main(int argc, char *argv[]) {
     float splitterWidth = 10.0f;
     float minPanelSize = 400.0f;
     
+    bool quitDialog = false;
+
     bool resizing = false;
-    bool running = true;
     bool has_unsaved_changes = false;
     
     ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
@@ -320,7 +338,6 @@ int main(int argc, char *argv[]) {
                         .Parent = rootNode,
                         .IsDirectory = fs::is_directory(dropped_path),
                         .IsVirtualRoot = false,
-
                     };
                     HandleFileClick(itemNode);
                 } else {
@@ -617,6 +634,14 @@ int main(int argc, char *argv[]) {
         ImGui::End();
         #endif
 
+        RenderQuitMenu(&io);
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            quitDialog = !quitDialog;
+            if (quitDialog) {
+                ImGui::OpenPopup("Quit Confirmation");
+            }
+        }
 
         ImGui::Render();
 
