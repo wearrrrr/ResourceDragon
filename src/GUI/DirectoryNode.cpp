@@ -348,6 +348,9 @@ void HandleFileClick(DirectoryNode *node)
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
 
 hfc_end:
+    if (buffer != current_buffer) {
+        free(buffer);
+    }
     return;
 }
 
