@@ -311,13 +311,20 @@ int main(int argc, char *argv[]) {
                 // Preview the dropped file
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();
-                Logger::log("%s", dropped_path_dir.c_str());
                 if (fs::exists(dropped_path)) {
-                    rootNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
-                    selectedItem = CreateDirectoryNodeTreeFromPath(dropped_path.string());
-                    HandleFileClick(selectedItem);
+                    DirectoryNode *newNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
+                    rootNode = newNode;
+                    DirectoryNode *itemNode = new DirectoryNode {
+                        .FullPath = dropped_path.string(),
+                        .FileName = dropped_path.filename().string(),
+                        .Parent = rootNode,
+                        .IsDirectory = fs::is_directory(dropped_path),
+                        .IsVirtualRoot = false,
+
+                    };
+                    HandleFileClick(itemNode);
                 } else {
-                    Logger::error("Dropped file does not exist: %s", dropped_filedir);
+                    Logger::error("Failed to open file: %s", dropped_filedir);
                 }
             }
 

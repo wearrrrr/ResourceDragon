@@ -120,6 +120,10 @@ inline PreviewWinState preview_state = {
 };
 inline ExtractorManager extractor_manager;
 
+inline ArchiveBase *loaded_arc_base = nullptr;
+inline unsigned char *current_buffer = nullptr;
+inline Entry *selected_entry = nullptr;
+
 inline TextEditor editor;
 
 inline UIError ui_error = {

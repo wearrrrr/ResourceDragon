@@ -2,10 +2,6 @@
 #include "../util/Text.h"
 #include "../common.h"
 
-ArchiveBase *loaded_arc_base = nullptr;
-unsigned char *current_buffer = nullptr;
-Entry *selected_entry = nullptr;
-
 Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
         if (node->FullPath.find(entry->name) != std::string::npos) {
@@ -220,7 +216,9 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .IsVirtualRoot = !is_dir,
     };
 
-    AddDirectoryNodes(newRootNode, rootPath);
+    if (is_dir || newRootNode->IsVirtualRoot) {
+        AddDirectoryNodes(newRootNode, rootPath);
+    }
 
     return newRootNode;
 }

@@ -7,12 +7,12 @@
 
 struct DirectoryNode
 {
-    std::string FullPath;
-    std::string FileName;
-    std::string FileSize;
-    std::string LastModified;
+    std::string FullPath = "";
+    std::string FileName = "";
+    std::string FileSize = "";
+    std::string LastModified = "";
     DirectoryNode *Parent = nullptr;
-    std::vector<DirectoryNode*> Children;
+    std::vector<DirectoryNode*> Children = {};
     bool IsDirectory = false;
     bool IsVirtualRoot = false;
 };
