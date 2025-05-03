@@ -18,12 +18,6 @@
 #define FF_ICON "\ue804"
 #define RW_ICON "\ue805"
 
-#ifdef WIN32
-std::string separator = "\\";
-#else
-std::string separator = "/";
-#endif
-
 bool openDelPopup = false;
 
 void RenderFBContextMenu(ImGuiIO *io) {
@@ -160,15 +154,11 @@ inline void RegisterFormat() {
     extractor_manager.registerFormat(std::make_unique<T>());
 }
 
-inline void RegisterFormats() {
+int main(int argc, char *argv[]) {
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<XP3Format>();
-}
-
-int main(int argc, char *argv[]) {
-    RegisterFormats();
 
     std::string path;
     if (argc < 2) {
@@ -226,6 +216,10 @@ int main(int argc, char *argv[]) {
     // If display is smaller than 1600x900, maximize the window.
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
+    if (!mode) {
+        Logger::error("Error: Failed to get display mode: %s", SDL_GetError());
+        return -1;
+    }
     if (mode->w < 1600 || mode->h < 900) {
         window_flags |= SDL_WINDOW_MAXIMIZED;
     }

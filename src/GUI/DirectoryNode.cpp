@@ -351,8 +351,6 @@ hfc_end:
     return;
 }
 
-std::optional<std::string> pathToReopen;
-
 void DisplayDirectoryNode(DirectoryNode *node)
 {
     ImGui::TableNextRow();
@@ -366,10 +364,9 @@ void DisplayDirectoryNode(DirectoryNode *node)
             if (rootNode->IsVirtualRoot) {
                 node->IsVirtualRoot = true;
                 node->Parent = rootNode;
-                SortChildren(node);
                 rootNode = node;
             } else {
-                pathToReopen = node->FullPath;
+                rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath, rootNode);
             }
         } else {
             HandleFileClick(node);
@@ -412,7 +409,7 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
             if (node->Parent) {
                 rootNode = node->Parent;
             } else {
-                pathToReopen = fs::path(node->FullPath).parent_path().string();
+                rootNode = CreateDirectoryNodeTreeFromPath(fs::path(node->FullPath).parent_path().string());
                 if (current_buffer) {
                     free(current_buffer);
                     current_buffer = nullptr;
@@ -425,12 +422,6 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
 
     for (auto childNode : node->Children) {
         DisplayDirectoryNode(childNode);
-    }
-
-    if (pathToReopen.has_value()) {
-        DeleteDirectoryNodeTree(rootNode);
-        rootNode = CreateDirectoryNodeTreeFromPath(pathToReopen.value());
-        pathToReopen.reset();
     }
 
     ImGui::EndTable();
