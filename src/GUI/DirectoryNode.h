@@ -10,7 +10,9 @@ struct DirectoryNode
     std::string FullPath = "";
     std::string FileName = "";
     std::string FileSize = "";
+    uint64_t FileSizeBytes = 0;
     std::string LastModified = "";
+    uint64_t LastModifiedUnix = 0;
     DirectoryNode *Parent = nullptr;
     std::vector<DirectoryNode*> Children = {};
     bool IsDirectory = false;

@@ -29,7 +29,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     std::vector<uint8_t> header_stream;
     if (header_type == XP3_HEADER_UNPACKED) {
         int64_t header_size = Read<int64_t>(buffer, dir_offset + 0x1);
-        if (header_size > UINT64_MAX) {
+        if ((uint64_t)header_size > UINT64_MAX) {
             Logger::error("XP3: Header size is invalid!");
             return nullptr;
         }
@@ -37,7 +37,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         memcpy(header_stream.data(), buffer + dir_offset + 0x9, (uint32_t)header_size);
     } else {
         int64_t packed_size = Read<int64_t>(buffer, dir_offset + 0x1);
-        if (packed_size > UINT64_MAX) {
+        if ((uint64_t)packed_size > UINT64_MAX) {
             Logger::error("XP3: Packed size is invalid!");
             return nullptr;
         }
@@ -50,7 +50,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             Logger::error("XP3: Failed to decompress header!");
             return nullptr;
         }
-        if (decompressed_size != header_size) {
+        if (decompressed_size != (uLongf)header_size) {
             Logger::error("XP3: Decompressed size does not match header size!");
             return nullptr;
         }
@@ -194,7 +194,7 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
                 Logger::error("XP3: Failed to decompress entry!");
                 return nullptr;
             }
-            if (decompressed_size != segment.Size) {
+            if (decompressed_size != (uLongf)segment.Size) {
                 Logger::error("XP3: Decompressed size does not match entry size!");
                 return nullptr;
             }
@@ -210,7 +210,11 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
         stream.resize(entry->size);
         memcpy(stream.data(), buffer + entry->offset, entry->size);
         std::vector<uint8_t> decrypted = entry->crypt->Decrypt(entry, entry->offset, stream, 0, stream.size());
-        return (const char*)decrypted.data();
+        char* result = (char*)malloc(decrypted.size());
+        if (result) {
+            memcpy(result, decrypted.data(), decrypted.size());
+        }
+        return result;
     }
 
     return nullptr;
