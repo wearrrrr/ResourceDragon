@@ -102,7 +102,13 @@ void RenderQuitMenu(ImGuiIO *io) {
 void RenderPreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
-            Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
+            if (preview_state.contents.size > 0) {
+                if (preview_state.content_type == "image") {
+                    Clipboard::CopyBufferToClipboard(preview_state.contents.data, preview_state.contents.size, preview_state.contents.fileName);
+                } else {
+                    Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
+                }
+            }
         }
         if (ImGui::MenuItem("Save...")) {
             ImGui::CloseCurrentPopup();
@@ -177,6 +183,12 @@ int main(int argc, char *argv[]) {
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<XP3Format>();
 
+
+    #ifdef linux
+    // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess. 
+    fs::remove_all("/tmp/rd/");
+    #endif
+    
     std::string path;
     if (argc < 2) {
         path = ".";

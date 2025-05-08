@@ -119,8 +119,6 @@ public:
   }
 
   std::string GetElfType(ElfType e_type) const {
-    // Determine which elf header to use for the switch case
-
     switch (e_type) {
       case ElfType::ET_NONE:
         return "NONE";

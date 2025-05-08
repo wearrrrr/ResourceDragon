@@ -70,6 +70,7 @@ struct PreviewWinState {
     size_t size;
     std::string path;
     std::string ext;
+    std::string fileName;
     union {
       const struct Elf32_Header *elf32;
       const struct Elf64_Header *elf64;
@@ -92,7 +93,8 @@ inline PreviewWinState preview_state = {
           .size = 0,
           .path = "",
           .ext = "",
-          .elf_header = { nullptr },
+          .fileName = "",
+          .elf_header = {},
           .elfFile = nullptr,
       },
     .audio = {

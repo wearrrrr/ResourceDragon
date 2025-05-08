@@ -282,6 +282,7 @@ void HandleFileClick(DirectoryNode *node)
         preview_state.contents.size = size;
         preview_state.contents.path = node->FullPath;
         preview_state.contents.ext = ext;
+        preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
             Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);

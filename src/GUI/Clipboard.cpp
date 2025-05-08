@@ -7,6 +7,12 @@ const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
         *size = file->path.size();
         return file->path.data();
     }
+
+    if (strcmp(mime_type, file->mime_type.c_str()) == 0) {
+        *size = file->size;
+        return file->buffer;
+    }
+
     return nullptr;
 }
 
@@ -14,7 +20,22 @@ void ClipboardCleanup(void *userdata) {
     delete (ClipboardFile*)(userdata);
 }
 
-void Clipboard::CopyFilePathToClipboard(const std::string &path) {
+void Clipboard::CopyBufferToClipboard(unsigned char *buffer, size_t size, std::string file_name) {
+    std::string tempPath = "/tmp/rd/";
+    std::string filename = tempPath + file_name;
+
+    fs::create_directories("/tmp/rd/");
+    std::ofstream outFile(filename, std::ios::binary);
+    outFile.write((const char*)buffer, size);
+    outFile.close();
+
+    CopyFilePathToClipboard(filename);
+
+    return;
+}
+
+void Clipboard::CopyFilePathToClipboard(const std::string &path)
+{
     ClipboardFile *file = new ClipboardFile();
     file->path = "file://" + path;
 
