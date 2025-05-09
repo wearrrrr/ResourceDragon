@@ -4,6 +4,6 @@
 #include "mpk.h"
 
 namespace NitroPlus {
-    using NPA = ::NPAFormat;
-    using MPK = ::MPKFormat;
+    using NPA = NPAFormat;
+    using MPK = MPKFormat;
 };

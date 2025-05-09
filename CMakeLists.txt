@@ -73,6 +73,10 @@ add_executable(ResourceDragon
     src/ArchiveFormats/NitroPlus/mpk.h
     src/ArchiveFormats/NitroPlus/mpk.cpp
 
+    src/ArchiveFormats/SonicAdv/sonicadv.h
+    src/ArchiveFormats/SonicAdv/pak.h
+    src/ArchiveFormats/SonicAdv/pak.cpp
+
     src/ArchiveFormats/XP3/Crypt/Crypt.h
     src/ArchiveFormats/XP3/xp3.h
     src/ArchiveFormats/XP3/xp3.cpp

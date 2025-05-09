@@ -44,6 +44,10 @@ class ArchiveFormat {
             buffer_position = new_position;
         }
 
+        void Advance(size_t amount) {
+            buffer_position += amount;
+        }
+
         size_t GetBufferHead() {
             return buffer_position;
         }
@@ -60,8 +64,24 @@ class ArchiveFormat {
             return constructed;
         }
 
+        std::string ReadStringAndAdvance(unsigned char *buffer, uint64_t offset) {
+            std::string constructed = "";
+            constructed.append(based_pointer<char>(buffer, offset));
+            buffer_position += constructed.length();
+
+            return constructed;
+        }
+
+        std::string ReadStringAndAdvance(unsigned char *buffer, uint64_t offset, int length) {
+            std::string constructed = "";
+            constructed.append(based_pointer<char>(buffer, offset), length);
+            buffer_position += length;
+
+            return constructed;
+        }
+
         std::string ReadStringWithLength(const unsigned char* buffer, int length) {
-            return std::string(reinterpret_cast<const char*>(buffer), length);
+            return std::string((const char*)(buffer), length);
         }
 
         ExeFile* ConvertToExeFile(unsigned char *buffer) {
