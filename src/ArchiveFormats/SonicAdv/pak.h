@@ -10,7 +10,6 @@ class SAPakFormat : public ArchiveFormat {
     ArchiveBase *TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;  
 
     bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &_ext) const override {
-        Logger::log("%x", Read<uint32_t>(buffer, 0));
         return Read<uint32_t>(buffer, 0) == sig;
     };
     std::string getTag() const override {
@@ -31,4 +30,6 @@ class SAPakArchive : public ArchiveBase {
             return entryList;
         }
         const char *OpenStream(const Entry *entry, unsigned char *buffer) override;
+
+
 };

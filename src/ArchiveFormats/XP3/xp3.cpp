@@ -163,7 +163,8 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         } else if ((entry_signature >> 24) == 0x3A) {
             Logger::log("yuz/sen/dls entry found! I don't know how to handle these!!");
         } else if (entry_size > 7) {
-            uint32_t hash = header.read<uint32_t>();
+            // uint32_t hash header.read<uint32_t>();
+            header.read<uint32_t>();
             int16_t name_size = header.read<int16_t>(); 
             if (name_size > 0) {
                 entry_size -= 6;

@@ -47,9 +47,6 @@ void VirtualArc_ExtractEntry() {
     #ifdef linux
     std::replace(selected_entry->name.begin(), selected_entry->name.end(), '\\', '/');
     #endif
-    #ifdef _WIN32
-    std::replace(selected_entry->name.begin(), selected_entry->name.end(), '/', '\\');
-    #endif
 
 
     fs::path entryPath(selected_entry->name);
@@ -257,7 +254,10 @@ void HandleFileClick(DirectoryNode *node)
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
-                buffer = (unsigned char*)arc_read;
+                buffer = (unsigned char *)malloc(size);
+                memcpy(buffer, arc_read, size);
+
+                delete[] arc_read;
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
                 return;
@@ -274,7 +274,7 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
-    ArchiveFormat *format = extractor_manager.getExtractorFor(buffer, size, ext);
+    auto format = extractor_manager.getExtractorFor(buffer, size, ext);
 
     if (format == nullptr) {
         UnloadSelectedFile();
@@ -335,10 +335,13 @@ void HandleFileClick(DirectoryNode *node)
         return;
     }
 
-    ArchiveBase *arc = format->TryOpen(buffer, size, node->FileName);
+    auto arc = format->TryOpen(buffer, size, node->FileName);
     if (arc == nullptr) {
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
         goto hfc_end;
+    }
+    if (loaded_arc_base) {
+        delete loaded_arc_base;
     }
     loaded_arc_base = arc;
 
@@ -351,7 +354,7 @@ void HandleFileClick(DirectoryNode *node)
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
 
 hfc_end:
-    if (buffer != current_buffer) {
+    if (buffer) {
         free(buffer);
     }
     return;

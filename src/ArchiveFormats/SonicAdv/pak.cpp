@@ -7,13 +7,6 @@ namespace fs = std::filesystem;
 
 ArchiveBase *SAPakFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
     uint32_t file_count = Read<uint32_t>(buffer, 0x39);
-
-    Logger::log("%s: %d files", file_name.c_str(), file_count);
-
-    // std::vector<std::string> long_paths(file_count);
-    // std::vector<std::string> file_names(file_count);
-    // std::vector<uint32_t> file_lengths(file_count);
-
     std::vector<Entry> entries(file_count);
 
     Seek(0x3D);
