@@ -20,6 +20,7 @@
 
 bool openDelPopup = false;
 bool running = true;
+bool quitDialog = false;
 
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
@@ -72,8 +73,6 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::Button("Close", {100, 0})) {
                 ImGui::CloseCurrentPopup();
             }
-        } else {
-            Logger::error("Somehow, you've opened this dialog box without a file right clicked on, that should be impossible!");
         }
         ImGui::EndPopup();
     }
@@ -90,6 +89,7 @@ void RenderQuitMenu(ImGuiIO *io) {
         }
         ImGui::SameLine();
         if (ImGui::Button("Close", {100, 0})) {
+            quitDialog = false;
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
     fs::remove_all("/tmp/rd/");
     #endif
     
-    std::string path;
+    const char *path;
     if (argc < 2) {
         path = ".";
     } else {
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Error: inotify_init() failed" << std::endl;
         return -1;
     }
-    inotify_wd = inotify_add_watch(inotify_fd, path.c_str(), IN_MODIFY | IN_CREATE | IN_DELETE);
+    inotify_wd = inotify_add_watch(inotify_fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     if (inotify_wd < 0) {
         std::cerr << "Error: inotify_add_watch() failed" << std::endl;
         close(inotify_fd);
@@ -245,12 +245,10 @@ int main(int argc, char *argv[]) {
     // If display is smaller than 1600x900, maximize the window.
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
-    if (!mode) {
-        Logger::error("Error: Failed to get display mode: %s", SDL_GetError());
-        return -1;
-    }
-    if (mode->w < 1600 || mode->h < 900) {
-        window_flags |= SDL_WINDOW_MAXIMIZED;
+    if (mode) {
+        if (mode->w < 1600 || mode->h < 900) {
+            window_flags |= SDL_WINDOW_MAXIMIZED;
+        }
     }
 
     SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
@@ -277,14 +275,13 @@ int main(int argc, char *argv[]) {
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-    // U+203B (Reference Mark), Used in a lot of CJK text, but isn't a part of ImGui's glyph range ;-;
+    // U+203B (Reference Mark)
     range.AddChar(0x203B);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
     iconConfig.MergeMode = true;
     iconConfig.GlyphMinAdvanceX = 18.0f;
-
     const ImWchar icon_ranges[] = { 0xe800, 0xe805, 0 };
 
     #ifdef WIN32
@@ -316,16 +313,13 @@ int main(int argc, char *argv[]) {
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_ShowWindow(window);
 
-    float splitterWidth = 10.0f;
-    float minPanelSize = 400.0f;
-    
-    bool quitDialog = false;
-
+    const float splitterWidth = 10.0f;
+    const float minPanelSize = 400.0f; 
     bool resizing = false;
     bool has_unsaved_changes = false;
     
-    ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
-    std::string preview_win_label = "Preview";
+    const constexpr ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
+    const std::string preview_win_label = "Preview";
 
     float timeToSetOnRelease = 0.0f;
 
@@ -368,8 +362,8 @@ int main(int argc, char *argv[]) {
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
 
-        ImVec2 window_size = io.DisplaySize;
-        ImVec2 mouse_pos = io.MousePos;
+        const ImVec2 window_size = io.DisplaySize;
+        const ImVec2 mouse_pos = io.MousePos;
 
         static float left_pan_width = (window_size.x / 2.0f) - splitterWidth;
         static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
@@ -380,10 +374,12 @@ int main(int argc, char *argv[]) {
         ImGui::SetNextWindowSize(window_size);
         ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
 
+        constexpr ImU32 bgColor = IM_COL32(58, 58, 58, 255);
+
         ImGui::GetWindowDrawList()->AddRectFilled(
             {left_pan_width, 10},
             {left_pan_width + splitterWidth, window_size.y},
-            IM_COL32(58, 58, 58, 255)
+            bgColor
         );
 
         ImGui::End();
@@ -407,7 +403,7 @@ int main(int argc, char *argv[]) {
 
         ImGui::End();
 
-        bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
+        const bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
 
         if (hovered)
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -507,7 +503,7 @@ int main(int argc, char *argv[]) {
                             
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
-                            
+
                                     double new_pos = scrubberProgress * total_time;
                                     timeToSetOnRelease = new_pos;
                                     preview_state.audio.time.current_time_min = (int)new_pos / 60;
@@ -636,8 +632,8 @@ int main(int argc, char *argv[]) {
 
         #ifdef DEBUG
         const float DISTANCE = 8.0f;
-        ImVec2 window_pos = ImVec2(DISTANCE, window_size.y - DISTANCE);
-        ImVec2 window_pos_pivot = ImVec2(0.0f, 1.0f);
+        const ImVec2 window_pos = {DISTANCE, window_size.y - DISTANCE};
+        const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
     
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowBgAlpha(0.55f);
