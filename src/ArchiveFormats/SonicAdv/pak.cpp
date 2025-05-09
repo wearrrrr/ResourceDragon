@@ -10,38 +10,34 @@ ArchiveBase *SAPakFormat::TryOpen(unsigned char *buffer, uint32_t size, std::str
 
     Logger::log("%s: %d files", file_name.c_str(), file_count);
 
-    std::vector<std::string> long_paths(file_count);
-    std::vector<std::string> file_names(file_count);
-    std::vector<uint32_t> file_lengths(file_count);
+    // std::vector<std::string> long_paths(file_count);
+    // std::vector<std::string> file_names(file_count);
+    // std::vector<uint32_t> file_lengths(file_count);
+
+    std::vector<Entry> entries(file_count);
 
     Seek(0x3D);
     
     for (uint32_t i = 0; i < file_count; i++) {
         uint32_t name_len = Read<uint32_t>(buffer);
-        long_paths[i] = ReadStringAndAdvance(buffer, GetBufferHead(), name_len);
+        ReadStringAndAdvance(buffer, GetBufferHead(), name_len);
         name_len = Read<uint32_t>(buffer);
-        file_names[i] = ReadStringAndAdvance(buffer, GetBufferHead(), name_len);
-        file_lengths[i] = Read<uint32_t>(buffer);
-
-        Logger::log("%s: %s", file_name.c_str(), long_paths[i].c_str());
-        Logger::log("%s: %s", file_name.c_str(), file_names[i].c_str());
-        Logger::log("%s: %ld", file_name.c_str(), file_lengths[i]);
-
+        entries[i].name = ReadStringAndAdvance(buffer, GetBufferHead(), name_len);
+        entries[i].size = Read<uint32_t>(buffer);
         Advance(0x4);
     }
 
     for (uint32_t i = 0; i < file_count; i++) {
+
         std::vector<uint8_t> entry_data;
-        entry_data.resize(file_lengths[i]);
-        Read(entry_data.data(), buffer, file_lengths[i]);
-        // std::replace(file_names[i].begin(), file_names[i].end(), '\\', '/');
-        // std::string output_path = "output/" + file_names[i];
-        // fs::create_directories("output/" + fs::path(file_names[i]).parent_path().string());
-        // std::ofstream outFile(output_path, std::ios::binary);
-        // outFile.write((const char*)entry_data.data(), file_lengths[i]);
-        // outFile.close();
-        // Logger::log("%s: %s", file_name.c_str(), output_path.c_str());
+        entry_data.resize(entries[i].size);
+        Read(entry_data.data(), buffer, entries[i].size);
+        entries[i].data = std::move(entry_data);
     }
 
-    return nullptr;
+    return new SAPakArchive(entries);
+};
+
+const char *SAPakArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
+    return (const char *)entry->data.data();
 };
