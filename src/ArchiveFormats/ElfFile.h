@@ -114,7 +114,9 @@ public:
   ElfFile(const fs::path &filePath) {
     mFilePath = filePath;
     auto [buffer, size] = read_file_to_buffer<unsigned char>(filePath.string().c_str());
-    if ((ulong)size < sizeof(Elf32_Header)) {
+    if (size < 52L) {
+      Logger::error("File is smaller than minimum possible elf size! This is not a valid ELF file.");
+      mIsValid = false;
       return;
     }
     mFileStream = buffer;

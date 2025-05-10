@@ -14,7 +14,7 @@ template <typename T = void>
   if (FILE *file = fopen(path, "rb")) {
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
-    if ((buffer = (T *)malloc(file_size))) {
+    if ((buffer = (T*)malloc(file_size))) {
       rewind(file);
       fread(buffer, file_size, 1, file);
     }
