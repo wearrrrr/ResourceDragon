@@ -256,8 +256,6 @@ void HandleFileClick(DirectoryNode *node)
                 size = selected_entry->size;
                 buffer = (unsigned char *)malloc(size);
                 memcpy(buffer, arc_read, size);
-
-                delete[] arc_read;
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
                 return;

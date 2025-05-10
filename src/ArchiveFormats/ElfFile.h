@@ -4,14 +4,36 @@
 #include <string>
 
 #include "../zero_templates.h"
+#include "../util/Logger.h"
 
 namespace fs = std::filesystem;
 
-enum class ElfClass { 
-  NONE,
-  ELF32,
-  ELF64
+/**
+  ELF spec information obtained from: https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
+**/
+
+enum class ElfOSABI : uint8_t {
+  NONE = 0,
+  HPUX = 1,
+  NETBSD = 2,
+  GNU = 3,
+  SOLARIS = 6,
+  AIX = 7,
+  IRIX = 8,
+  FREEBSD = 9,
+  TRU64 = 10,
+  MODESTO = 11,
+  OPENBSD = 12,
+  OPENVMS = 13,
 };
+
+enum class ElfClass : uint8_t { 
+  NONE = 0,
+  ELF32 = 1,
+  ELF64 = 2,
+};
+
+#define EI_NIDENT 16
 
 enum class ElfType : uint16_t {
   ET_NONE = 0,
@@ -25,10 +47,22 @@ enum class ElfType : uint16_t {
   ET_HIPROC = 0xFFFF
 };
 
-#define EI_NIDENT 16
+struct ElfIdent {
+  uint8_t magic[4];
+  ElfClass class_type;
+  uint8_t data_encoding;
+  uint8_t version;
+  ElfOSABI os_abi;
+  uint8_t abi_version;
+  uint8_t pad[7];
+};
+static_assert(sizeof(ElfIdent) == EI_NIDENT);
 
 struct Elf32_Header {
-  unsigned char e_ident[EI_NIDENT];
+  union {
+    unsigned char e_ident_raw[EI_NIDENT];
+    ElfIdent e_ident;
+  };
   ElfType e_type;
   uint16_t e_machine;
   uint32_t e_version;
@@ -44,7 +78,10 @@ struct Elf32_Header {
   uint16_t e_shstrndx;
 };
 struct Elf64_Header {
-  unsigned char e_ident[EI_NIDENT];
+  union {
+    unsigned char e_ident_raw[EI_NIDENT];
+    ElfIdent e_ident;
+  };
   ElfType e_type;
   uint16_t e_machine;
   uint32_t e_version;
@@ -76,17 +113,18 @@ private:
 public:
   ElfFile(const fs::path &filePath) {
     mFilePath = filePath;
-    auto [buffer, size] =
-        read_file_to_buffer<unsigned char>(filePath.string().c_str());
+    auto [buffer, size] = read_file_to_buffer<unsigned char>(filePath.string().c_str());
     if ((ulong)size < sizeof(Elf32_Header)) {
       return;
     }
     mFileStream = buffer;
 
-    if (mFileStream[4] == 1) {
+    ElfClass elfClass = (ElfClass)(mFileStream[4]);
+
+    if (elfClass == ElfClass::ELF32) {
       mElfHeader.elf32 = *(Elf32_Header *)(mFileStream);
       mElfClass = ElfClass::ELF32;
-    } else if (mFileStream[4] == 2) {
+    } else if (elfClass == ElfClass::ELF64) {
       mElfHeader.elf64 = *(Elf64_Header *)(mFileStream);
       mElfClass = ElfClass::ELF64;
     } else {
@@ -107,7 +145,25 @@ public:
     return mElfClass == ElfClass::ELF64 ? &mElfHeader.elf64 : nullptr;
   }
 
-  std::string GetElfClass() {
+  std::string GetElfOSABI(ElfOSABI abi) const {
+    switch (abi) {
+      case ElfOSABI::NONE: return "System V";
+      case ElfOSABI::HPUX: return "Hewlett-Packard HP-UX";
+      case ElfOSABI::NETBSD: return "NetBSD";
+      case ElfOSABI::GNU: return "GNU/Linux (Deprecated)";
+      case ElfOSABI::SOLARIS: return "Solaris";
+      case ElfOSABI::AIX: return "AIX";
+      case ElfOSABI::IRIX: return "IRIX";
+      case ElfOSABI::FREEBSD: return "FreeBSD";
+      case ElfOSABI::TRU64: return "Compaq TRU64 UNIX";
+      case ElfOSABI::MODESTO: return "Novell - Modesto";
+      case ElfOSABI::OPENBSD: return "OpenBSD";
+      case ElfOSABI::OPENVMS: return "OpenVMS";
+      default: return "Unknown";
+    }
+  };
+
+  std::string GetElfClass() const {
     switch (mElfClass) {
     case ElfClass::ELF32:
       return "ELF32";
@@ -116,7 +172,7 @@ public:
     default:
       return "Unknown";
     }
-  }
+  };
 
   std::string GetElfType(ElfType e_type) const {
     switch (e_type) {
@@ -142,6 +198,8 @@ public:
         return "Unknown";
     };
   };
+
+
 
   static bool IsValid(unsigned char *buffer);
 };

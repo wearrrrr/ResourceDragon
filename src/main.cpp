@@ -31,8 +31,6 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::MenuItem("Location")) {
                 ImGui::SetClipboardText(selectedItem->FullPath.c_str());
             }
-            // TODO: We need to be clearing selectedItem's pointer every frame if nothing is hovering, but for now this is here 
-            // this prevents shit from breaking.
             if (selectedItem) {
                 if (!selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
@@ -456,7 +454,6 @@ int main(int argc, char *argv[]) {
                         texture->last_frame_time = now;
                     }
                 } else if (content_type == "audio") {
-                    // Display audio controls
                     if (current_sound) {
                         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
                         TimeInfo time = preview_state.audio.time;
@@ -589,18 +586,20 @@ int main(int argc, char *argv[]) {
                     ImGui::Text("Path: %s", preview_state.contents.path.c_str());
                     ImGui::Text("ELF Class: %s", preview_state.contents.elfFile->GetElfClass().c_str());
                     if (auto elfHeader = preview_state.contents.elfFile->GetElf64Header()) {
+                        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
+                        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
+
                         #ifdef _WIN32
                         ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
                         #else
                         ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
                         #endif
-                        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
-
                     } else if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
-                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
                         ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
+                        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
+                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
                     } else {
-                        Logger::error("Failed to read ELF header!");
+                        ImGui::Text("Failed to read ELF header!");
                     }
                 } else {
                     // TODO: handle different potential encodings
