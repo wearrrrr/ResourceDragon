@@ -397,6 +397,12 @@ void DisplayDirectoryNode(DirectoryNode *node)
     ImGui::PopID();
 }
 
+void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nullptr) {
+    if (ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+        if (callback) callback();
+    };
+}
+
 #define FB_COLUMNS 3
 
 void SetupDisplayDirectoryNode(DirectoryNode *node)
@@ -431,7 +437,11 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    if (ImGui::Selectable("..", false, ImGuiSelectableFlags_AllowDoubleClick)) {
+    AddDirectoryNodeChild(node->FullPath);
+
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    AddDirectoryNodeChild("..", [&node](){
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             if (node->Parent) {
                 rootNode = node->Parent;
@@ -443,15 +453,13 @@ void SetupDisplayDirectoryNode(DirectoryNode *node)
                 }
             }
         }
-    }
+    });
     ImGui::TableNextColumn();
-    ImGui::TextUnformatted("");
 
     for (auto childNode : node->Children) {
         DisplayDirectoryNode(childNode);
     }
 
     ImGui::EndTable();
-
     ImGui::PopID();
 }
