@@ -8,6 +8,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
 # set(CMAKE_CXX_FLAGS "-g")
 # set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address -fuse-ld=lld")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(ResourceDragon VERSION 0.1)
 
@@ -55,7 +56,7 @@ add_executable(ResourceDragon
     src/common.h
 
     src/ExtractorManager.h
-    
+
     src/GameRes/Entry.h
 
     src/ArchiveFormats/ArchiveFormat.h
@@ -66,7 +67,7 @@ add_executable(ResourceDragon
 
     src/ArchiveFormats/HSP/hsp.h
     src/ArchiveFormats/HSP/hsp.cpp
-    
+
     src/ArchiveFormats/PFS/pfs.h
     src/ArchiveFormats/PFS/pfs.cpp
 

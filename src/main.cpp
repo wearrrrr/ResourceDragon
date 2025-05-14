@@ -56,7 +56,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
         if (selectedItem) {
-            ImGui::TextWrapped("Are you sure you'd like to delete %s?", 
+            ImGui::TextWrapped("Are you sure you'd like to delete %s?",
                 selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
             ImGui::Text("This cannot be undone!");
             if (ImGui::Button("Confirm", {100, 0})) {
@@ -128,7 +128,7 @@ void RenderErrorPopup(ImGuiIO *io) {
         if (ImGui::Button("Close", {100, 0})) {
             ui_error.show = false;
             ImGui::CloseCurrentPopup();
-        } 
+        }
         ImGui::SameLine();
         if (ImGui::Button("Copy to Clipboard", {175, 0})) {
             ImGui::SetClipboardText(ui_error.message.c_str());
@@ -184,10 +184,10 @@ int main(int argc, char *argv[]) {
 
 
     #ifdef linux
-    // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess. 
+    // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
     fs::remove_all("/tmp/rd/");
     #endif
-    
+
     const char *path;
     if (argc < 2) {
         path = ".";
@@ -263,14 +263,14 @@ int main(int argc, char *argv[]) {
         printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         return -1;
     }
-    
+
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
 
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
-    
+
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
     const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
     const char *icon_font_path = "fonts/player-icons.ttf";
     #endif
-    
+
     if (fs::exists(font_path)) {
         io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
         io.Fonts->AddFontFromFileTTF(icon_font_path, 18, &iconConfig, icon_ranges);
@@ -313,10 +313,10 @@ int main(int argc, char *argv[]) {
     SDL_ShowWindow(window);
 
     const float splitterWidth = 10.0f;
-    const float minPanelSize = 400.0f; 
+    const float minPanelSize = 400.0f;
     bool resizing = false;
     bool has_unsaved_changes = false;
-    
+
     const constexpr ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
     const std::string preview_win_label = "Preview";
 
@@ -357,7 +357,7 @@ int main(int argc, char *argv[]) {
                 UnloadSelectedFile();
             }
         }
-        
+
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
 
@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
 
         static float left_pan_width = (window_size.x / 2.0f) - splitterWidth;
         static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
-        
+
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos({0, 0});
@@ -474,16 +474,16 @@ int main(int argc, char *argv[]) {
                         if (!curr_sound_is_midi) {
                             if (ImGui::Button(RW_ICON, {40, 0})) {
                                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
-                                new_pos > 0 
-                                    ? Mix_SetMusicPosition(new_pos) 
+                                new_pos > 0
+                                    ? Mix_SetMusicPosition(new_pos)
                                     : Mix_SetMusicPosition(0);
                             }
                             ImGui::SameLine();
                             if (!curr_sound_is_midi) {
-                                ImGui::Text("%02d:%02d / %02d:%02d", 
-                                    time.current_time_min, 
+                                ImGui::Text("%02d:%02d / %02d:%02d",
+                                    time.current_time_min,
                                     time.current_time_sec,
-                                    time.total_time_min, 
+                                    time.total_time_min,
                                     time.total_time_sec
                                 );
                                 ImGui::SameLine();
@@ -498,7 +498,7 @@ int main(int argc, char *argv[]) {
                                 float scrubberProgress = visual_pos / total_time;
                                 scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
                                 bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
-                            
+
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
 
@@ -508,7 +508,7 @@ int main(int argc, char *argv[]) {
                                     preview_state.audio.time.current_time_sec = (int)new_pos % 60;
                                     preview_state.audio.scrubberDragging = true;
                                 }
-                            
+
                                 if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
                                     Mix_SetMusicPosition(timeToSetOnRelease);
                                     Mix_ResumeMusic();
@@ -526,7 +526,7 @@ int main(int argc, char *argv[]) {
                         ImGui::SameLine();
                         bool looping = preview_state.audio.shouldLoop;
 
-                        if (looping) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255)); 
+                        if (looping) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255));
                         if (ImGui::Button(LOOP_ICON, {40, 0})) {
                             preview_state.audio.shouldLoop = !preview_state.audio.shouldLoop;
                         }
@@ -577,7 +577,7 @@ int main(int argc, char *argv[]) {
                             // If there's more than 2 channels, then I guess this will report as mono..
                             // But I've never really seen any audio files with more than 2, so it's *probably* fine.
                             ImGui::Text("Channels: %s", channels == 2 ? "2 (Stereo)" : "1 (Mono)");
-                            
+
                         }
 
                     }
@@ -634,11 +634,11 @@ int main(int argc, char *argv[]) {
         const float DISTANCE = 8.0f;
         const ImVec2 window_pos = {DISTANCE, window_size.y - DISTANCE};
         const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
-    
+
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowBgAlpha(0.55f);
 
-        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) 
+        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS))
         {
             ImGui::Text("FPS: %d", (int)std::ceil(io.Framerate));
         }
@@ -667,7 +667,7 @@ int main(int argc, char *argv[]) {
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
-    
+
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
@@ -678,6 +678,6 @@ int main(int argc, char *argv[]) {
     inotify_running = false;
     close(inotify_fd);
     #endif
-    
+
     return 0;
 }
