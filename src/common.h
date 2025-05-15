@@ -1,42 +1,39 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <cmath>
-#include <filesystem>
-#include <fstream>
 #include <string>
-#include <vector>
 
 #ifdef linux
+#include <thread>
 #include <sys/inotify.h>
 #define EVENT_SIZE (sizeof(struct inotify_event))
-#include <thread>
 #endif
 
-#include "imgui.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl3.h"
+#include "imgui.h" // IWYU pragma: keep
+#include "imgui_impl_opengl3.h" // IWYU pragma: keep
+#include "imgui_impl_sdl3.h" // IWYU pragma: keep
 
 #include "ArchiveFormats/ElfFile.h"
-#include "ArchiveFormats/HSP/hsp.h"
-#include "ArchiveFormats/PFS/pfs.h"
-#include "ArchiveFormats/NitroPlus/nitroplus.h"
-#include "ArchiveFormats/SonicAdv/sonicadv.h"
-#include "ArchiveFormats/XP3/xp3.h"
+#include "ArchiveFormats/HSP/hsp.h" // IWYU pragma: keep
+#include "ArchiveFormats/PFS/pfs.h" // IWYU pragma: keep
+#include "ArchiveFormats/NitroPlus/nitroplus.h" // IWYU pragma: keep
+#include "ArchiveFormats/SonicAdv/sonicadv.h" // IWYU pragma: keep
+#include "ArchiveFormats/Touhou/thdat.h" // IWYU pragma: keep
+#include "ArchiveFormats/XP3/xp3.h" // IWYU pragma: keep
 #include "ExtractorManager.h"
 
-#include "GUI/Audio.h"
-#include "GUI/Clipboard.h"
-#include "GUI/DirectoryNode.h"
-#include "GUI/Image.h"
-#include "GUI/TextEditor/TextEditor.h"
-#include "GUI/Theme/Themes.h"
-#include "GUI/Utils.h"
+#include "GUI/Audio.h" // IWYU pragma: keep
+#include "GUI/Clipboard.h" // IWYU pragma: keep
+#include "GUI/DirectoryNode.h" // IWYU pragma: keep
+#include "GUI/Image.h" // IWYU pragma: keep
+#include "GUI/TextEditor/TextEditor.h" // IWYU pragma: keep
+#include "GUI/Theme/Themes.h" // IWYU pragma: keep
+#include "GUI/Utils.h" // IWYU pragma: keep
 
-#include "util/Logger.h"
-#include "util/Text.h"
+#include "util/Logger.h" // IWYU pragma: keep
+#include "util/Text.h" // IWYU pragma: keep
 
-#include "zero_templates.h"
+#include "zero_templates.h" // IWYU pragma: keep
 
 struct PWinStateTexture {
   GLuint id;
@@ -139,4 +136,3 @@ inline UIError ui_error = {
 inline int inotify_fd;
 inline int inotify_wd;
 #endif
-

@@ -1,5 +1,4 @@
 #include "pfs.h"
-#include <fstream>
 
 ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
 {
@@ -22,7 +21,7 @@ ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t version) {
     uint32_t index_size = Read<uint32_t>(buffer, 3);
     uint32_t file_count = Read<uint32_t>(buffer, 7);
-    
+
     if (!IsSaneFileCount(file_count)) {
         Logger::error("File count is %d. This is way too high!", file_count);
         return nullptr;
@@ -39,34 +38,34 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     // std::ofstream outFile("index_buf", std::ios::binary);
     // outFile.write((const char*)index_buf, index_size);
     // outFile.close();
-    
+
     std::vector<Entry> entries;
-    
+
     uint32_t index_offset = 4;
     for (uint32_t i = 0; i < file_count; ++i) {
         if (index_offset + 4 > index_size) {
             Logger::error("Unexpected end of index when reading name length.");
             break;
         }
-    
+
         uint32_t name_length = Read<uint32_t>(index_buf, index_offset);
         if (index_offset + 4 + name_length + 8 + 8 > index_size) {
             Logger::error("Index overrun when reading entry %d", i);
             break;
         }
-    
+
         std::string name = ReadStringWithLength(index_buf + index_offset + 4, name_length);
         index_offset += name_length + 8;
-    
+
         uint32_t offset = Read<uint32_t>(index_buf, index_offset);
         uint32_t size = Read<uint32_t>(index_buf, index_offset + 4);
         index_offset += 8;
-    
+
         Entry entry;
         entry.name = name;
         entry.offset = offset;
         entry.size = size;
-     
+
         entries.push_back(entry);
     }
 

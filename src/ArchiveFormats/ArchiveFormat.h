@@ -4,7 +4,9 @@
 
 #include "ExeFile.h"
 #include "../GameRes/Entry.h"
-#include "../util/Logger.h"
+#include <cstring>
+#include <vector>
+#include "../util/Logger.h" // IWYU pragma: keep
 
 class ArchiveBase {
     public:
