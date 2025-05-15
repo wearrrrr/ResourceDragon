@@ -1,0 +1,8 @@
+[
+  {
+    "label": "Launch",
+    "command": "./launch.sh",
+    "allow_concurrent_runs": true,
+    "use_new_terminal": false
+  }
+]
