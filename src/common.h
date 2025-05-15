@@ -4,7 +4,7 @@
 #include <string>
 
 #ifdef linux
-#include <thread>
+#include <thread> // IWYU pragma: keep
 #include <sys/inotify.h>
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #endif

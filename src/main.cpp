@@ -174,6 +174,7 @@ int main(int argc, char *argv[]) {
     RegisterFormat<PFSFormat>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<SonicAdv::PAK>();
+    RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
 
 

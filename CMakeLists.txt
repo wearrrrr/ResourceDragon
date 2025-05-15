@@ -82,6 +82,9 @@ add_executable(ResourceDragon
     src/ArchiveFormats/SonicAdv/pak.h
     src/ArchiveFormats/SonicAdv/pak.cpp
 
+    src/ArchiveFormats/Touhou/thdat.h
+    src/ArchiveFormats/Touhou/thdat.cpp
+
     src/ArchiveFormats/XP3/Crypt/Crypt.h
     src/ArchiveFormats/XP3/xp3.h
     src/ArchiveFormats/XP3/xp3.cpp
