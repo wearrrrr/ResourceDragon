@@ -1,6 +1,7 @@
 #include "DirectoryNode.h"
 #include "../util/Text.h"
 #include "../common.h"
+#include <filesystem>
 
 Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
@@ -20,7 +21,7 @@ bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
         if (std::filesystem::exists(dirName))
         {
             err.clear();
-            return true;    
+            return true;
         }
         return false;
     }
@@ -59,7 +60,7 @@ void VirtualArc_ExtractEntry() {
     if (!CreateDirectoryRecursive("extracted/" + extraPath, err)) {
         Logger::error("Failed to create directory: %s", err.message().c_str());
     }
-    
+
     std::ofstream outFile("extracted/" + selected_entry->name, std::ios::binary);
     outFile.write(extracted, selected_entry->size);
     outFile.close();
@@ -69,10 +70,10 @@ void UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;
     }
-    
+
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
-    
+
     preview_state.texture.id = 0;
     preview_state.texture.size = {0, 0};
     preview_state.texture.anim = {};
@@ -121,21 +122,21 @@ void DeleteDirectoryNodeTree(DirectoryNode* node)
 }
 
 inline void SortChildren(DirectoryNode *node) {
-    std::sort(node->Children.begin(), node->Children.end(), 
+    std::sort(node->Children.begin(), node->Children.end(),
     [](const DirectoryNode* a, const DirectoryNode* b) {
         if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
-        
+
         return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
     });
 }
 
 bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 {
-    try 
+    try
     {
         if (node->IsVirtualRoot) {
             std::vector<Entry *> entries = loaded_arc_base->GetEntries();
-        
+
             for (const auto entry : entries) {
                 #ifdef linux
                 std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
@@ -143,17 +144,17 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 
                 fs::path entryPath(entry->name);
                 DirectoryNode *current = node;
-        
+
                 for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
                     std::string part = it->string();
                     bool isLast = (std::next(it) == entryPath.end());
-        
+
                     auto found = std::find_if(current->Children.begin(), current->Children.end(),
                         [&part](const DirectoryNode* child) {
                             return child->FileName == part;
                         }
                     );
-        
+
                     if (found == current->Children.end()) {
                         DirectoryNode *newNode = new DirectoryNode{
                             .FullPath = (current->FullPath.empty() ? part : current->FullPath + "/" + part),
@@ -226,7 +227,9 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
 
 void ReloadRootNode(DirectoryNode *node)
 {
-    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
+    if (fs::is_directory(node->FullPath)) {
+        rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
+    }
 }
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
@@ -249,7 +252,7 @@ void HandleFileClick(DirectoryNode *node)
 
     if (rootNode->IsVirtualRoot && !node->IsDirectory) {
         selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
-    
+
         if (selected_entry) {
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
@@ -365,9 +368,9 @@ void DisplayDirectoryNode(DirectoryNode *node)
 
     ImGui::TableNextColumn();
     ImGui::Selectable(node->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
-    
+
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        if (node->IsDirectory) { 
+        if (node->IsDirectory) {
             if (rootNode->IsVirtualRoot) {
                 node->IsVirtualRoot = true;
                 node->Parent = rootNode;

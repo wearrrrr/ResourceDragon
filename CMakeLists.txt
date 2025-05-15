@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Oz -Wno-unused-parameter -Wno-missing-designated-field-initializers")
 set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
 # set(CMAKE_CXX_FLAGS "-g")
-# set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address -fuse-ld=lld")
+# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -44,7 +44,7 @@ include_directories(vendored/imgui)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3)
 if (NOT WIN32)
-include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
+    include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
 endif()
 
 
@@ -113,8 +113,8 @@ add_executable(ResourceDragon
 set(OPENGL_LIB_NAME OpenGL)
 set(FREETYPE freetype)
 if (WIN32)
-set(OPENGL_LIB_NAME opengl32)
-set(FREETYPE "")
+    set(OPENGL_LIB_NAME opengl32)
+    set(FREETYPE "")
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer ${OPENGL_LIB_NAME})
