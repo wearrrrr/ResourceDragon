@@ -320,8 +320,9 @@ int main(int argc, char *argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window)))
+            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))) {
                 running = false;
+            }
 
             if (event.type == SDL_EVENT_DROP_FILE) {
                 const char *dropped_filedir = event.drop.data;
@@ -347,7 +348,7 @@ int main(int argc, char *argv[]) {
             if (event.key.key == SDLK_F5) {
                 ReloadRootNode(rootNode);
             }
-            if ((event.key.mod & (SDL_KMOD_CTRL)) && event.key.key == SDLK_D) {
+            if ((event.key.mod & SDL_KMOD_CTRL) && event.key.key == SDLK_D) {
                 UnloadSelectedFile();
             }
         }

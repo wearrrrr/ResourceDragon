@@ -13,8 +13,7 @@ Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *
 }
 
 
-bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err)
-{
+bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err) {
     err.clear();
     if (!std::filesystem::create_directories(dirName, err))
     {
@@ -110,8 +109,7 @@ void UnloadSelectedFile() {
     curr_sound_is_midi = false;
 }
 
-void DeleteDirectoryNodeTree(DirectoryNode* node)
-{
+void DeleteDirectoryNodeTree(DirectoryNode* node) {
     if (!node) return;
 
     for (DirectoryNode *child : node->Children) {
@@ -130,10 +128,8 @@ inline void SortChildren(DirectoryNode *node) {
     });
 }
 
-bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
-{
-    try
-    {
+bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
+    try {
         if (node->IsVirtualRoot) {
             std::vector<Entry *> entries = loaded_arc_base->GetEntries();
 
@@ -202,8 +198,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath)
 }
 
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent)
-{
+DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent) {
     bool is_dir = fs::is_directory(rootPath);
     DirectoryNode *newRootNode = new DirectoryNode {
         .FullPath = rootPath,
@@ -225,8 +220,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
     return newRootNode;
 }
 
-void ReloadRootNode(DirectoryNode *node)
-{
+void ReloadRootNode(DirectoryNode *node) {
     if (fs::is_directory(node->FullPath)) {
         rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
     }
@@ -243,8 +237,7 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval;
 }
 
-void HandleFileClick(DirectoryNode *node)
-{
+void HandleFileClick(DirectoryNode *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
     unsigned char* buffer = nullptr;
@@ -361,8 +354,7 @@ hfc_end:
     return;
 }
 
-void DisplayDirectoryNode(DirectoryNode *node)
-{
+void DisplayDirectoryNode(DirectoryNode *node) {
     ImGui::TableNextRow();
     ImGui::PushID(node);
 
@@ -407,9 +399,7 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nu
 }
 
 #define FB_COLUMNS 3
-
-void SetupDisplayDirectoryNode(DirectoryNode *node)
-{
+void SetupDisplayDirectoryNode(DirectoryNode *node) {
     ImGui::PushID(node);
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
