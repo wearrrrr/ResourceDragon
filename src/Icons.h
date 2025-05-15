@@ -1,0 +1,6 @@
+#define PLAY_ICON "\ue800"
+#define LOOP_ICON "\ue801"
+#define STOP_ICON "\ue802"
+#define PAUSE_ICON "\ue803"
+#define FF_ICON "\ue804"
+#define RW_ICON "\ue805"

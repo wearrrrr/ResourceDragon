@@ -1,5 +1,6 @@
 #include <iostream>
 #include "common.h"
+#include "Icons.h"
 
 #define DEBUG
 
@@ -10,13 +11,6 @@
 #define BACKGROUND_WIN_FLAGS ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs
 #define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
 #define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
-
-#define PLAY_ICON "\ue800"
-#define LOOP_ICON "\ue801"
-#define STOP_ICON "\ue802"
-#define PAUSE_ICON "\ue803"
-#define FF_ICON "\ue804"
-#define RW_ICON "\ue805"
 
 bool openDelPopup = false;
 bool running = true;

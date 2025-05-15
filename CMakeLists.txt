@@ -51,6 +51,7 @@ endif()
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
+    src/Icons.h
 
     src/BinaryReader.h
     src/common.h
