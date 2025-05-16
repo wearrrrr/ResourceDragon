@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include "../zero_templates.h"
+#include "../zero_templates.h" // IWYU pragma: keep
 
 struct PeHeader {
 	uint32_t mMagic; // PE\0\0
