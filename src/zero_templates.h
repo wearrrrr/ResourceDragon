@@ -1,10 +1,9 @@
 /* These templates were made by zero318, all credit goes to them! :) */
-
 #pragma once
+
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <stddef.h>
 #include <utility>
 
 template <typename T = void>

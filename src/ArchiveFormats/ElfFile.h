@@ -27,7 +27,7 @@ enum class ElfOSABI : uint8_t {
   OPENVMS = 13,
 };
 
-enum class ElfClass : uint8_t { 
+enum class ElfClass : uint8_t {
   NONE = 0,
   ELF32 = 1,
   ELF64 = 2,

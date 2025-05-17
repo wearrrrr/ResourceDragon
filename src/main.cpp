@@ -2,6 +2,8 @@
 #include "common.h"
 #include "Icons.h"
 
+namespace fs = std::filesystem;
+
 #define DEBUG
 
 #ifdef DEBUG
@@ -228,7 +230,7 @@ int main(int argc, char *argv[]) {
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
-        printf("Error: SDL_Init(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
         return -1;
     }
 
@@ -248,14 +250,14 @@ int main(int argc, char *argv[]) {
     SDL_Window* window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
     if (!window)
     {
-        printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
         return -1;
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     if (!gl_context)
     {
-        printf("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         return -1;
     }
 
@@ -550,7 +552,7 @@ int main(int argc, char *argv[]) {
                         }
 
                         std::string titleTag = std::string(Mix_GetMusicTitleTag(current_sound));
-                        if (!(Text::trim(titleTag) == "")) {
+                        if (Text::trim(titleTag) != "") {
                             ImGui::Text("Title: %s", titleTag.c_str());
                         }
                         std::string authorTag = std::string(Mix_GetMusicArtistTag(current_sound));
@@ -569,11 +571,10 @@ int main(int argc, char *argv[]) {
                         int freq, channels;
                         SDL_AudioFormat format;
                         if (Mix_QuerySpec(&freq, &format, &channels)) {
-                            ImGui::Text("Current Sample Rate: %d kHz", freq / 1000);
-                            // If there's more than 2 channels, then I guess this will report as mono..
-                            // But I've never really seen any audio files with more than 2, so it's *probably* fine.
-                            ImGui::Text("Channels: %s", channels == 2 ? "2 (Stereo)" : "1 (Mono)");
-
+                            ImGui::Text("Sample Rate: %d kHz", freq / 1000);
+                            // If there are more than 2 channels, this will report as stereo
+                            // eventually i'll do something about this but im lazy :)
+                            ImGui::Text("%s", channels >= 2 ? "Stereo Audio" : "Mono Audio");
                         }
 
                     }
@@ -585,7 +586,7 @@ int main(int argc, char *argv[]) {
                         ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
                         ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
 
-                        #ifdef _WIN32
+                        #ifdef WIN32
                         ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
                         #else
                         ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
@@ -598,8 +599,8 @@ int main(int argc, char *argv[]) {
                         ImGui::Text("Failed to read ELF header!");
                     }
                 } else {
-                    // TODO: handle different potential encodings
-                    // add a dropdown for the user to select the encoding.
+                    // TODO: handle different encodings
+                    // maybe add a dropdown for the user to select the encoding?
                     if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S) && has_unsaved_changes) {
                         std::string text = editor.GetText();
                         if (!text.empty() && text.back() == '\n') {
@@ -615,7 +616,8 @@ int main(int argc, char *argv[]) {
                         has_unsaved_changes = true;
                     }
 
-                    editor.Render("TextEditor", {0, 0}, false);
+                    const constexpr ImVec2 editor_pos = {0, 0};
+                    editor.Render("TextEditor", editor_pos, false);
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
@@ -627,7 +629,7 @@ int main(int argc, char *argv[]) {
         ImGui::End();
 
         #ifdef DEBUG
-        const float DISTANCE = 8.0f;
+        const constexpr float DISTANCE = 8.0f;
         const ImVec2 window_pos = {DISTANCE, window_size.y - DISTANCE};
         const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
 
