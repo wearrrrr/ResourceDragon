@@ -2,11 +2,12 @@
 #include "../util/Text.h"
 #include "../common.h"
 #include <filesystem>
+#include <unordered_map>
 
-Entry* FindEntryByNode(const std::vector<Entry*> &entries, const DirectoryNode *node) {
+Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
-        if (node->FullPath.find(entry->name) != std::string::npos) {
-            return entry;
+        if (node->FullPath.find(entry.second->name) != std::string::npos) {
+            return entry.second;
         }
     }
     return nullptr;
@@ -131,14 +132,14 @@ inline void SortChildren(DirectoryNode *node) {
 bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
     try {
         if (node->IsVirtualRoot) {
-            std::vector<Entry *> entries = loaded_arc_base->GetEntries();
+            auto entries = loaded_arc_base->GetEntries();
 
             for (const auto entry : entries) {
                 #ifdef linux
-                std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+                std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
                 #endif
 
-                fs::path entryPath(entry->name);
+                fs::path entryPath(entry.second->name);
                 DirectoryNode *current = node;
 
                 for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
@@ -155,7 +156,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                         DirectoryNode *newNode = new DirectoryNode{
                             .FullPath = (current->FullPath.empty() ? part : current->FullPath + "/" + part),
                             .FileName = part,
-                            .FileSize = isLast ? Utils::GetFileSize(entry->size) : "--",
+                            .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
                             .Children = {},
                             .IsDirectory = !isLast

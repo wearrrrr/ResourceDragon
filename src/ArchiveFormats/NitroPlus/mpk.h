@@ -1,4 +1,5 @@
 #include "../ArchiveFormat.h"
+#include <unordered_map>
 
 struct MPKEntry : Entry {
     uint32_t Id;
@@ -20,16 +21,17 @@ class MPKFormat : public ArchiveFormat {
 };
 
 class MPKArchive : public ArchiveBase {
-    std::vector<MPKEntry> entries;
+    std::unordered_map<std::string, MPKEntry> entries;
     public:
-        MPKArchive(const std::vector<MPKEntry> &entries) {
+        MPKArchive(const std::unordered_map<std::string, MPKEntry> &entries) {
             this->entries = entries;
         }
-        std::vector<Entry*> GetEntries() override {
-            std::vector<Entry*> basePtrs;
-            for (auto& entry : entries)
-                basePtrs.push_back(&entry);
-            return basePtrs;
+        std::unordered_map<std::string, Entry*> GetEntries() override {
+            std::unordered_map<std::string, Entry*> entriesMap;
+            for (auto &entry : entries) {
+                entriesMap.insert({entry.first, &entry.second});
+            }
+            return entriesMap;
         }
         const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
 };

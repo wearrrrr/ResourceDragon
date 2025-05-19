@@ -1,4 +1,5 @@
 #include "mpk.h"
+#include <unordered_map>
 
 static int constexpr MPKMaxPath = 224;
 
@@ -6,15 +7,15 @@ ArchiveBase *MPKFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
-    // Throw away a read on the byte magic.
-    Read<uint32_t>(buffer);
+    // Move past byte magic.
+    Seek(0x4);
 
     uint32_t FileCount;
     uint16_t MinorVersion;
     uint16_t MajorVersion;
     char name[MPKMaxPath];
 
-    std::vector<MPKEntry> entries;
+    std::unordered_map<std::string, MPKEntry> entries;
 
     MinorVersion = Read<uint16_t>(buffer);
     MajorVersion = Read<uint16_t>(buffer);
@@ -46,10 +47,8 @@ ArchiveBase *MPKFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         Read(name, buffer, MPKMaxPath);
         name[MPKMaxPath - 1] = '\0';
         entry.name = name;
-        entries.push_back(entry);
+        entries.insert({entry.name, entry});
     }
-
-    Seek(0x0);
 
     return new MPKArchive(entries);
 }
@@ -59,7 +58,7 @@ bool MPKFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::s
     if (ReadMagic<uint32_t>(buffer) == sig) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -68,7 +67,7 @@ const char *MPKArchive::OpenStream(const Entry *entry, unsigned char *buffer)
     MPKEntry *mpkEntry = (MPKEntry*)entry;
 
     unsigned char *entry_offset = buffer + mpkEntry->Offset;
-    
+
     char *data = new char[mpkEntry->size];
     memcpy(data, entry_offset, mpkEntry->size);
     return data;

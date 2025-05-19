@@ -2,6 +2,7 @@
 
 #include <string>
 #include <zlib.h>
+#include <unordered_map>
 
 #include "../ArchiveFormat.h"
 #include "../../BinaryReader.h"
@@ -39,16 +40,22 @@ class XP3Format : public ArchiveFormat {
 
 class XP3Archive : public ArchiveBase {
     public:
-        std::vector<Entry> entries;
-        XP3Archive(std::vector<Entry> entries) {
+        std::unordered_map<std::string, Entry> entries;
+        XP3Archive(std::unordered_map<std::string, Entry> entries) {
             this->entries = entries;
         };
 
-        std::vector<Entry*> GetEntries() override {
-            std::vector<Entry*> basePtrs;
-            for (auto& entry : entries)
-                basePtrs.push_back(&entry);
-            return basePtrs;
+        // std::vector<Entry*> GetEntries() override {
+        //     std::vector<Entry*> basePtrs;
+        //     for (auto& entry : entries)
+        //         basePtrs.push_back(&entry);
+        //     return basePtrs;
+        // }
+        std::unordered_map<std::string, Entry*> GetEntries() override {
+            std::unordered_map<std::string, Entry*> entries;
+            for (auto& entry : this->entries)
+                entries[entry.first] = &entry.second;
+            return entries;
         }
         const char *OpenStream(const Entry *entry, unsigned char *buffer) override;
 };

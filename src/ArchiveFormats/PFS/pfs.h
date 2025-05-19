@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include "../../sha1.h"
 #include "../ArchiveFormat.h"
 
 class PFSFormat : public ArchiveFormat {
@@ -21,22 +19,22 @@ class PFSFormat : public ArchiveFormat {
 
 class PFSArchive : public ArchiveBase {
     PFSFormat *pfs_fmt;
-    std::vector<Entry> entries;
+    std::unordered_map<std::string, Entry> entries;
     std::vector<uint8_t> key;
     public:
-        PFSArchive(const std::vector<Entry> &entries) {
+        PFSArchive(const std::unordered_map<std::string, Entry> &entries) {
             this->entries = entries;
         }
-        PFSArchive(PFSFormat *arc_fmt, const std::vector<Entry> &entries, std::vector<uint8_t> key) {
+        PFSArchive(PFSFormat *arc_fmt, const std::unordered_map<std::string, Entry> &entries, std::vector<uint8_t> key) {
             this->pfs_fmt = arc_fmt;
             this->entries = entries;
             this->key = key;
         }
-        std::vector<Entry*> GetEntries() override {
-            std::vector<Entry*> basePtrs;
-            for (auto& entry : entries)
-                basePtrs.push_back(&entry);
-            return basePtrs;
+        std::unordered_map<std::string, Entry*> GetEntries() override {
+            std::unordered_map<std::string, Entry*> entries;
+            for (auto& entry : this->entries)
+                entries[entry.first] = &entry.second;
+            return entries;
         }
         const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
 };

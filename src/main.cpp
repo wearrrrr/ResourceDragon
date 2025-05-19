@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "common.h"
 #include "Icons.h"
 

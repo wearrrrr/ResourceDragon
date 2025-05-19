@@ -1,10 +1,15 @@
 #include "pfs.h"
+#include "../../sha1.h"
+
+#include <unordered_map>
+#include <algorithm>
+
 
 ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
-    // - '0' changes it to 8 instead of 0x38 (the ascii version of 8)
+    // - '0' converts to ascii representation
     uint8_t version = Read<uint8_t>(buffer, 2) - '0';
 
     switch (version) {
@@ -39,7 +44,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     // outFile.write((const char*)index_buf, index_size);
     // outFile.close();
 
-    std::vector<Entry> entries;
+    std::unordered_map<std::string, Entry> entries;
 
     uint32_t index_offset = 4;
     for (uint32_t i = 0; i < file_count; ++i) {
@@ -66,7 +71,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
         entry.offset = offset;
         entry.size = size;
 
-        entries.push_back(entry);
+        entries.insert({name, entry});
     }
 
     if (version != 8 && version != 9 && version != 4 && version != 5)

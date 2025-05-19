@@ -5,7 +5,7 @@
 #include "ExeFile.h"
 #include "../GameRes/Entry.h"
 #include <cstring>
-#include <vector>
+#include <unordered_map>
 #include "../util/Logger.h" // IWYU pragma: keep
 
 class ArchiveBase {
@@ -14,7 +14,7 @@ class ArchiveBase {
         size_t buf_size;
 
         virtual const char* OpenStream(const Entry *entry, unsigned char *buffer) = 0;
-        virtual std::vector<Entry*> GetEntries() = 0;
+        virtual std::unordered_map<std::string, Entry*> GetEntries() = 0;
         virtual ~ArchiveBase() = default;
 };
 

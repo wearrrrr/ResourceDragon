@@ -1,4 +1,5 @@
 #include "hsp.h"
+#include <unordered_map>
 
 int32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
 {
@@ -54,17 +55,17 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
     uint32_t file_count = Read<uint32_t>(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
-    
+
     uint32_t index_offset = (dpmx_offset + 0x10) + Read<uint32_t>(exe->buffer, dpmx_offset + 0xC);
     uint32_t data_size = size - (index_offset + 32 * file_count);
 
     dpmx_offset += Read<uint32_t>(exe->buffer, dpmx_offset + 0x4);
-    
-    std::vector<Entry> entries;
+
+    std::unordered_map<std::string, Entry> entries;
     entries.reserve(file_count);
 
     for (uint32_t i = 0; i < file_count; i++) {
-        std::string file_name =  ReadString(exe->buffer, index_offset);
+        std::string file_name = ReadString(exe->buffer, index_offset);
         index_offset += 0x14;
 
         Entry entry = {
@@ -76,7 +77,7 @@ ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::stri
 
         index_offset += 0xC;
 
-        entries.push_back(entry);
+        entries.insert({file_name, entry});
     }
 
     return new DPMArchive(entries, arc_key, data_size);
@@ -136,7 +137,7 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::
             iter++;
         }
     }
-    
+
     return false;
 }
 
