@@ -1,13 +1,13 @@
 #include <iostream>
-#include <cmath>
 #include "common.h"
 #include "Icons.h"
+#include "scripting/ScriptManager.h"
 
-namespace fs = std::filesystem;
-
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
+#include <cmath>
+
 #define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
 #endif
 
@@ -179,6 +179,8 @@ int main(int argc, char *argv[]) {
     RegisterFormat<SonicAdv::PAK>();
     RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
+
+    ScriptManager::executeFile("test.lua");
 
 
     #ifdef linux

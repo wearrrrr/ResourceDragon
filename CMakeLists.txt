@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 23)
 
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra -Oz -Wno-unused-parameter -Wno-missing-designated-field-initializers")
-# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
-set(CMAKE_CXX_FLAGS "-g")
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Oz -Wno-unused-parameter -Wno-missing-designated-field-initializers")
+set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
+# set(CMAKE_CXX_FLAGS "-g")
+# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -18,6 +18,7 @@ find_package(ZLIB REQUIRED)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/lua EXCLUDE_FROM_ALL)
 
 if (NOT WIN32)
     set(IMGUI_FREETYPE_H vendored/imgui/misc/freetype/imgui_freetype.h)
@@ -104,6 +105,9 @@ add_executable(ResourceDragon
     src/GUI/Utils.h
     src/GUI/Utils.cpp
 
+    src/scripting/ScriptManager.h
+    src/scripting/ScriptManager.cpp
+
     src/util/Logger.h
     src/util/Text.h
 
@@ -120,4 +124,4 @@ if (WIN32)
     set(FREETYPE "")
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer ${OPENGL_LIB_NAME})
+target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer lua ${OPENGL_LIB_NAME})

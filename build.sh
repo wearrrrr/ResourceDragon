@@ -6,7 +6,7 @@ ninja -j12
 
 cd ..
 if ! [ ! -f build/ResourceDragon ]; then
-    printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\n"
+    printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\n\x1B[m"
     exit 0
 else
     printf "\x1B[1;31mBuild Failed!! Check the build output.\n"
