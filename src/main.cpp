@@ -315,7 +315,6 @@ int main(int argc, char *argv[]) {
     bool resizing = false;
     bool has_unsaved_changes = false;
 
-    const constexpr ImVec4 clear_color = ImVec4(0.23f, 0.23f, 0.23f, 1.00f);
     const std::string preview_win_label = "Preview";
 
     float timeToSetOnRelease = 0.0f;
@@ -656,6 +655,7 @@ int main(int argc, char *argv[]) {
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+        const constexpr ImVec4 clear_color = {0.23f, 0.23f, 0.23f, 1.00f};
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
