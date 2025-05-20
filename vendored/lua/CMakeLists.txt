@@ -54,7 +54,7 @@ endif ()
 
 enable_testing()
 
-add_subdirectory(doc)
+# add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(tests)
 
