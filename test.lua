@@ -1,1 +1,5 @@
-print("Hello from Lua!");
+function register()
+    print("test.lua: Registered!");
+
+    return 0;
+end;

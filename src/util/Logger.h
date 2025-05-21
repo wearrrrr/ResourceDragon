@@ -33,9 +33,6 @@ class Logger {
     static void log(const std::string &str) {
         log("%s", str.c_str());
     }
-    static void warn(const std::string &str) {
-        warn("%s", str.c_str());
-    }
     static void error(const std::string &str) {
         error("%s", str.c_str());
     }
