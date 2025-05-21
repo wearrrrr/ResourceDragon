@@ -14,6 +14,10 @@ class ScriptManager {
 
             luaL_openlibs(m_state);
         }
+        ~ScriptManager() {
+            Logger::log("Closing lua...");
+            lua_close(m_state);
+        }
 
         template <typename T>
         inline T CallLuaMethod(const std::string &name, int argc, int retc, int kfunc = 0);

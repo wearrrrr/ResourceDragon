@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <sys/inotify.h>
 #include "common.h"
@@ -181,12 +182,14 @@ int main(int argc, char *argv[]) {
     RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
 
-    ScriptManager scriptManager;
+    ScriptManager *scriptManager = new ScriptManager();
 
-    std::thread lua_thread([&]() {
-        scriptManager.executeFile("test.lua");
+    std::thread scripting_thread([&]() {
+        for (const auto &entry : fs::directory_iterator("scripts/")) {
+            scriptManager->executeFile(entry.path());
+        }
     });
-    lua_thread.detach();
+    scripting_thread.detach();
 
     #ifdef linux
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
@@ -508,10 +511,10 @@ int main(int argc, char *argv[]) {
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
 
-                                    double new_pos = scrubberProgress * total_time;
+                                    int new_pos = (int)scrubberProgress * total_time;
                                     timeToSetOnRelease = new_pos;
-                                    preview_state.audio.time.current_time_min = (int)new_pos / 60;
-                                    preview_state.audio.time.current_time_sec = (int)new_pos % 60;
+                                    preview_state.audio.time.current_time_min = new_pos / 60;
+                                    preview_state.audio.time.current_time_sec = new_pos % 60;
                                     preview_state.audio.scrubberDragging = true;
                                 }
 
@@ -685,6 +688,8 @@ int main(int argc, char *argv[]) {
     inotify_running = false;
     close(inotify_fd);
     #endif
+
+
 
     return 0;
 }
