@@ -1,11 +1,13 @@
-rm -rf build/ResourceDragon
+NPROC=$(nproc --ignore=2)
+if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
+rm -rf build/ResourceDragon
 cmake -B build -G Ninja
 cd build
-ninja -j12
-
+ninja -j$NPROC
 cd ..
-if ! [ ! -f build/ResourceDragon ]; then
+
+if [ -f build/ResourceDragon ]; then
     printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\n\x1B[m"
     exit 0
 else

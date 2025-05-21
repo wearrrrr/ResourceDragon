@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sys/inotify.h>
 #include "common.h"
 #include "Icons.h"
 #include "scripting/ScriptManager.h"
@@ -180,8 +181,12 @@ int main(int argc, char *argv[]) {
     RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
 
-    ScriptManager::executeFile("test.lua");
+    ScriptManager scriptManager;
 
+    std::thread lua_thread([&]() {
+        scriptManager.executeFile("test.lua");
+    });
+    lua_thread.detach();
 
     #ifdef linux
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
@@ -198,12 +203,13 @@ int main(int argc, char *argv[]) {
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path).string());
 
     #ifdef linux
+    #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
     inotify_fd = inotify_init();
     if (inotify_fd < 0) {
         std::cerr << "Error: inotify_init() failed" << std::endl;
         return -1;
     }
-    inotify_wd = inotify_add_watch(inotify_fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
+    inotify_wd = inotify_add_watch(inotify_fd, path, INOTIFY_FLAGS);
     if (inotify_wd < 0) {
         std::cerr << "Error: inotify_add_watch() failed" << std::endl;
         close(inotify_fd);
@@ -221,7 +227,7 @@ int main(int argc, char *argv[]) {
             int i = 0;
             while (i < length) {
                 inotify_event *event = (inotify_event*)&buffer[i];
-                if (event->mask & (IN_MODIFY | IN_CREATE | IN_DELETE)) {
+                if (event->mask & (INOTIFY_FLAGS)) {
                     ReloadRootNode(rootNode);
                 }
                 i += EVENT_SIZE + event->len;
