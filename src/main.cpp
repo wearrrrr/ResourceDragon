@@ -186,7 +186,9 @@ int main(int argc, char *argv[]) {
 
     std::thread scripting_thread([&]() {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
-            scriptManager->executeFile(entry.path());
+            if (entry.path().extension() == ".lua") {
+                scriptManager->executeFile(entry.path());
+            }
         }
     });
     scripting_thread.detach();
