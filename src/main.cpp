@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
             if (entry.path().extension() == ".lua") {
                 scriptManager->LoadFile(entry.path());
-                RegisterFormat<ArchiveFormat>(scriptManager->Register());
+                RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
             }
         }
     });

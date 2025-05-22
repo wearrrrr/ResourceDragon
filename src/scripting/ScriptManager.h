@@ -55,6 +55,17 @@ public:
         return nullptr;
     };
 
+    std::string GetTag() const override {
+        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetTagRef);
+
+        if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
+            Logger::error("Failed to call GetTag in lua code! This is a bug.");
+            return "GETTAG_FAIL";
+        }
+
+        return lua_tostring(m_state, -1);
+    };
+
     ~LuaArchiveFormat() {
         luaL_unref(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
         luaL_unref(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
