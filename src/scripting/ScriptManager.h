@@ -10,8 +10,6 @@ class LuaArchiveFormat : public ArchiveFormat {
     int luaCanHandleRef;
 
 public:
-    std::string tag = "LUA_TEST";
-    std::string description = "blah blah who cares it's a test I don't even use this field ever D:";
     uint32_t sig = 0x90909090;
 
     LuaArchiveFormat(lua_State *state, const char* globalFunctionName) : m_state(state) {
@@ -46,17 +44,13 @@ public:
     }
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override {
+
         return nullptr;
-    };
-    std::string getTag() const override {
-        return "LUA_UNK";
     };
 
     ~LuaArchiveFormat() {
         luaL_unref(m_state, LUA_REGISTRYINDEX, luaCanHandleRef);
     }
-
-
 };
 
 class ScriptManager {
