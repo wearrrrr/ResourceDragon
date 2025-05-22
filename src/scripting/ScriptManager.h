@@ -5,28 +5,36 @@
 #include "../ArchiveFormats/ArchiveFormat.h"
 #include "../util/Logger.h"
 
+inline bool Lua_GetFunction(lua_State *state, const char *name) {
+    int func = lua_getglobal(state, name);
+    if (!lua_isfunction(state, -1)) {
+        lua_pop(state, -1);
+        Logger::error("Unable to find function %s in file, plugin will not load!", name);
+        return false;
+    }
+    return true;
+}
+
 class LuaArchiveFormat : public ArchiveFormat {
     lua_State *m_state;
-    int luaCanHandleRef;
+    int lCanHandleRef;
+    int lTryOpenRef;
+    int lGetTagRef;
 
 public:
     uint32_t sig = 0x90909090;
 
-    LuaArchiveFormat(lua_State *state, const char* globalFunctionName) : m_state(state) {
-        // Push global function to stack
-        lua_getglobal(m_state, globalFunctionName);
-        if (!lua_isfunction(m_state, -1)) {
-            lua_pop(m_state, 1);
-            Logger::error("Expected a Lua function for CanHandleFile");
-            return;
-        }
-
-        // Store a reference to the function in the Lua registry
-        luaCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
+    LuaArchiveFormat(lua_State *state, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
+        if (!Lua_GetFunction(m_state, canHandleFile)) return;
+        lCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
+        if (!Lua_GetFunction(m_state, tryOpen)) return;
+        lTryOpenRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
+        if (!Lua_GetFunction(m_state, getTag)) return;
+        lGetTagRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
     }
 
     bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override {
-        lua_rawgeti(m_state, LUA_REGISTRYINDEX, luaCanHandleRef);
+        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
 
         lua_pushlstring(m_state, (const char*)buffer, size);
         lua_pushinteger(m_state, size);
@@ -39,17 +47,18 @@ public:
         }
 
         bool result = lua_toboolean(m_state, -1);
-        lua_pop(m_state, 1); // pop result
+        lua_pop(m_state, 1);
         return result;
     }
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override {
-
         return nullptr;
     };
 
     ~LuaArchiveFormat() {
-        luaL_unref(m_state, LUA_REGISTRYINDEX, luaCanHandleRef);
+        luaL_unref(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
+        luaL_unref(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
+        luaL_unref(m_state, LUA_REGISTRYINDEX, lGetTagRef);
     }
 };
 

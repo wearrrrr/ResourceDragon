@@ -10,7 +10,7 @@ class NPAFormat : public ArchiveFormat {
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
     bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
-    std::string getTag() const override {
+    std::string GetTag() const override {
         return this->tag;
     }
 };

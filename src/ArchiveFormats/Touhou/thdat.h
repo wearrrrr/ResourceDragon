@@ -15,7 +15,7 @@ class THDAT : public ArchiveFormat {
 
         return false;
     };
-    std::string getTag() const override {
+    std::string GetTag() const override {
         return this->tag;
     };
 };

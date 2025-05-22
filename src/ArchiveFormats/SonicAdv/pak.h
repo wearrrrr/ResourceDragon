@@ -12,7 +12,7 @@ class SAPakFormat : public ArchiveFormat {
     bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &_ext) const override {
         return Read<uint32_t>(buffer, 0) == sig;
     };
-    std::string getTag() const override {
+    std::string GetTag() const override {
         return this->tag;
     };
 };

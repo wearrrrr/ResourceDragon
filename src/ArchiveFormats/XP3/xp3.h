@@ -29,7 +29,7 @@ class XP3Format : public ArchiveFormat {
 
         ArchiveBase *TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
 
-        std::string getTag() const override {
+        std::string GetTag() const override {
             return this->tag;
         };
 

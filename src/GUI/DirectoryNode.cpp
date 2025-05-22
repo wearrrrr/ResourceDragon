@@ -332,7 +332,7 @@ void HandleFileClick(DirectoryNode *node) {
 
     auto arc = format->TryOpen(buffer, size, node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->getTag().c_str());
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->GetTag().c_str());
         goto hfc_end;
     }
     if (loaded_arc_base) {

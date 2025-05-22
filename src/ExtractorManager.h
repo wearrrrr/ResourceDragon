@@ -1,16 +1,20 @@
 #pragma once
 
 #include "ArchiveFormats/ArchiveFormat.h"
-#include "scripting/ScriptManager.h"
+#include <unordered_map>
 #include <memory>
 
 class ExtractorManager {
 private:
-  std::vector<std::unique_ptr<ArchiveFormat>> m_formats;
+  std::unordered_map<std::string, std::unique_ptr<ArchiveFormat>> m_formats;
 
 public:
-  void registerFormat(std::unique_ptr<ArchiveFormat> format) {
-    m_formats.push_back(std::move(format));
+  void RegisterFormat(std::unique_ptr<ArchiveFormat> format) {
+    m_formats.insert({format.get()->GetTag(), std::move(format)});
+  }
+
+  void UnregisterFormat(std::string tag) {
+    m_formats.erase(tag);
   }
 
   ArchiveFormat *getExtractorFor(unsigned char *buffer, uint32_t size, const std::string &ext) {
@@ -22,8 +26,8 @@ public:
          ArchiveFormat::CanHandleFile ONLY returns the one we need But that
          seems like a lot of redundant work!
       */
-      if (format->CanHandleFile(buffer, size, ext)) {
-        return format.get();
+      if (format.second->CanHandleFile(buffer, size, ext)) {
+        return format.second.get();
       }
     }
     return nullptr;

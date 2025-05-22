@@ -18,3 +18,11 @@ function RD__CanHandleFile(buffer, size, ext)
     print(magic_matches);
     return magic_matches;
 end
+
+function RD__TryOpen()
+    return false;
+end
+
+function RD__GetTag()
+    return "LUA_TEST"
+end
