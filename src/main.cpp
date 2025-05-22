@@ -1,6 +1,8 @@
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <sys/inotify.h>
+#include "ArchiveFormats/ArchiveFormat.h"
 #include "common.h"
 #include "Icons.h"
 #include "scripting/ScriptManager.h"
@@ -174,6 +176,11 @@ inline void RegisterFormat() {
     extractor_manager.registerFormat(std::make_unique<T>());
 }
 
+template <class T>
+inline void RegisterFormat(T *arc_fmt) {
+    extractor_manager.registerFormat(std::unique_ptr<T>(arc_fmt));
+}
+
 int main(int argc, char *argv[]) {
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
@@ -187,7 +194,8 @@ int main(int argc, char *argv[]) {
     std::thread scripting_thread([&]() {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
             if (entry.path().extension() == ".lua") {
-                scriptManager->executeFile(entry.path());
+                scriptManager->LoadFile(entry.path());
+                RegisterFormat<ArchiveFormat>(scriptManager->Register());
             }
         }
     });

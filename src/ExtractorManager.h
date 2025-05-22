@@ -1,15 +1,21 @@
 #pragma once
 
 #include "ArchiveFormats/ArchiveFormat.h"
+#include "scripting/ScriptManager.h"
 #include <memory>
 
 class ExtractorManager {
 private:
   std::vector<std::unique_ptr<ArchiveFormat>> m_formats;
+  std::vector<std::unique_ptr<LuaArchiveFormat>> m_lua_fmts;
 
 public:
   void registerFormat(std::unique_ptr<ArchiveFormat> format) {
     m_formats.push_back(std::move(format));
+  }
+
+  void registerLuaFormat(std::unique_ptr<LuaArchiveFormat> format) {
+      m_lua_fmts.push_back(std::move(format));
   }
 
   ArchiveFormat *getExtractorFor(unsigned char *buffer, uint32_t size, const std::string &ext) {

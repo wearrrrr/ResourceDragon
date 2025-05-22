@@ -36,8 +36,8 @@ inline T ScriptManager::CallLuaMethod(const std::string &name, int argc, int ret
     return T();
 }
 
-void ScriptManager::executeFile(std::string path) {
-    Logger::log("[Lua] Executing %s...", path.c_str());
+void ScriptManager::LoadFile(std::string path) {
+    Logger::log("[Lua] Loading %s...", path.c_str());
 
     if (luaL_dofile(m_state, path.c_str()) != LUA_OK) {
         Logger::error("Error executing Lua: %s", lua_tostring(m_state, -1));
@@ -45,8 +45,10 @@ void ScriptManager::executeFile(std::string path) {
         return;
     }
 
-    int regResult = CallLuaMethod<int>("register", 0, 1);
-    Logger::log("[Lua] Register Result: %d", regResult);
-
     return;
+}
+
+LuaArchiveFormat *ScriptManager::Register() {
+    CallLuaMethod<int>("register", 0, 1); // you expect Lua to define RD__CanHandleFile
+    return new LuaArchiveFormat(m_state, "RD__CanHandleFile");
 }
