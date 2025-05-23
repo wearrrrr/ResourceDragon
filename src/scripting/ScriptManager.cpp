@@ -28,6 +28,10 @@ inline T ScriptManager::CallLuaMethod(const std::string &name, int argc, int ret
             auto result = lua_toboolean(m_state, -1);
             lua_pop(m_state, -1);
             return result;
+        } else if constexpr (std::is_same_v<T, const char*>) {
+            const char* str = lua_tostring(m_state, -1);
+            lua_pop(m_state, -1);
+            return str;
         } else if constexpr (std::is_same_v<T, std::string>) {
             const char* str = lua_tostring(m_state, -1);
             lua_pop(m_state, -1);

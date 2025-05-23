@@ -2,7 +2,6 @@
 #include <iostream>
 #include <memory>
 #include <sys/inotify.h>
-#include "ArchiveFormats/ArchiveFormat.h"
 #include "common.h"
 #include "Icons.h"
 #include "scripting/ScriptManager.h"
@@ -193,8 +192,9 @@ int main(int argc, char *argv[]) {
 
     std::thread scripting_thread([&]() {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
-            if (entry.path().extension() == ".lua") {
-                scriptManager->LoadFile(entry.path());
+            fs::path entry_path = entry.path();
+            if (entry_path.extension() == ".lua") {
+                scriptManager->LoadFile(entry_path);
                 RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
             }
         }
