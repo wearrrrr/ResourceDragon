@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string>
 #include <lua.hpp>
+#include <string>
+
 #include "../ArchiveFormats/ArchiveFormat.h"
 #include "../util/Logger.h"
 
@@ -22,9 +23,7 @@ class LuaArchiveFormat : public ArchiveFormat {
     int lGetTagRef;
 
 public:
-    uint32_t sig = 0x90909090;
-
-    LuaArchiveFormat(lua_State *state, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
+    LuaArchiveFormat(lua_State *state, uint32_t signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
         if (!Lua_GetFunction(m_state, canHandleFile)) return;
         lCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
         if (!Lua_GetFunction(m_state, tryOpen)) return;

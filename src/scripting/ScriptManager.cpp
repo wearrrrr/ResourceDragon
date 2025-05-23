@@ -57,6 +57,8 @@ void ScriptManager::LoadFile(std::string path) {
 }
 
 LuaArchiveFormat *ScriptManager::Register() {
-    CallLuaMethod<int>("register", 0, 1); // you expect Lua to define RD__CanHandleFile
-    return new LuaArchiveFormat(m_state);
+    CallLuaMethod<int>("register", 0, 1);
+    lua_getglobal(m_state, "signature");
+    auto sig = lua_tointeger(m_state, -1);
+    return new LuaArchiveFormat(m_state, sig);
 }

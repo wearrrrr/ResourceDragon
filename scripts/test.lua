@@ -1,3 +1,5 @@
+signature = 0x90909090
+
 local test_magic = "\x90\x90\x90\x90"
 
 local function hexdump(s)
