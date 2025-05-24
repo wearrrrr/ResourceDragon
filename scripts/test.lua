@@ -1,7 +1,5 @@
 signature = 0x90909090
 
-local test_magic = "\x90\x90\x90\x90"
-
 local function hexdump(s)
     for i = 1, #s do
         io.write(string.format("%02X ", s:byte(i)))
@@ -16,8 +14,8 @@ end;
 
 function RD__CanHandleFile(buffer, size, ext)
     print("test.lua: RD__CanHandleFile!")
-    magic_matches = buffer:sub(1, #test_magic) == test_magic;
-    return magic_matches;
+    local magic = string.unpack("<I4", buffer);
+    return magic == signature;
 end
 
 function RD__TryOpen()
