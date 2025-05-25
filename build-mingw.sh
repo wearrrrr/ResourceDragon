@@ -1,4 +1,7 @@
 x86_64-w64-mingw32-cmake -B build-mingw -G Ninja
+
+rm build-mingw/ResourceDragon.exe
+
 cd build-mingw
 ninja -j12
 mkdir -p Win32
@@ -13,6 +16,7 @@ cp /usr/x86_64-w64-mingw32/bin/libstdc++-6.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libssp-0.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll ./
 cp /usr/x86_64-w64-mingw32/bin/zlib1.dll ./
+cp /usr/x86_64-w64-mingw32/bin/lua54.dll ./
 cp ../../8bitsf.SF2 ./
 
 cd ../../
@@ -24,6 +28,3 @@ else
     printf "\x1B[1;31mBuild Failed!! Check the build output.\n"
     exit -1
 fi
-
-
-

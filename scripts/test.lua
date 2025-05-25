@@ -13,9 +13,8 @@ function register()
 end;
 
 function RD__CanHandleFile(buffer, size, ext)
-    print("test.lua: RD__CanHandleFile!")
-    local magic = string.unpack("<I4", buffer);
-    return magic == signature;
+    -- Unpack first four bytes as LE, use >I4 for BE data instead!
+    return string.unpack("<I4", buffer) == signature
 end
 
 function RD__TryOpen()

@@ -1,7 +1,7 @@
 NPROC=$(nproc --ignore=2)
 if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
-rm -rf build/ResourceDragon
+rm build/ResourceDragon
 cmake -B build -G Ninja
 cd build
 ninja -j$NPROC

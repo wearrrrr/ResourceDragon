@@ -1,12 +1,11 @@
-#include <filesystem>
-#include <iostream>
-#include <memory>
-#include <sys/inotify.h>
+#include <exception>
+#include <thread>
+
 #include "common.h"
 #include "Icons.h"
 #include "scripting/ScriptManager.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #include <cmath>
@@ -191,13 +190,18 @@ int main(int argc, char *argv[]) {
     ScriptManager *scriptManager = new ScriptManager();
 
     std::thread scripting_thread([&]() {
-        for (const auto &entry : fs::directory_iterator("scripts/")) {
-            fs::path entry_path = entry.path();
-            if (entry_path.extension() == ".lua") {
-                scriptManager->LoadFile(entry_path);
-                RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
+        try {
+            for (const auto &entry : fs::directory_iterator("scripts/")) {
+                fs::path entry_path = entry.path();
+                if (entry_path.extension() == ".lua") {
+                    scriptManager->LoadFile(entry_path.string());
+                    RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
+                }
             }
+        } catch (const fs::filesystem_error &e) {
+            Logger::error("Failed to start scripting! Error: %s", e.what());
         }
+
     });
     scripting_thread.detach();
 
@@ -219,12 +223,12 @@ int main(int argc, char *argv[]) {
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
     inotify_fd = inotify_init();
     if (inotify_fd < 0) {
-        std::cerr << "Error: inotify_init() failed" << std::endl;
+        Logger::error("Error: inotify_init() failed");
         return -1;
     }
     inotify_wd = inotify_add_watch(inotify_fd, path, INOTIFY_FLAGS);
     if (inotify_wd < 0) {
-        std::cerr << "Error: inotify_add_watch() failed" << std::endl;
+        Logger::error("Error: inotify_add_watch() failed");
         close(inotify_fd);
         return -1;
     }
@@ -234,7 +238,7 @@ int main(int argc, char *argv[]) {
         while (inotify_running) {
             int length = read(inotify_fd, buffer, sizeof(buffer));
             if (length < 0) {
-                Logger::log("Error: read() failed from inotify_fd");
+                Logger::error("Error: read() failed from inotify_fd");
                 break;
             }
             int i = 0;
@@ -326,7 +330,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetSwapInterval(1);
 
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    ImGui_ImplOpenGL3_Init();
 
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_ShowWindow(window);
@@ -659,7 +663,7 @@ int main(int argc, char *argv[]) {
 
         if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS))
         {
-            ImGui::Text("FPS: %d", (int)std::ceil(io.Framerate));
+            ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
         }
         ImGui::End();
         #endif
@@ -698,8 +702,6 @@ int main(int argc, char *argv[]) {
     inotify_running = false;
     close(inotify_fd);
     #endif
-
-
 
     return 0;
 }

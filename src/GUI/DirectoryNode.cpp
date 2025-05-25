@@ -178,7 +178,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
                     .LastModified = Utils::GetLastModifiedTime(path),
-                    .LastModifiedUnix = (u_long)(fs::last_write_time(entry).time_since_epoch().count()),
+                    .LastModifiedUnix = (unsigned long)(fs::last_write_time(entry).time_since_epoch().count()),
                     .Children = {},
                     .IsDirectory = entry.is_directory()
                 };
@@ -207,7 +207,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .FileSize = Utils::GetFileSize(rootPath),
         .FileSizeBytes = is_dir ? 0 : fs::file_size(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .LastModifiedUnix = (u_long)(fs::last_write_time(rootPath).time_since_epoch().count()),
+        .LastModifiedUnix = (unsigned long)(fs::last_write_time(rootPath).time_since_epoch().count()),
         .Parent = parent,
         .Children = {},
         .IsDirectory = is_dir,
