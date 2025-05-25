@@ -1,4 +1,3 @@
-#include <exception>
 #include <thread>
 
 #include "common.h"
@@ -299,6 +298,7 @@ int main(int argc, char *argv[]) {
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
     // U+203B (Reference Mark)
     range.AddChar(0x203B);
+    range.AddChar(0x25CB);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
     const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
     const char *icon_font_path = "fonts\\player-icons.ttf";
     #else
-    const char *font_path = "fonts/NotoSansCJK-Medium.ttc";
+    const char *font_path = "fonts/NotoSansCJKjp-Medium.woff2";
     const char *icon_font_path = "fonts/player-icons.ttf";
     #endif
 
@@ -641,8 +641,7 @@ int main(int argc, char *argv[]) {
                         has_unsaved_changes = true;
                     }
 
-                    const constexpr ImVec2 editor_pos = {0, 0};
-                    editor.Render("TextEditor", editor_pos, false);
+                    editor.Render("TextEditor", {0, 0}, false);
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");

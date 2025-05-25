@@ -1,4 +1,4 @@
-/* 
+/*
 	ATTENTION!!!
 	This file was not made by me!! (wearr)
 	This code was taken from https://github.com/BalazsJako/ImGuiColorTextEdit and slightly modified to work with modern ImGui versions.
@@ -779,14 +779,14 @@ void TextEditor::HandleKeyboardInputs()
 			char insertedChar;
 			for (int i = 0; i < 26; ++i) {
 				if (ImGui::IsKeyPressed((ImGuiKey)(ImGuiKey_A + i))) {
-					
+
 					if (io.KeyShift) {
 						insertedChar = 'A' + i;
 					} else {
 						insertedChar = 'a' + i;
 					}
 					io.AddInputCharacter(insertedChar);
-					
+
 				}
 			}
 
@@ -1173,7 +1173,7 @@ void TextEditor::Render()
 						const auto s = ImGui::GetFontSize();
 						const auto x = textScreenPos.x + bufferOffset.x + spaceSize * 0.5f;
 						const auto y = textScreenPos.y + bufferOffset.y + s * 0.5f;
-						drawList->AddCircleFilled(ImVec2(x, y), 1.5f, 0x80808080, 4);
+						// drawList->AddCircleFilled(ImVec2(x, y), 1.5f, 0x80808080, 4);
 					}
 					bufferOffset.x += spaceSize;
 					i++;
@@ -2118,7 +2118,7 @@ const TextEditor::Palette & TextEditor::GetDarkPalette()
 {
 	const static Palette p = { {
 			0xffebeef0,	// Default
-			0xffd69c56,	// Keyword	
+			0xffd69c56,	// Keyword
 			0xff00ff00,	// Number
 			0xff7070e0,	// String
 			0xff70a0e0, // Char literal
@@ -2146,7 +2146,7 @@ const TextEditor::Palette & TextEditor::GetLightPalette()
 {
 	const static Palette p = { {
 			0xff7f7f7f,	// None
-			0xffff0c06,	// Keyword	
+			0xffff0c06,	// Keyword
 			0xff008000,	// Number
 			0xff2020a0,	// String
 			0xff304070, // Char literal
@@ -2174,7 +2174,7 @@ const TextEditor::Palette & TextEditor::GetRetroBluePalette()
 {
 	const static Palette p = { {
 			0xff00ffff,	// None
-			0xffffff00,	// Keyword	
+			0xffffff00,	// Keyword
 			0xff00ff00,	// Number
 			0xff808000,	// String
 			0xff808000, // Char literal

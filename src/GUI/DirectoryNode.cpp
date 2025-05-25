@@ -326,6 +326,7 @@ void HandleFileClick(DirectoryNode *node) {
             } else {
                 editor.SetColorizerEnable(false);
             }
+            editor.SetShowWhitespaces(false);
         }
         return;
     }

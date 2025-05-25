@@ -1,4 +1,4 @@
-/* 
+/*
 	ATTENTION!!!
 	This file was not made by me!! (wearr)
 	This code was taken from https://github.com/BalazsJako/ImGuiColorTextEdit and slightly modified to work with modern ImGui versions.
@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <memory>
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
