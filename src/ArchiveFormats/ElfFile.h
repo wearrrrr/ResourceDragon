@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
   ELF spec information obtained from: https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
 **/
 
-enum class ElfOSABI : uint8_t {
+enum class ElfABI : uint8_t {
   NONE = 0,
   HPUX = 1,
   NETBSD = 2,
@@ -52,7 +52,7 @@ struct ElfIdent {
   ElfClass class_type;
   uint8_t data_encoding;
   uint8_t version;
-  ElfOSABI os_abi;
+  ElfABI os_abi;
   uint8_t abi_version;
   uint8_t pad[7];
 };
@@ -147,20 +147,20 @@ public:
     return mElfClass == ElfClass::ELF64 ? &mElfHeader.elf64 : nullptr;
   }
 
-  std::string GetElfOSABI(ElfOSABI abi) const {
+  std::string GetElfOSABI(ElfABI abi) const {
     switch (abi) {
-      case ElfOSABI::NONE: return "System V";
-      case ElfOSABI::HPUX: return "Hewlett-Packard HP-UX";
-      case ElfOSABI::NETBSD: return "NetBSD";
-      case ElfOSABI::GNU: return "GNU/Linux (Deprecated)";
-      case ElfOSABI::SOLARIS: return "Solaris";
-      case ElfOSABI::AIX: return "AIX";
-      case ElfOSABI::IRIX: return "IRIX";
-      case ElfOSABI::FREEBSD: return "FreeBSD";
-      case ElfOSABI::TRU64: return "Compaq TRU64 UNIX";
-      case ElfOSABI::MODESTO: return "Novell - Modesto";
-      case ElfOSABI::OPENBSD: return "OpenBSD";
-      case ElfOSABI::OPENVMS: return "OpenVMS";
+      case ElfABI::NONE: return "System V";
+      case ElfABI::HPUX: return "Hewlett-Packard HP-UX";
+      case ElfABI::NETBSD: return "NetBSD";
+      case ElfABI::GNU: return "GNU/Linux (Deprecated)";
+      case ElfABI::SOLARIS: return "Solaris";
+      case ElfABI::AIX: return "AIX";
+      case ElfABI::IRIX: return "IRIX";
+      case ElfABI::FREEBSD: return "FreeBSD";
+      case ElfABI::TRU64: return "Compaq TRU64 UNIX";
+      case ElfABI::MODESTO: return "Novell - Modesto";
+      case ElfABI::OPENBSD: return "OpenBSD";
+      case ElfABI::OPENVMS: return "OpenVMS";
       default: return "Unknown";
     }
   };
