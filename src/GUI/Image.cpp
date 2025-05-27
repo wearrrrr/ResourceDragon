@@ -1,6 +1,7 @@
 #include <Image.h>
 #include <Utils.h>
 #include "../util/Logger.h"
+#include "gl3.h"
 
 bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
 {
@@ -75,7 +76,7 @@ void Image::UnloadAnimation(GifAnimation* animation)
 }
 
 
-bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height) {
+bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height, uint32_t mode) {
     int image_width = 0;
     int image_height = 0;
     unsigned char *image_data;
@@ -107,8 +108,8 @@ bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, i
     glGenTextures(1, &image_texture);
     glBindTexture(GL_TEXTURE_2D, image_texture);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);

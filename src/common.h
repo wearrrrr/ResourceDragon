@@ -43,6 +43,7 @@ struct PWinStateTexture {
   struct GifAnimation anim;
   int frame;
   int last_frame_time;
+  bool firstFrame;
 };
 struct TimeInfo {
   int total_time_min;
@@ -115,6 +116,7 @@ inline PreviewWinState preview_state = {
       .anim = {},
       .frame = 0,
       .last_frame_time = 0,
+      .firstFrame = true,
     }
 };
 inline ExtractorManager extractor_manager;

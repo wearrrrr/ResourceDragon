@@ -6,6 +6,7 @@
 
 #include <DirectoryNode.h>
 #include "../common.h"
+#include "gl3.h"
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
@@ -82,6 +83,7 @@ void UnloadSelectedFile() {
     preview_state.texture.anim = {};
     preview_state.texture.frame = 0;
     preview_state.texture.last_frame_time = 0;
+    preview_state.texture.firstFrame = true;
 
     preview_state.content_type = "";
 
@@ -284,6 +286,10 @@ void HandleFileClick(DirectoryNode *node) {
 
         if (Image::IsImageExtension(ext)) {
             Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            if (preview_state.texture.size.x < 256) {
+                // reload img with nearest neighbor filtering
+                Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y, GL_NEAREST);
+            }
             preview_state.content_type = "image";
         } else if (Image::IsGif(ext)) {
             Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);

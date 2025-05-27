@@ -16,7 +16,7 @@ struct GifAnimation {
 
 class Image {
     public:
-        static bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height);
+        static bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height, uint32_t mode = GL_LINEAR);
         static bool LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation);
         static bool UnloadTexture(GLuint texture);
         static void UnloadAnimation(GifAnimation* animation);

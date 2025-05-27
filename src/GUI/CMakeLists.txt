@@ -5,6 +5,7 @@ add_library(GUI
     Image.cpp
     TextEditor/TextEditor.cpp
     Theme/BessDark.cpp
+    ImVec2Util.h
     Utils.cpp
 )
 

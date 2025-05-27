@@ -1,8 +1,11 @@
+#include <algorithm>
 #include <thread>
 #include <fstream>
 
 #include "common.h"
 #include "Icons.h"
+#include "imgui.h"
+#include <GUI/ImVec2Util.h>
 #include <Scripting/ScriptManager.h>
 
 #define DEBUG
@@ -341,6 +344,9 @@ int main(int argc, char *argv[]) {
     bool resizing = false;
     bool has_unsaved_changes = false;
 
+    float img_zoom = 1.0f;
+    ImVec2 pan_offset = ImVec2(0.0f, 0.0f);
+
     const std::string preview_win_label = "Preview";
 
     float timeToSetOnRelease = 0.0f;
@@ -455,12 +461,39 @@ int main(int argc, char *argv[]) {
             if (preview_state.contents.size > 0) {
                 if (content_type == "image") {
                     PWinStateTexture *texture = &preview_state.texture;
-                    ImVec2 image_size = ImVec2(texture->size.x, texture->size.y);
+                    ImGui::Text("Zoom: %.2fx", img_zoom);
+                    ImVec2 region_size = ImGui::GetContentRegionAvail();
+
+                    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);\
+                    // zooming
+                    if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
+                        float wheel = ImGui::GetIO().MouseWheel;
+                        float prev_zoom = img_zoom;
+                        img_zoom = std::clamp(img_zoom + wheel * 0.1f, 0.1f, 10.0f);
+
+                        ImVec2 mouse = ImGui::GetIO().MousePos;
+                        ImVec2 cursor_screen = ImGui::GetCursorScreenPos();
+                        ImVec2 rel = mouse - cursor_screen - pan_offset;
+                        pan_offset -= rel * (img_zoom / prev_zoom - 1.0f);
+                    }
+
+                    // dragging
+                    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                        ImVec2 delta = ImGui::GetIO().MouseDelta;
+                        pan_offset += delta;
+                    }
+
                     if (texture->id) {
-                        if (image_size.x < window_size.x) {
-                            ImGui::SetCursorPos({(ImGui::GetWindowSize().x - texture->size.x) * 0.5f, 50});
+                        ImVec2 image_size = ImVec2(texture->size.x * img_zoom, texture->size.y * img_zoom);
+                        ImVec2 cursor = ImGui::GetCursorScreenPos();
+                        if (preview_state.texture.firstFrame) {
+                            pan_offset.x = (region_size.x - image_size.x) * 0.5f;
+                            pan_offset.y = 0.0f;
+                            preview_state.texture.firstFrame = false;
                         }
-                        ImGui::Image(texture->id, image_size);
+                        ImVec2 draw_pos = Floor(cursor + pan_offset);
+                        ImVec2 draw_end = draw_pos + Floor(image_size);
+                        ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
                     } else {
                         ImGui::Text("Failed to load image!");
                     }
