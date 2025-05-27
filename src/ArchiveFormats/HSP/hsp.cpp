@@ -1,5 +1,6 @@
 #include "hsp.h"
 #include <unordered_map>
+#include <algorithm>
 
 int32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
 {

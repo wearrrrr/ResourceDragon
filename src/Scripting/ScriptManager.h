@@ -3,6 +3,7 @@
 #include "lua.hpp"
 #include <string>
 
+#include "LuaUtils.h"
 #include "../ArchiveFormats/ArchiveFormat.h"
 #include "../util/Logger.h"
 
@@ -29,6 +30,30 @@ static void dumpstack (lua_State *L) {
         break;
     }
   }
+}
+
+// This template exists to reduce code duplication while also not severly kneecapping runtime performance
+template <typename T>
+inline T Lua_ConvertTo(lua_State *state) {
+    if constexpr (std::is_same_v<T, int>) {
+        auto result = lua_tointeger(state, -1);
+        lua_pop(state, -1);
+        return result;
+    } else if constexpr (std::is_same_v<T, double>) {
+        auto result = lua_tonumber(state, -1);
+        lua_pop(state, -1);
+        return result;
+    } else if constexpr (std::is_same_v<T, bool>) {
+        auto result = lua_toboolean(state, -1);
+        lua_pop(state, -1);
+        return result;
+    } else if constexpr (std::is_same_v<T, std::string>) {
+        const char* str = lua_tostring(state, -1);
+        lua_pop(state, -1);
+        return str ? std::string(str) : std::string("");
+    } else {
+        static_assert(false, "Unable to deduce proper type!");
+    }
 }
 
 inline bool Lua_GetFunction(lua_State *state, const char *name) {

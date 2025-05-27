@@ -1,5 +1,6 @@
-#include "Image.h"
-#include "Utils.h"
+#include <Image.h>
+#include <Utils.h>
+#include "../util/Logger.h"
 
 bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
 {

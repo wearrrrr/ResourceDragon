@@ -1,8 +1,9 @@
 #include <thread>
+#include <fstream>
 
 #include "common.h"
 #include "Icons.h"
-#include "scripting/ScriptManager.h"
+#include <Scripting/ScriptManager.h>
 
 #define DEBUG
 

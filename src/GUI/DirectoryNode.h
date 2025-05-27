@@ -2,9 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <sstream>
-#include <algorithm>
-#include <functional>
+#include <cstdint>
 
 struct DirectoryNode
 {

@@ -48,6 +48,8 @@ if (NOT WIN32)
     include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
 endif()
 
+add_subdirectory(src/Scripting)
+add_subdirectory(src/GUI)
 
 add_executable(ResourceDragon
     ${IMGUI_SRC}
@@ -90,24 +92,6 @@ add_executable(ResourceDragon
     src/ArchiveFormats/XP3/xp3.h
     src/ArchiveFormats/XP3/xp3.cpp
 
-    src/GUI/Audio.h
-    src/GUI/Audio.cpp
-    src/GUI/Clipboard.h
-    src/GUI/Clipboard.cpp
-    src/GUI/DirectoryNode.h
-    src/GUI/DirectoryNode.cpp
-    src/GUI/Image.h
-    src/GUI/Image.cpp
-    src/GUI/TextEditor/TextEditor.h
-    src/GUI/TextEditor/TextEditor.cpp
-    src/GUI/Theme/Themes.h
-    src/GUI/Theme/BessDark.cpp
-    src/GUI/Utils.h
-    src/GUI/Utils.cpp
-
-    src/scripting/ScriptManager.h
-    src/scripting/ScriptManager.cpp
-
     src/util/Logger.h
     src/util/Text.h
 
@@ -117,6 +101,10 @@ add_executable(ResourceDragon
     src/sha1.h
 )
 
+target_include_directories(ResourceDragon PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
 set(OPENGL_LIB_NAME OpenGL)
 set(FREETYPE freetype)
 if (WIN32)
@@ -124,4 +112,6 @@ if (WIN32)
     set(FREETYPE "")
 endif()
 
+# App specific libs
+target_link_libraries(ResourceDragon PRIVATE GUI Scripting)
 target_link_libraries(ResourceDragon PRIVATE ${FREETYPE} ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer lua ${OPENGL_LIB_NAME})

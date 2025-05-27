@@ -1,8 +1,11 @@
-#include "DirectoryNode.h"
-#include "../util/Text.h"
-#include "../common.h"
+#include <fstream>
 #include <filesystem>
 #include <unordered_map>
+#include <algorithm>
+#include <functional>
+
+#include <DirectoryNode.h>
+#include "../common.h"
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {

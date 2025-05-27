@@ -1,4 +1,5 @@
-#include "Audio.h"
+#include <Audio.h>
+#include "../common.h"
 
 void Audio::MusicFinishedCallback() {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
@@ -28,7 +29,7 @@ void Audio::InitAudioSystem() {
     }
 
     Mix_AllocateChannels(16);
-    
+
     Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
     if (spec.freq == 0 || spec.format == 0 || spec.channels == 0) {
         Logger::error("Failed to query audio spec: %s", SDL_GetError());

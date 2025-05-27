@@ -1,4 +1,8 @@
-#include "Clipboard.h"
+#include <Clipboard.h>
+#include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
     auto *file = (ClipboardFile*)(userdata);

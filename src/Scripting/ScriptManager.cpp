@@ -1,5 +1,6 @@
 
 #include "ScriptManager.h"
+#include <lua.h>
 
 template <typename T>
 inline T ScriptManager::CallLuaMethod(const std::string &name, int argc, int retc, int kfunc) {
@@ -16,29 +17,7 @@ inline T ScriptManager::CallLuaMethod(const std::string &name, int argc, int ret
     }
 
     if (retc > 0) {
-        if constexpr (std::is_same_v<T, int>) {
-            auto result = lua_tonumber(m_state, -1);
-            lua_pop(m_state, -1);
-            return result;
-        } else if constexpr (std::is_same_v<T, double>) {
-            auto result = lua_tointeger(m_state, -1);
-            lua_pop(m_state, -1);
-            return result;
-        } else if constexpr (std::is_same_v<T, bool>) {
-            auto result = lua_toboolean(m_state, -1);
-            lua_pop(m_state, -1);
-            return result;
-        } else if constexpr (std::is_same_v<T, const char*>) {
-            const char* str = lua_tostring(m_state, -1);
-            lua_pop(m_state, -1);
-            return str;
-        } else if constexpr (std::is_same_v<T, std::string>) {
-            const char* str = lua_tostring(m_state, -1);
-            lua_pop(m_state, -1);
-            return str ? std::string(str) : std::string("");
-        } else {
-            static_assert(false, "CallLuaMethod currently does not support this type!");
-        }
+        return Lua_ConvertTo<T>(m_state);
     }
 
     return T();

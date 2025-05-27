@@ -1,4 +1,6 @@
+#include <ctime>
 #include "Utils.h"
+#include "../util/Logger.h"
 
 std::string Utils::ToLower(const std::string& str)
 {

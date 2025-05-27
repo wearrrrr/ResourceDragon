@@ -5,8 +5,6 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <filesystem>
 
-#include "Utils.h"
-
 namespace fs = std::filesystem;
 
 inline Mix_Music *current_sound = nullptr;

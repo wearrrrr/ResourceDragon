@@ -32,7 +32,7 @@ public:
                 }
                 return std::u16string(buffer.begin(), buffer.end());
             }
-        
+
             return u"";
         }
 };
@@ -91,26 +91,26 @@ class HibikiCrypt : public XP3Crypt {
 class AkabeiCrypt : public XP3Crypt {
     private:
         uint32_t m_seed;
-    
+
     public:
         AkabeiCrypt() : m_seed(0) {}
         AkabeiCrypt(uint32_t seed) : m_seed(seed) {}
-    
+
         std::string ToString() const {
             std::ostringstream oss;
             oss << "(0x" << std::uppercase << std::hex << std::setw(8) << std::setfill('0') << m_seed << ")";
             return oss.str();
         }
-    
+
         uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
             int key_pos = (int)(offset) & 0x1F;
             auto key = GetKey(entry->hash);
             return value ^ key[key_pos];
         }
-    
+
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             std::vector<uint8_t> out = buffer;
-            
+
             auto key = GetKey(entry->hash);
             Logger::log("AkabeiCrypt: Key is %x", key.data());
             int key_pos = (int)(offset);
@@ -120,7 +120,7 @@ class AkabeiCrypt : public XP3Crypt {
             Logger::log("AkabeiCrypt: Decrypting %d bytes at offset 0x%08X with key %x", count, (uint32_t)offset, key.data());
             return out;
         }
-    
+
         uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
             return value;
         }
@@ -128,7 +128,7 @@ class AkabeiCrypt : public XP3Crypt {
         std::string GetCryptName() override {
             return "Akabei";
         }
-    
+
     private:
         std::vector<uint8_t> GetKey(uint32_t hash) const {
             std::vector<uint8_t> key;
@@ -173,7 +173,7 @@ class NekoworksCrypt : public XP3Crypt {
             auto key = InitKey(entry->hash);
             return value ^ key[offset % 31];
         }
-        
+
         // no-op
         uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
             Logger::warn("NekoworksCrypt: Encrypt is not supported");
