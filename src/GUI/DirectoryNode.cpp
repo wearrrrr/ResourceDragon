@@ -137,7 +137,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
         if (node->IsVirtualRoot) {
             auto entries = loaded_arc_base->GetEntries();
 
-            for (const auto entry : entries) {
+            for (const auto &entry : entries) {
                 #ifdef linux
                 std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
                 #endif

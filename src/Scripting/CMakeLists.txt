@@ -5,3 +5,5 @@ add_library(Scripting
 target_include_directories(Scripting PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_link_libraries(Scripting PRIVATE lua)
