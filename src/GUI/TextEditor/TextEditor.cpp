@@ -1173,7 +1173,7 @@ void TextEditor::Render()
 						const auto s = ImGui::GetFontSize();
 						const auto x = textScreenPos.x + bufferOffset.x + spaceSize * 0.5f;
 						const auto y = textScreenPos.y + bufferOffset.y + s * 0.5f;
-						// drawList->AddCircleFilled(ImVec2(x, y), 1.5f, 0x80808080, 4);
+						drawList->AddCircleFilled(ImVec2(x, y), 1.5f, 0x80808080, 4);
 					}
 					bufferOffset.x += spaceSize;
 					i++;

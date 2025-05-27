@@ -1,17 +1,10 @@
 add_library(GUI
-    Audio.h
     Audio.cpp
-    Clipboard.h
     Clipboard.cpp
-    DirectoryNode.h
     DirectoryNode.cpp
-    Image.h
     Image.cpp
-    TextEditor/TextEditor.h
     TextEditor/TextEditor.cpp
     Theme/BessDark.cpp
-    Theme/Themes.h
-    Utils.h
     Utils.cpp
 )
 

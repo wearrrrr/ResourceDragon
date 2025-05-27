@@ -1,6 +1,4 @@
 add_library(Scripting
-    LuaUtils.h
-    ScriptManager.h
     ScriptManager.cpp
 )
 
