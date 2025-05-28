@@ -1,12 +1,25 @@
 #include <algorithm>
-#include <thread>
 #include <fstream>
+#include <GUI/Audio.h>
+#include <GUI/ImVec2Util.h>
+#include <GUI/Theme/Themes.h>
+#include <GUI/DirectoryNode.h>
+#include <GUI/Clipboard.h>
+#include <Scripting/ScriptManager.h>
+#include <thread>
 
 #include "common.h"
-#include "Icons.h"
+#include "icons.h"
 #include "imgui.h"
-#include <GUI/ImVec2Util.h>
-#include <Scripting/ScriptManager.h>
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl3.h"
+
+#include "ArchiveFormats/HSP/hsp.h"
+#include "ArchiveFormats/PFS/pfs.h"
+#include "ArchiveFormats/NitroPlus/nitroplus.h"
+#include "ArchiveFormats/SonicAdv/sonicadv.h"
+#include "ArchiveFormats/Touhou/thdat.h"
+#include "ArchiveFormats/XP3/xp3.h"
 
 #define DEBUG
 

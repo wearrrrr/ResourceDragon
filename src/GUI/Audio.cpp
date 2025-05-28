@@ -1,4 +1,6 @@
 #include <Audio.h>
+#include <Utils.h>
+#include <DirectoryNode.h>
 #include "../common.h"
 
 void Audio::MusicFinishedCallback() {

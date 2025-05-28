@@ -4,8 +4,11 @@
 #include <algorithm>
 #include <functional>
 
+#include <Audio.h>
 #include <DirectoryNode.h>
+#include <Utils.h>
 #include "../common.h"
+#include "../util/Text.h"
 #include "gl3.h"
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
