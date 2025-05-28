@@ -8,7 +8,7 @@
 #include <Scripting/ScriptManager.h>
 #include <thread>
 
-#include "common.h"
+#include "state.h"
 #include "icons.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"

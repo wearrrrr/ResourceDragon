@@ -7,7 +7,7 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Utils.h>
-#include "../common.h"
+#include "../state.h"
 #include "../util/Text.h"
 #include "gl3.h"
 
