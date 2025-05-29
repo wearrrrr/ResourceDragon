@@ -72,7 +72,7 @@ struct UIError {
   bool show = false;
 };
 
-static PreviewWinState preview_state = {
+inline PreviewWinState preview_state = {
     .content_type = "",
     .contents = {
         .data = nullptr,
