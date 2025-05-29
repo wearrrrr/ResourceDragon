@@ -324,7 +324,7 @@ int main(int argc, char *argv[]) {
     const ImWchar icon_ranges[] = { 0xe800, 0xe805, 0 };
 
     #ifdef WIN32
-    const char *font_path = "fonts\\NotoSansCJK-Medium.ttc";
+    const char *font_path = "fonts\\NotoSansCJK-Medium.woff2";
     const char *icon_font_path = "fonts\\player-icons.ttf";
     #else
     const char *font_path = "fonts/NotoSansCJKjp-Medium.woff2";
@@ -447,8 +447,7 @@ int main(int argc, char *argv[]) {
 
         const bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
 
-        if (hovered)
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+        if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) resizing = true;
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) resizing = false;
@@ -485,7 +484,7 @@ int main(int argc, char *argv[]) {
                     if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
                         float wheel = ImGui::GetIO().MouseWheel;
                         float prev_zoom = img_zoom;
-                        img_zoom = std::clamp(img_zoom + wheel * 0.1f, 0.1f, 10.0f);
+                        img_zoom = std::clamp(img_zoom + wheel * 0.1f, 0.1f, 5.0f);
 
                         ImVec2 mouse = ImGui::GetIO().MousePos;
                         ImVec2 cursor_screen = ImGui::GetCursorScreenPos();
