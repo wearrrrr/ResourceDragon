@@ -20,11 +20,10 @@ public:
   ArchiveFormat *getExtractorFor(unsigned char *buffer, uint32_t size, const std::string &ext) {
     for (const auto &format : m_formats) {
       /* TODO:
-          this is bad! we should not be returning the first one that happens to
-         meet the criteria we should instead return a vector or something and
-         try to extract each one or, we can make absolutely certain that
-         ArchiveFormat::CanHandleFile ONLY returns the one we need But that
-         seems like a lot of redundant work!
+        this is bad! we should not be returning the first one that happens to
+        meet the criteria we should instead return a vector or something and
+        try to extract each one or, we can make absolutely certain that
+        ArchiveFormat::CanHandleFile ONLY returns the one we need
       */
       if (format.second->CanHandleFile(buffer, size, ext)) {
         return format.second.get();

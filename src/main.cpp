@@ -280,7 +280,6 @@ int main(int argc, char *argv[]) {
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
-    // If display is smaller than 1600x900, maximize the window.
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
     if (mode) {
@@ -313,7 +312,7 @@ int main(int argc, char *argv[]) {
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-    // U+203B (Reference Mark)
+    // These characters aren't in any of the above glyph ranges, but are common in CJK text.
     range.AddChar(0x203B);
     range.AddChar(0x25CB);
     range.BuildRanges(&gr);
@@ -321,7 +320,7 @@ int main(int argc, char *argv[]) {
     ImFontConfig iconConfig;
     iconConfig.MergeMode = true;
     iconConfig.GlyphMinAdvanceX = 18.0f;
-    const ImWchar icon_ranges[] = { 0xe800, 0xe805, 0 };
+    const ImWchar icon_ranges[] = { 0xe800, 0xe805 };
 
     #ifdef WIN32
     const char *font_path = "fonts\\NotoSansCJK-Medium.woff2";
@@ -728,7 +727,7 @@ int main(int argc, char *argv[]) {
         ImGui::Render();
 
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        const constexpr ImVec4 clear_color = {0.23f, 0.23f, 0.23f, 1.00f};
+        static const constexpr ImVec4 clear_color = {0.23f, 0.23f, 0.23f, 1.00f};
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
