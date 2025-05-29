@@ -477,7 +477,10 @@ int main(int argc, char *argv[]) {
                     ImGui::Text("Zoom: %.2fx", img_zoom);
                     ImVec2 region_size = ImGui::GetContentRegionAvail();
 
-                    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);\
+                    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
+
+                    if (ImGui::IsWindowHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+
                     // zooming
                     if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
                         float wheel = ImGui::GetIO().MouseWheel;
