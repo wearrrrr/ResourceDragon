@@ -13,7 +13,7 @@
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
-        if (node->FullPath.find(entry.second->name) != std::string::npos) {
+        if (node->FullPath.contains(entry.second->name)) {
             return entry.second;
         }
     }

@@ -155,12 +155,12 @@ void RenderErrorPopup(ImGuiIO *io) {
 bool PlaybackScrubber(const char *id, float *progress, float width, float height = 16.0f) {
     ImGui::PushID(id);
 
-    ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-    ImVec2 size = {width, height};
+    const ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+    const ImVec2 size = {width, height};
 
     ImGui::InvisibleButton("##scrubber", size);
-    bool hovered = ImGui::IsItemHovered();
-    bool active = ImGui::IsItemActive();
+    const bool hovered = ImGui::IsItemHovered();
+    const bool active = ImGui::IsItemActive();
 
     if (hovered && ImGui::IsMouseDown(0)) {
         float mouseX = ImGui::GetIO().MousePos.x;
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
     std::thread scripting_thread([&]() {
         try {
             for (const auto &entry : fs::directory_iterator("scripts/")) {
-                fs::path entry_path = entry.path();
+                const fs::path entry_path = entry.path();
                 if (entry_path.extension() == ".lua") {
                     scriptManager->LoadFile(entry_path.string());
                     RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
@@ -559,13 +559,13 @@ int main(int argc, char *argv[]) {
                                 );
                                 ImGui::SameLine();
                             }
-                            double current_pos = Mix_GetMusicPosition(current_sound);
-                            double total_time = time.total_time_min * 60 + time.total_time_sec;
+                            const double current_pos = Mix_GetMusicPosition(current_sound);
+                            const double total_time = time.total_time_min * 60 + time.total_time_sec;
                             if (total_time > 0.0) {
                                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
 
-                                float visual_pos = std::max(current_pos - 0.3, 0.0);
+                                const float visual_pos = std::max(current_pos - 0.3, 0.0);
                                 float scrubberProgress = visual_pos / total_time;
                                 scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
                                 bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
@@ -573,7 +573,7 @@ int main(int argc, char *argv[]) {
                                 if (isDragging) {
                                     if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
 
-                                    int new_pos = (int)scrubberProgress * total_time;
+                                    int new_pos = (int)(scrubberProgress * total_time);
                                     timeToSetOnRelease = new_pos;
                                     preview_state.audio.time.current_time_min = new_pos / 60;
                                     preview_state.audio.time.current_time_sec = new_pos % 60;
