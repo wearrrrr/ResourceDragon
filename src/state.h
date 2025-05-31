@@ -121,6 +121,8 @@ inline UIError ui_error = {
   .show = false
 };
 
+inline bool text_editor__unsaved_changes = false;
+
 #ifdef linux
 inline int inotify_fd;
 inline int inotify_wd;

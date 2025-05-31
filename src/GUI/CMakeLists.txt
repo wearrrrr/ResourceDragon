@@ -3,9 +3,10 @@ add_library(GUI
     Clipboard.cpp
     DirectoryNode.cpp
     Image.cpp
+    ImVec2Util.h
+    PreviewWindow.cpp
     TextEditor/TextEditor.cpp
     Theme/BessDark.cpp
-    ImVec2Util.h
     Utils.cpp
 )
 
