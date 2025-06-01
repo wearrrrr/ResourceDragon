@@ -1,10 +1,55 @@
 #include <PreviewWindow.h>
 #include <Audio.h>
 #include <DirectoryNode.h>
+#include <ImVec2Util.h>
 #include <fstream>
 #include "../util/Text.h"
 #include "../state.h"
 #include "../icons.h"
+
+void PreviewWindow::RenderImagePreview() {
+    PWinStateTexture *texture = &preview_state.texture;
+    ImGui::Text("Zoom: %.2fx", img_preview__zoom);
+    ImVec2 region_size = ImGui::GetContentRegionAvail();
+
+    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
+
+    if (ImGui::IsWindowHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+
+    // zooming
+    if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
+        const float wheel = ImGui::GetIO().MouseWheel;
+        const float prev_zoom = img_preview__zoom;
+        img_preview__zoom = std::clamp(img_preview__zoom + wheel * 0.1f, 0.1f, 5.0f);
+
+        const ImVec2 mouse = ImGui::GetIO().MousePos;
+        const ImVec2 cursor_screen = ImGui::GetCursorScreenPos();
+        const ImVec2 rel = mouse - cursor_screen - img_preview__pan;
+        img_preview__pan -= rel * (img_preview__zoom / prev_zoom - 1.0f);
+    }
+
+    // dragging
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 delta = ImGui::GetIO().MouseDelta;
+        img_preview__pan += delta;
+    }
+
+    if (texture->id) {
+        ImVec2 image_size = ImVec2(texture->size.x * img_preview__zoom, texture->size.y * img_preview__zoom);
+        ImVec2 cursor = ImGui::GetCursorScreenPos();
+        if (preview_state.texture.firstFrame) {
+            img_preview__pan = {(region_size.x - image_size.x) * 0.5f, 0.0f};
+            img_preview__zoom = 1.0f;
+
+            preview_state.texture.firstFrame = false;
+        }
+        ImVec2 draw_pos = Floor(cursor + img_preview__pan);
+        ImVec2 draw_end = draw_pos + Floor(image_size);
+        ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
+    } else {
+        ImGui::Text("Failed to load image!");
+    }
+}
 
 bool PlaybackScrubber(const char *id, float *progress, float width, float height = 16.0f) {
     ImGui::PushID(id);

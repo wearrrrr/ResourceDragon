@@ -121,6 +121,9 @@ inline UIError ui_error = {
   .show = false
 };
 
+inline float img_preview__zoom = 1.0f;
+inline ImVec2 img_preview__pan = {0.0f, 0.0f};
+
 inline bool text_editor__unsaved_changes = false;
 
 #ifdef linux
