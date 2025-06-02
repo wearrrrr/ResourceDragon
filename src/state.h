@@ -59,8 +59,16 @@ struct PWinStateContents {
     ElfFile *elfFile;
 };
 
+enum PContentType {
+    IMAGE,
+    GIF,
+    AUDIO,
+    ELF,
+    UNKNOWN
+};
+
 struct PreviewWinState {
-  std::string content_type;
+  PContentType content_type;
   PWinStateContents contents;
   PWinStateAudio audio;
   PWinStateTexture texture;
@@ -73,7 +81,7 @@ struct UIError {
 };
 
 inline PreviewWinState preview_state = {
-    .content_type = "",
+    .content_type = PContentType::UNKNOWN,
     .contents = {
         .data = nullptr,
         .size = 0,

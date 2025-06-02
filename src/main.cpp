@@ -116,7 +116,7 @@ void RenderPreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
             if (preview_state.contents.size > 0) {
-                if (preview_state.content_type == "image") {
+                if (preview_state.content_type == PContentType::IMAGE) {
                     Clipboard::CopyBufferToClipboard(preview_state.contents.data, preview_state.contents.size, preview_state.contents.fileName);
                 } else {
                     Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
@@ -429,47 +429,24 @@ int main(int argc, char *argv[]) {
         if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
             RenderPreviewContextMenu();
             std::string ext = preview_state.contents.ext;
-            std::string content_type = preview_state.content_type;
+            PContentType content_type = preview_state.content_type;
             if (preview_state.contents.size > 0) {
-                if (content_type == "image") {
-                    PreviewWindow::RenderImagePreview();
-                } else if (content_type == "gif") {
-                    PWinStateTexture *texture = &preview_state.texture;
-                    GifAnimation &anim = texture->anim;
-                    ImVec2 image_size = ImVec2(anim.width, anim.height);
-                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
-                    ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
-
-                    uint32_t now = SDL_GetTicks();
-                    uint32_t frame_delay = (uint32_t)anim.delays[texture->frame];
-                    if (now - texture->last_frame_time >= frame_delay) {
-                        texture->frame = (texture->frame + 1) % anim.frame_count;
-                        texture->last_frame_time = now;
-                    }
-                } else if (content_type == "audio") {
-                    PreviewWindow::RenderAudioPlayer();
-                } else if (content_type == "elf") {
-                    auto elfFile = preview_state.contents.elfFile;
-                    ImGui::Text("Path: %s", preview_state.contents.path.c_str());
-                    ImGui::Text("ELF Class: %s", preview_state.contents.elfFile->GetElfClass().c_str());
-                    if (auto elfHeader = preview_state.contents.elfFile->GetElf64Header()) {
-                        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
-                        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
-
-                        #ifdef WIN32
-                        ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
-                        #else
-                        ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
-                        #endif
-                    } else if (auto elfHeader = preview_state.contents.elfFile->GetElf32Header()) {
-                        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
-                        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
-                        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
-                    } else {
-                        ImGui::Text("Failed to read ELF header!");
-                    }
-                } else {
-                    PreviewWindow::RenderTextViewer(io);
+                switch (content_type) {
+                    case IMAGE:
+                        PreviewWindow::RenderImagePreview();
+                        break;
+                    case GIF:
+                        PreviewWindow::RenderGifPreview();
+                        break;
+                    case AUDIO:
+                        PreviewWindow::RenderAudioPlayer();
+                        break;
+                    case ELF:
+                        PreviewWindow::RenderElfPreview();
+                        break;
+                    default:
+                        PreviewWindow::RenderTextViewer(io);
+                        break;
                 }
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");

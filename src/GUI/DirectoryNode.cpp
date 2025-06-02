@@ -88,7 +88,7 @@ void UnloadSelectedFile() {
     preview_state.texture.last_frame_time = 0;
     preview_state.texture.firstFrame = true;
 
-    preview_state.content_type = "";
+    preview_state.content_type = PContentType::UNKNOWN;
 
     preview_state.contents.data = nullptr;
     preview_state.contents.size = 0;
@@ -293,10 +293,10 @@ void HandleFileClick(DirectoryNode *node) {
                 // reload img with nearest neighbor filtering
                 Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y, GL_NEAREST);
             }
-            preview_state.content_type = "image";
+            preview_state.content_type = IMAGE;
         } else if (Image::IsGif(ext)) {
             Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
-            preview_state.content_type = "gif";
+            preview_state.content_type = GIF;
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
         } else if (Audio::IsAudio(ext)) {
@@ -308,7 +308,7 @@ void HandleFileClick(DirectoryNode *node) {
                 current_sound = Mix_LoadMUS(node->FullPath.c_str());
             }
             if (current_sound) {
-                preview_state.content_type = "audio";
+                preview_state.content_type = AUDIO;
                 Mix_PlayMusic(current_sound, 1);
                 int duration = (int)Mix_MusicDuration(current_sound);
                 preview_state.audio.music = current_sound;
@@ -322,7 +322,7 @@ void HandleFileClick(DirectoryNode *node) {
         } else if (ElfFile::IsValid(buffer)) {
             ElfFile *elfFile = new ElfFile(node->FullPath);
             preview_state.contents.elfFile = elfFile;
-            preview_state.content_type = "elf";
+            preview_state.content_type = ELF;
         } else {
             auto text = std::string((char*)buffer, size);
             // Check start of file for UTF16LE BOM

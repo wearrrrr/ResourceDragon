@@ -40,7 +40,6 @@ void PreviewWindow::RenderImagePreview() {
         if (preview_state.texture.firstFrame) {
             img_preview__pan = {(region_size.x - image_size.x) * 0.5f, 0.0f};
             img_preview__zoom = 1.0f;
-
             preview_state.texture.firstFrame = false;
         }
         ImVec2 draw_pos = Floor(cursor + img_preview__pan);
@@ -48,6 +47,21 @@ void PreviewWindow::RenderImagePreview() {
         ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
     } else {
         ImGui::Text("Failed to load image!");
+    }
+}
+
+void PreviewWindow::RenderGifPreview() {
+    PWinStateTexture *texture = &preview_state.texture;
+    GifAnimation &anim = texture->anim;
+    ImVec2 image_size = ImVec2(anim.width, anim.height);
+    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
+    ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
+
+    uint32_t now = SDL_GetTicks();
+    uint32_t frame_delay = (uint32_t)anim.delays[texture->frame];
+    if (now - texture->last_frame_time >= frame_delay) {
+        texture->frame = (texture->frame + 1) % anim.frame_count;
+        texture->last_frame_time = now;
     }
 }
 
@@ -210,6 +224,28 @@ void PreviewWindow::RenderAudioPlayer() {
             // eventually i'll do something about this but im lazy :)
             ImGui::Text("%s", channels >= 2 ? "Stereo Audio" : "Mono Audio");
         }
+    }
+}
+
+void PreviewWindow::RenderElfPreview() {
+    auto elfFile = preview_state.contents.elfFile;
+    ImGui::Text("Path: %s", preview_state.contents.path.c_str());
+    ImGui::Text("ELF Class: %s", elfFile->GetElfClass().c_str());
+    if (auto elfHeader = elfFile->GetElf64Header()) {
+        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
+        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
+
+        #ifdef WIN32
+        ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
+        #else
+        ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
+        #endif
+    } else if (auto elfHeader = elfFile->GetElf32Header()) {
+        ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
+        ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
+        ImGui::Text("Entry: 0x%x", elfHeader->e_entry);
+    } else {
+        ImGui::Text("Failed to read ELF header!");
     }
 }
 

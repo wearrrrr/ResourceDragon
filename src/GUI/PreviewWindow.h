@@ -5,6 +5,8 @@
 namespace PreviewWindow {
     inline float timeToSetOnRelease = 0.0f;
     void RenderImagePreview();
+    void RenderGifPreview();
     void RenderAudioPlayer();
+    void RenderElfPreview();
     void RenderTextViewer(ImGuiIO &io);
 };
