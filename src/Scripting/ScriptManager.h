@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lua.hpp"
+#include <lua.h>
 #include <string>
 
 #include "LuaUtils.h"
@@ -42,6 +43,23 @@ public:
     }
 
     ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override {
+        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
+
+        lua_pushlstring(m_state, (const char*)buffer, size);
+        lua_pushinteger(m_state, size);
+        lua_pushstring(m_state, file_name.c_str());
+
+        if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
+            const char *err = lua_tostring(m_state, -1);
+            lua_pop(m_state, 1);
+            Logger::error(std::string("Lua error: ") + err);
+            return nullptr;
+        }
+        // TODO: Later on, this will return a table when successful, which we can use to construct a proper C++ class.
+        bool result = lua_toboolean(m_state, -1);
+        lua_pop(m_state, 1);
+        Logger::log("try open: %d", result);
+
         return nullptr;
     };
 

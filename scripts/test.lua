@@ -17,7 +17,7 @@ function RD__CanHandleFile(buffer, size, ext)
     return string.unpack("<I4", buffer) == signature
 end
 
-function RD__TryOpen()
+function RD__TryOpen(buffer, size, file_name)
     return false;
 end
 
