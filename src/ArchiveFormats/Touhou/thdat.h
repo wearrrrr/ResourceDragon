@@ -29,6 +29,9 @@ struct DatFile {
     unsigned char initialized;
 };
 
+int findPbg3Entry(DatFile *dat, const char *entry);
+void *decompressEntry(DatFile *dat, unsigned idx);
+
 class THDAT : public ArchiveFormat {
     std::string tag = "Touhou.DAT";
     std::string description = "Archive format for mainline Touhou games";
@@ -54,6 +57,8 @@ class THDATArchive : public ArchiveBase {
     public:
     DatFile dat;
     std::unordered_map<std::string, DatEntry> entries;
+    // Kinda forced my hand to use this because apparently at some point things get corrupted and things stop decoding properly aaaaaaghh
+    std::unordered_map<std::string, std::vector<unsigned char>> decompressed_cache;
 
     THDATArchive(const DatFile &dat, std::unordered_map<std::string, DatEntry> entries) {
         this->dat = dat;
@@ -62,15 +67,39 @@ class THDATArchive : public ArchiveBase {
 
     std::unordered_map<std::string, Entry*> GetEntries() override {
         std::unordered_map<std::string, Entry*> entry_map;
-        for (auto &entry : this->entries) {
-            Entry *rdEntry = new Entry {
-                .name = entry.first,
-                .size = entry.second.size
-            };
-            entry_map.emplace(entry.first, rdEntry);
-        }
-        return entry_map;
-    };
 
-    const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
+        for (auto& [name, datEntry] : entries) {
+            // Find index in dat
+            int index = findPbg3Entry(&dat, name.c_str());
+            if (index == -1) continue;
+
+            // Decompress data
+            void* raw = decompressEntry(&dat, index);
+            if (!raw) continue;
+
+            // Move into cache
+            std::vector<unsigned char> data(
+                reinterpret_cast<unsigned char*>(raw),
+                reinterpret_cast<unsigned char*>(raw) + datEntry.size
+            );
+            free(raw);
+
+            decompressed_cache.emplace(name, std::move(data));
+
+            // Create entry
+            Entry* rdEntry = new Entry{
+                .name = name,
+                .size = datEntry.size
+            };
+            entry_map.emplace(name, rdEntry);
+        }
+
+        return entry_map;
+    }
+
+    const char* OpenStream(const Entry* entry, unsigned char* buffer) override {
+        auto it = decompressed_cache.find(entry->name);
+        if (it == decompressed_cache.end()) return nullptr;
+        return reinterpret_cast<const char*>(it->second.data());
+    }
 };

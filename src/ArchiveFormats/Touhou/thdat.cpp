@@ -165,11 +165,3 @@ ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint32_t size, std::strin
 ArchiveBase *THDAT::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
     return TryOpenTH06(buffer, size, file_name);
 }
-
-const char* THDATArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
-    const unsigned index = findPbg3Entry(&this->dat, entry->name.c_str());
-    DatFile datClone = dat;
-    const char *data = (const char*)decompressEntry(&datClone, index);
-
-    return data;
-}
