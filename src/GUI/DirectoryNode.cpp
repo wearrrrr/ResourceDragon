@@ -1,3 +1,4 @@
+#include <cstring>
 #include <fstream>
 #include <filesystem>
 #include <unordered_map>
@@ -186,7 +187,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
                     .LastModified = Utils::GetLastModifiedTime(path),
-                    .LastModifiedUnix = (unsigned long)(fs::last_write_time(entry).time_since_epoch().count()),
+                    .LastModifiedUnix = (uint64_t)(fs::last_write_time(entry).time_since_epoch().count()),
                     .Children = {},
                     .IsDirectory = entry.is_directory()
                 };
@@ -198,7 +199,6 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
     } catch (const fs::filesystem_error &e) {
             const char *errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
-            // Show errorMessage in the GUI
             ui_error.message = errorMessage;
             ui_error.title = "Error accessing directory!";
             ui_error.show = true;
@@ -215,7 +215,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .FileSize = Utils::GetFileSize(rootPath),
         .FileSizeBytes = is_dir ? 0 : fs::file_size(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .LastModifiedUnix = (unsigned long)(fs::last_write_time(rootPath).time_since_epoch().count()),
+        .LastModifiedUnix = (uint64_t)fs::last_write_time(rootPath).time_since_epoch().count(),
         .Parent = parent,
         .Children = {},
         .IsDirectory = is_dir,
@@ -288,10 +288,10 @@ void HandleFileClick(DirectoryNode *node) {
         preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y);
+            Image::LoadImage(buffer, size, &preview_state.texture.id, {&preview_state.texture.size.x, &preview_state.texture.size.y});
             if (preview_state.texture.size.x < 256) {
                 // reload img with nearest neighbor filtering
-                Image::LoadImage(buffer, size, &preview_state.texture.id, &preview_state.texture.size.x, &preview_state.texture.size.y, GL_NEAREST);
+                Image::LoadImage(buffer, size, &preview_state.texture.id, {&preview_state.texture.size.x, &preview_state.texture.size.y}, GL_NEAREST);
             }
             preview_state.content_type = IMAGE;
         } else if (Image::IsGif(ext)) {

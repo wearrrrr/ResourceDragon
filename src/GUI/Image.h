@@ -5,6 +5,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include "gl3.h"
+#include "../vec2.h"
 
 struct GifAnimation {
     std::vector<GLuint> frames;
@@ -16,7 +17,7 @@ struct GifAnimation {
 
 class Image {
     public:
-        static bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height, uint32_t mode = GL_LINEAR);
+        static bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, uint32_t mode = GL_LINEAR);
         static bool LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation);
         static bool UnloadTexture(GLuint texture);
         static void UnloadAnimation(GifAnimation* animation);

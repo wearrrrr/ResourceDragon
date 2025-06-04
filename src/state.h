@@ -11,17 +11,15 @@
 #endif
 
 #include "ArchiveFormats/ElfFile.h"
-#include <Image.h>
+#include "GUI/Image.h"
 #include "ExtractorManager.h"
+#include "vec2.h"
 
 #include <TextEditor/TextEditor.h>
 
 struct PWinStateTexture {
   GLuint id;
-  struct {
-    int x;
-    int y;
-  } size;
+  Vec2<int> size;
   GifAnimation anim;
   int frame;
   int last_frame_time;
