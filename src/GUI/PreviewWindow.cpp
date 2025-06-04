@@ -35,7 +35,7 @@ void PreviewWindow::RenderImagePreview() {
     }
 
     if (texture->id) {
-        ImVec2 image_size = ImVec2(texture->size.x * img_preview__zoom, texture->size.y * img_preview__zoom);
+        ImVec2 image_size = ImVec2(*texture->size.x * img_preview__zoom, *texture->size.y * img_preview__zoom);
         ImVec2 cursor = ImGui::GetCursorScreenPos();
         if (preview_state.texture.firstFrame) {
             img_preview__pan = {(region_size.x - image_size.x) * 0.5f, 0.0f};

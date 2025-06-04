@@ -19,7 +19,7 @@
 
 struct PWinStateTexture {
   GLuint id;
-  Vec2<int> size;
+  Vec2<int*> size;
   GifAnimation anim;
   int frame;
   int last_frame_time;
@@ -106,7 +106,7 @@ inline PreviewWinState preview_state = {
       },
     .texture = {
         .id = 0,
-        .size = {0, 0},
+        .size = {},
         .anim = {},
         .frame = 0,
         .last_frame_time = 0,

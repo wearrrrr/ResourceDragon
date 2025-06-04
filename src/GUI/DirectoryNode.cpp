@@ -83,7 +83,7 @@ void UnloadSelectedFile() {
     Image::UnloadAnimation(&preview_state.texture.anim);
 
     preview_state.texture.id = 0;
-    preview_state.texture.size = {0, 0};
+    preview_state.texture.size = {};
     preview_state.texture.anim = {};
     preview_state.texture.frame = 0;
     preview_state.texture.last_frame_time = 0;
@@ -288,10 +288,12 @@ void HandleFileClick(DirectoryNode *node) {
         preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadImage(buffer, size, &preview_state.texture.id, {&preview_state.texture.size.x, &preview_state.texture.size.y});
-            if (preview_state.texture.size.x < 256) {
+            // preview_state.texture.size.x = (int*)malloc(sizeof(int));
+            // preview_state.texture.size.y = (int*)malloc(sizeof(int));
+            Image::LoadImage(buffer, size, &preview_state.texture.id, preview_state.texture.size);
+            if (*preview_state.texture.size.x < 256) {
                 // reload img with nearest neighbor filtering
-                Image::LoadImage(buffer, size, &preview_state.texture.id, {&preview_state.texture.size.x, &preview_state.texture.size.y}, GL_NEAREST);
+                Image::LoadImage(buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
             }
             preview_state.content_type = IMAGE;
         } else if (Image::IsGif(ext)) {
