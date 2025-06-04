@@ -69,15 +69,12 @@ class THDATArchive : public ArchiveBase {
         std::unordered_map<std::string, Entry*> entry_map;
 
         for (auto& [name, datEntry] : entries) {
-            // Find index in dat
             int index = findPbg3Entry(&dat, name.c_str());
             if (index == -1) continue;
 
-            // Decompress data
             void* raw = decompressEntry(&dat, index);
             if (!raw) continue;
 
-            // Move into cache
             std::vector<unsigned char> data(
                 reinterpret_cast<unsigned char*>(raw),
                 reinterpret_cast<unsigned char*>(raw) + datEntry.size
@@ -86,7 +83,6 @@ class THDATArchive : public ArchiveBase {
 
             decompressed_cache.emplace(name, std::move(data));
 
-            // Create entry
             Entry* rdEntry = new Entry{
                 .name = name,
                 .size = datEntry.size
