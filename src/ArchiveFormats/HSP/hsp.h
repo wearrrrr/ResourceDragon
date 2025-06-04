@@ -2,8 +2,8 @@
 
 #include <unordered_map>
 
-#include "../ArchiveFormat.h"
-#include "../../GameRes/Entry.h"
+#include <ArchiveFormat.h>
+#include <Entry.h>
 
 class HSPArchive : public ArchiveFormat {
     public:

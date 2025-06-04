@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "../../../GameRes/Entry.h"
+#include <Entry.h>
 #include "../../../BinaryReader.h"
 #include "../../../util/Logger.h"
 

@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "ExeFile.h"
-#include "../GameRes/Entry.h"
+#include "Entry.h"
 #include <cstring>
 #include <unordered_map>
 #include "../util/Logger.h" // IWYU pragma: keep
