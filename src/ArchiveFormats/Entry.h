@@ -25,8 +25,8 @@ struct Entry {
     std::vector<Segment> segments;
     bool isEncrypted;
     XP3Crypt *crypt;
-    uint32_t hash;
+    uint64_t hash;
 
-    // Only used in some archive formats where the alternative would be passing around a reference to ArchiveFormat*, which is very annoying. 
+    // Only used in some archive formats where the alternative would be passing around a reference to ArchiveFormat*, which is very annoying.
     std::vector<uint8_t> data;
 };

@@ -68,8 +68,7 @@ class HibikiCrypt : public XP3Crypt {
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
-            for (int i = 0; i < count; i++) {
-                offset++;
+            for (int i = 0; i < count; ++i, ++offset) {
                 if ((offset & 4) != 0 || offset <= 0x64)
                     buffer[pos+i] ^= key1;
                 else
@@ -115,9 +114,8 @@ class AkabeiCrypt : public XP3Crypt {
             Logger::log("AkabeiCrypt: Key is %x", key.data());
             int key_pos = (int)(offset);
             for (int i = 0; i < count; ++i) {
-                out[pos + i] ^= key[key_pos++ & 0x1F];
+                out[pos] ^= key[key_pos++ & 0x1F];
             }
-            Logger::log("AkabeiCrypt: Decrypting %d bytes at offset 0x%08X with key %x", count, (uint32_t)offset, key.data());
             return out;
         }
 
@@ -136,7 +134,7 @@ class AkabeiCrypt : public XP3Crypt {
             hash = (hash << 31) | hash;
             for (int i = 0; i < 0x20; ++i) {
                 key.push_back((uint8_t)hash);
-                hash = ((hash & 0xFFFFFFFE) << 23) | (hash >> 8);
+                hash = (hash & 0xFFFFFFFE) << 23 | hash >> 8;
             }
             return key;
         }
@@ -151,11 +149,6 @@ class NekoworksCrypt : public XP3Crypt {
         }
 
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
-            if (m_key.empty()) {
-                Logger::error("NekoworksCrypt: Key is empty");
-                return buffer;
-            }
-
             auto key = InitKey(entry->hash);
             for (int i = 0; i < count; ++i)
             {
@@ -165,13 +158,7 @@ class NekoworksCrypt : public XP3Crypt {
         }
 
         uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
-            if (m_key.empty()) {
-                Logger::error("NekoworksCrypt: Key is empty");
-                return value;
-            }
-
-            auto key = InitKey(entry->hash);
-            return value ^ key[offset % 31];
+            return 0;
         }
 
         // no-op

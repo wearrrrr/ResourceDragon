@@ -1,4 +1,7 @@
 #include "xp3.h"
+#include "Entry.h"
+#include "XP3/Crypt/Crypt.h"
+#include "../../util/Text.h"
 
 static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
 
@@ -181,6 +184,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
 }
 
 static std::vector<uint8_t> stream;
+static std::vector<uint8_t> decrypted;
 
 const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
@@ -208,14 +212,26 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
     }
     else {
         // Encrypted entries
-        stream.resize(entry->size);
-        memcpy(stream.data(), buffer + entry->offset, entry->size);
-        std::vector<uint8_t> decrypted = entry->crypt->Decrypt(entry, entry->offset, stream, 0, stream.size());
-        char* result = (char*)malloc(decrypted.size());
-        if (result) {
-            memcpy(result, decrypted.data(), decrypted.size());
+        Segment segment = entry->segments.at(0);
+        Logger::log("%d", segment.IsCompressed);
+        stream.resize(segment.Size);
+        memcpy(stream.data(), buffer + segment.Offset, segment.Size);
+        decrypted.resize(entry->size);
+        decrypted = entry->crypt->Decrypt(entry, segment.Offset, stream, 0, stream.size());
+        if (segment.IsCompressed) {
+            uLongf decompressed_size = (uLongf)(segment.Size);
+            uLongf compressed_size = (uLongf)(segment.PackedSize);
+            if (uncompress(decrypted.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
+                Logger::error("XP3: Failed to decompress entry!");
+                return nullptr;
+            }
         }
-        return result;
+        return (const char*)decrypted.data();
+
+        // char* result = (char*)malloc(decrypted.size());
+        // if (result) {
+        //     memcpy(result, decrypted.data(), decrypted.size());
+        // }
     }
 
     return nullptr;
