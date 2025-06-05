@@ -81,5 +81,7 @@ std::string Utils::GetFileSize(uint32_t size) {
         oss << std::fixed << std::setprecision(2) << decimal_size << " " << units[unitIndex];
     }
 
-    return oss.str();
+    std::string str = oss.str();
+    oss.clear();
+    return str;
 }

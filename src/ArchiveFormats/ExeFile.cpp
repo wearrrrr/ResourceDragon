@@ -23,16 +23,16 @@ bool ExeFile::SigCheck(unsigned char *buffer)
 	uint32_t pe_offset = GetPEOffset(buffer);
 	uint32_t pe_signature = *based_pointer<uint32_t>(buffer, pe_offset);
 
-    return mz_signature == PackUInt('M', 'Z') && pe_signature == PackUInt('P', 'E');
+    return mz_signature == PackUInt16('M', 'Z') && pe_signature == PackUInt16('P', 'E');
 }
 
 std::map<std::string, Pe32SectionHeader> ExeFile::ParseSectionHeaders() {
 	std::map<std::string, Pe32SectionHeader> info;
     uint32_t pe_offset = GetPEOffset(buffer);
-	
+
     PeHeader *pe_header = based_pointer<PeHeader>(buffer, pe_offset);
     uint32_t section_headers_offset = pe_offset + sizeof(PeHeader) + pe_header->mSizeOfOptionalHeader;
-    
+
 	for (uint16_t i = 0; i < pe_header->mNumberOfSections; i++) {
         Pe32SectionHeader *section = based_pointer<Pe32SectionHeader>(
             buffer, section_headers_offset + (i * sizeof(Pe32SectionHeader))

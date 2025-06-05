@@ -10,9 +10,6 @@
 
 class ArchiveBase {
     public:
-        unsigned char *buffer;
-        size_t buf_size;
-
         virtual const char* OpenStream(const Entry *entry, unsigned char *buffer) = 0;
         virtual std::unordered_map<std::string, Entry*> GetEntries() = 0;
         virtual ~ArchiveBase() = default;

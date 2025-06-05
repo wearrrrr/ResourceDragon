@@ -18,6 +18,6 @@ LuaArchiveFormat *ScriptManager::Register() {
     LuaUtils::CallLuaMethod<int>(m_state, "register", 0, 1);
     lua_getglobal(m_state, "signature");
     auto sig = lua_tointeger(m_state, -1);
-    lua_pop(m_state, -1);
+    lua_pop(m_state, 1);
     return new LuaArchiveFormat(m_state, sig);
 }

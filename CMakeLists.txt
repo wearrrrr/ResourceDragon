@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS
 )
 set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -s")
 # set(CMAKE_CXX_FLAGS "-g")
-# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -fsanitize=address")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

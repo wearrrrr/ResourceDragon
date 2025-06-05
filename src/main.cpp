@@ -499,7 +499,7 @@ int main(int argc, char *argv[]) {
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
 
-    DeleteDirectoryNodeTree(rootNode);
+    FreeDirectoryTree(rootNode);
 
     #ifdef linux
     inotify_running = false;

@@ -34,11 +34,14 @@ public:
         if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
             const char *err = lua_tostring(m_state, -1);
             lua_pop(m_state, 1);
+            lua_gc(m_state, LUA_GCCOLLECT, 0);
             Logger::error(std::string("Lua error: ") + err);
+            return false;
         }
 
         bool result = lua_toboolean(m_state, -1);
         lua_pop(m_state, 1);
+        lua_gc(m_state, LUA_GCCOLLECT, 0);
         return result;
     }
 
@@ -52,6 +55,7 @@ public:
         if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
             const char *err = lua_tostring(m_state, -1);
             lua_pop(m_state, 1);
+            lua_gc(m_state, LUA_GCCOLLECT, 0);
             Logger::error(std::string("Lua error: ") + err);
             return nullptr;
         }
@@ -60,6 +64,7 @@ public:
         lua_pop(m_state, 1);
         Logger::log("try open: %d", result);
 
+        lua_gc(m_state, LUA_GCCOLLECT, 0);
         return nullptr;
     };
 

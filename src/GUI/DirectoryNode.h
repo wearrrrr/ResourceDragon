@@ -28,6 +28,6 @@ void HandleFileClick(DirectoryNode *node);
 void DisplayDirectoryNode(DirectoryNode *node);
 void SetupDisplayDirectoryNode(DirectoryNode *node);
 void UnloadSelectedFile();
-void DeleteDirectoryNodeTree(DirectoryNode* node);
+void FreeDirectoryTree(DirectoryNode* node);
 
 void VirtualArc_ExtractEntry();

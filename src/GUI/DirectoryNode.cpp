@@ -119,14 +119,12 @@ void UnloadSelectedFile() {
     curr_sound_is_midi = false;
 }
 
-void DeleteDirectoryNodeTree(DirectoryNode* node) {
-    if (!node) return;
-
-    for (DirectoryNode *child : node->Children) {
-        DeleteDirectoryNodeTree(child);
+void FreeDirectoryTree(DirectoryNode *node) {
+    for (DirectoryNode* child : node->Children) {
+        FreeDirectoryTree(child);
+        delete child;
     }
-
-    delete node;
+    node->Children.clear();
 }
 
 inline void SortChildren(DirectoryNode *node) {
@@ -206,6 +204,16 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
     }
 }
 
+void UnloadArchive() {
+    if (loaded_arc_base) {
+        delete loaded_arc_base;
+        loaded_arc_base = nullptr;
+    }
+    if (current_buffer) {
+        free(current_buffer);
+        current_buffer = nullptr;
+    }
+}
 
 DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent) {
     bool is_dir = fs::is_directory(rootPath);
@@ -249,7 +257,7 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
 void HandleFileClick(DirectoryNode *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    unsigned char* buffer = nullptr;
+    unsigned char* entry_buffer = nullptr;
     size_t size = 0;
 
     if (rootNode->IsVirtualRoot && !node->IsDirectory) {
@@ -259,8 +267,8 @@ void HandleFileClick(DirectoryNode *node) {
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
-                buffer = (unsigned char *)malloc(size);
-                memcpy(buffer, arc_read, size);
+                entry_buffer = (unsigned char *)malloc(size);
+                memcpy(entry_buffer, arc_read, size);
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
                 return;
@@ -269,46 +277,54 @@ void HandleFileClick(DirectoryNode *node) {
     } else {
         auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
         size = fs_size;
-        buffer = fs_buffer;
+        entry_buffer = (unsigned char*)malloc(size);
+        memcpy(entry_buffer, fs_buffer, size);
+        free(fs_buffer);
     }
 
-    if (buffer == nullptr) {
-        Logger::error("Unable to resolve what buffer should be! Aborting.");
+    if (entry_buffer == nullptr) {
+        Logger::error("Unable to resolve what entry_buffer should be! Aborting.");
         return;
     }
 
-    auto format = extractor_manager.getExtractorFor(buffer, size, ext);
+    auto format = extractor_manager.getExtractorFor(entry_buffer, size, ext);
 
     if (format == nullptr) {
         UnloadSelectedFile();
-        preview_state.contents.data = buffer;
+        preview_state.contents.data = current_buffer;
         preview_state.contents.size = size;
         preview_state.contents.path = node->FullPath;
         preview_state.contents.ext = ext;
         preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
-            // preview_state.texture.size.x = (int*)malloc(sizeof(int));
-            // preview_state.texture.size.y = (int*)malloc(sizeof(int));
-            Image::LoadImage(buffer, size, &preview_state.texture.id, preview_state.texture.size);
+            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
             if (*preview_state.texture.size.x < 256) {
-                // reload img with nearest neighbor filtering
-                Image::LoadImage(buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
+                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
             }
             preview_state.content_type = IMAGE;
+            free(entry_buffer);
         } else if (Image::IsGif(ext)) {
-            Image::LoadGifAnimation(preview_state.contents.data, preview_state.contents.size, &preview_state.texture.anim);
+            Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
             preview_state.content_type = GIF;
             preview_state.texture.frame = 0;
             preview_state.texture.last_frame_time = SDL_GetTicks();
+            free(entry_buffer);
         } else if (Audio::IsAudio(ext)) {
             if (rootNode->IsVirtualRoot) {
-                preview_state.audio.buffer = buffer;
+                preview_state.audio.buffer = entry_buffer;
                 SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
                 current_sound = Mix_LoadMUS_IO(snd_io, true);
+                if (!current_sound) {
+                    Logger::error("Failed to load audio: %s", SDL_GetError());
+                    free(entry_buffer);
+                    preview_state.audio.buffer = nullptr;
+                }
             } else {
                 current_sound = Mix_LoadMUS(node->FullPath.c_str());
+                free(entry_buffer);
             }
+
             if (current_sound) {
                 preview_state.content_type = AUDIO;
                 Mix_PlayMusic(current_sound, 1);
@@ -318,16 +334,14 @@ void HandleFileClick(DirectoryNode *node) {
                 preview_state.audio.time.total_time_min = duration / 60;
                 preview_state.audio.time.total_time_sec = duration % 60;
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
-            } else {
-                Logger::error("Failed to load audio: %s", SDL_GetError());
             }
-        } else if (ElfFile::IsValid(buffer)) {
-            ElfFile *elfFile = new ElfFile(node->FullPath);
+        } else if (ElfFile::IsValid(entry_buffer)) {
+            auto *elfFile = new ElfFile(node->FullPath);
             preview_state.contents.elfFile = elfFile;
             preview_state.content_type = ELF;
+            free(entry_buffer);
         } else {
-            auto text = std::string((char*)buffer, size);
-            // Check start of file for UTF16LE BOM
+            auto text = std::string((char*)entry_buffer, size);
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
                 std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
                 editor.SetText(TextConverter::UTF16ToUTF8(utf16));
@@ -335,21 +349,20 @@ void HandleFileClick(DirectoryNode *node) {
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);
-            if (size <= 200000) {
-                editor.SetColorizerEnable(true);
-            } else {
-                editor.SetColorizerEnable(false);
-            }
+            editor.SetColorizerEnable(size <= 200000);
             editor.SetShowWhitespaces(false);
+            free(entry_buffer);
         }
         return;
     }
 
-    auto arc = format->TryOpen(buffer, size, node->FileName);
+    auto arc = format->TryOpen(entry_buffer, size, node->FileName);
     if (arc == nullptr) {
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->GetTag().c_str());
-        goto hfc_end;
+        free(entry_buffer);
+        return;
     }
+
     if (loaded_arc_base) {
         delete loaded_arc_base;
     }
@@ -358,17 +371,14 @@ void HandleFileClick(DirectoryNode *node) {
     if (current_buffer) {
         free(current_buffer);
     }
+
     current_buffer = (unsigned char *)malloc(size);
-    memcpy(current_buffer, buffer, size);
+    memcpy(current_buffer, entry_buffer, size);
+    free(entry_buffer);
 
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
-
-hfc_end:
-    if (buffer) {
-        free(buffer);
-    }
-    return;
 }
+
 
 void DisplayDirectoryNode(DirectoryNode *node) {
     ImGui::TableNextRow();
@@ -455,6 +465,8 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
             if (node->Parent) {
                 rootNode = node->Parent;
             } else {
+                UnloadArchive();
+                FreeDirectoryTree(rootNode);
                 rootNode = CreateDirectoryNodeTreeFromPath(fs::path(node->FullPath).parent_path().string());
                 if (current_buffer) {
                     free(current_buffer);
