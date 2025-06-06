@@ -136,6 +136,10 @@ inline void SortChildren(DirectoryNode *node) {
     });
 }
 
+inline void SortChildrenBy(DirectoryNode* node, auto func) {
+    std::sort(node->Children.begin(), node->Children.end(), func);
+}
+
 bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
     try {
         if (node->IsVirtualRoot) {
@@ -418,7 +422,7 @@ void DisplayDirectoryNode(DirectoryNode *node) {
     ImGui::PopID();
 }
 
-void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nullptr) {
+void AddDirectoryNodeChild(std::string name, std::function<void()> callback) {
     if (ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
         if (callback) callback();
     };
@@ -440,11 +444,11 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
         ImGui::PushID(col);
         if (ImGui::Selectable(name, false)) {
             if (strcmp(name, "Size") == 0) {
-                std::sort(node->Children.begin(), node->Children.end(), [](const DirectoryNode* a, const DirectoryNode* b) {
+                SortChildrenBy(node, [](const DirectoryNode* a, const DirectoryNode* b) {
                     return a->FileSizeBytes > b->FileSizeBytes;
                 });
             } else if (strcmp(name, "Last Modified") == 0) {
-                std::sort(node->Children.begin(), node->Children.end(), [](const DirectoryNode* a, const DirectoryNode* b) {
+                SortChildrenBy(node, [](const DirectoryNode* a, const DirectoryNode* b) {
                     return a->LastModifiedUnix < b->LastModifiedUnix;
                 });
             } else {
