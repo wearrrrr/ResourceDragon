@@ -422,7 +422,7 @@ void DisplayDirectoryNode(DirectoryNode *node) {
     ImGui::PopID();
 }
 
-void AddDirectoryNodeChild(std::string name, std::function<void()> callback) {
+void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nullptr) {
     if (ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
         if (callback) callback();
     };
