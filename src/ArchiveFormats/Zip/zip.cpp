@@ -23,7 +23,7 @@ ArchiveBase* ZipFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
         zip_stat_t stat;
         zip_stat_index(za, i, 0, &stat);
 
-        if (stat.size == 0) continue;
+        if (stat.size <= 0) continue;
 
         auto entry = new Entry {
             .name = stat.name,
