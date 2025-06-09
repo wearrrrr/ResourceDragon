@@ -28,7 +28,7 @@ void Clipboard::CopyBufferToClipboard(unsigned char *buffer, size_t size, std::s
     std::string tempPath = "/tmp/rd/";
     std::string filename = tempPath + file_name;
 
-    fs::create_directories("/tmp/rd/");
+    fs::create_directories(tempPath);
     std::ofstream outFile(filename, std::ios::binary);
     outFile.write((const char*)buffer, size);
     outFile.close();

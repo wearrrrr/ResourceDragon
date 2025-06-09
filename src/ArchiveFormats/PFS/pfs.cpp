@@ -36,7 +36,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
         return nullptr;
     }
     unsigned char *index_buf = (unsigned char*)malloc(index_size);
-    Seek(7);
+    Seek(0x7);
 
     Read(index_buf, buffer, index_size);
 
