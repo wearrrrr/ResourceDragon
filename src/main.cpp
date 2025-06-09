@@ -19,6 +19,7 @@
 #include <ArchiveFormats/SonicAdv/sonicadv.h>
 #include <ArchiveFormats/Touhou/thdat.h>
 #include <ArchiveFormats/XP3/xp3.h>
+#include <ArchiveFormats/Zip/zip.h>
 
 #define DEBUG
 
@@ -168,6 +169,7 @@ int main(int argc, char *argv[]) {
     RegisterFormat<SonicAdv::PAK>();
     RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
+    RegisterFormat<ZipFormat>();
 
     ScriptManager *scriptManager = new ScriptManager();
 

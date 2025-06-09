@@ -6,7 +6,13 @@
 #include "Entry.h"
 #include <cstring>
 #include <unordered_map>
+#include <algorithm>
 #include "../util/Logger.h" // IWYU pragma: keep
+
+template <typename T = std::string>
+bool VectorHas(std::vector<T> vec, T item) {
+    return std::find(vec.begin(), vec.end(), item) != vec.end();
+}
 
 class ArchiveBase {
     public:

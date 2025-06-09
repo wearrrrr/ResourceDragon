@@ -18,6 +18,7 @@ struct Entry {
     uint32_t key;
     uint64_t offset;
     uint32_t size;
+    time_t lastModified;
 
     uint32_t packedSize;
     bool isPacked;

@@ -17,6 +17,7 @@ project(ResourceDragon VERSION 0.1)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
+find_package(libzip)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
@@ -66,4 +67,4 @@ endif()
 # Internal libs
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting)
 # Third party libs
-target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer lua ${OPENGL})
+target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip lua ${OPENGL})
