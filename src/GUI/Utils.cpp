@@ -64,7 +64,7 @@ std::string Utils::GetFileSize(const fs::path& path)
     return "--";
 }
 
-std::string Utils::GetFileSize(uint32_t size) {
+std::string Utils::GetFileSize(uint64_t size) {
     static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
     int unitIndex = 0;
     double decimal_size = (double)(size);

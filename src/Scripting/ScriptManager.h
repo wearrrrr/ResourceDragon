@@ -24,7 +24,7 @@ public:
         lGetTagRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
     }
 
-    bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override {
+    bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
 
         lua_pushlstring(m_state, (const char*)buffer, size);
@@ -45,7 +45,7 @@ public:
         return result;
     }
 
-    ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override {
+    ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
 
         lua_pushlstring(m_state, (const char*)buffer, size);

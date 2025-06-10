@@ -3,9 +3,9 @@
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
 
-static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
+static XP3Crypt *ALG_DEFAULT = new NoCrypt();
 
-ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
+ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     int64_t base_offset = 0;
 
     if (!CanHandleFile(buffer, size, "")) {
@@ -217,8 +217,8 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
         stream.resize(segment.Size);
         memcpy(stream.data(), buffer + segment.Offset, segment.Size);
         decrypted.resize(entry->size);
-        decrypted = entry->crypt->Decrypt(entry, segment.Offset, stream, 0, stream.size());
         if (segment.IsCompressed) {
+            Logger::log("Decompressing Entry %s", entry->name.c_str());
             uLongf decompressed_size = (uLongf)(segment.Size);
             uLongf compressed_size = (uLongf)(segment.PackedSize);
             if (uncompress(decrypted.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
@@ -226,6 +226,7 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
                 return nullptr;
             }
         }
+        decrypted = entry->crypt->Decrypt(entry, segment.Offset, stream, 0, stream.size());
         return (const char*)decrypted.data();
 
         // char* result = (char*)malloc(decrypted.size());

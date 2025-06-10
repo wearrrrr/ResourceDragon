@@ -54,7 +54,7 @@ struct Pe32SectionHeader {
 	char name[8];
 	uint32_t virtualSize;
 	uint32_t virtualAddress;
-	uint32_t sizeOfRawData;
+	uint64_t sizeOfRawData;
 	uint32_t pointerToRawData;
 	uint32_t pointerToRelocations;
 	uint32_t pointerToLinenumbers;

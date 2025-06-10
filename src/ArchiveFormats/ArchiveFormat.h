@@ -100,8 +100,8 @@ class ArchiveFormat {
 
         virtual ~ArchiveFormat() = default;
 
-        virtual bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const = 0;
-        virtual ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) = 0;
+        virtual bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const = 0;
+        virtual ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) = 0;
         virtual std::string GetTag() const {
             return this->tag;
         };

@@ -12,13 +12,13 @@ class ZipFormat : public ArchiveFormat {
 
         std::vector<std::string> extensions = {"zip", "zipx", "z01", "zx01"};
 
-        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override  {
+        bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override  {
             if (VectorHas(extensions, ext)) return true;
 
             return false;
         };
 
-        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
+        ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
 
         std::string GetTag() const override {
             return this->tag;

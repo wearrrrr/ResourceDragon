@@ -21,7 +21,7 @@ int32_t FindString(unsigned char *section_base, size_t section_size, const std::
 }
 
 
-ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
+ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name)
 {
 
     ExeFile *exe = nullptr;
@@ -123,7 +123,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     return Read<uint32_t>(exe->buffer, (found_section_offset + key_pos) + 0x17);
 }
 
-bool HSPArchive::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
+bool HSPArchive::CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const
 {
     if (std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;

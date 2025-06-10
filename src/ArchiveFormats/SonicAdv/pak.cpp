@@ -1,7 +1,7 @@
 #include "pak.h"
 #include <unordered_map>
 
-ArchiveBase *SAPakFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
+ArchiveBase *SAPakFormat::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     uint32_t file_count = Read<uint32_t>(buffer, 0x39);
     std::unordered_map<std::string, Entry> entries;
     std::vector<std::string> names;

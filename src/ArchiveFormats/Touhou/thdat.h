@@ -39,10 +39,10 @@ class THDAT : public ArchiveFormat {
 
     std::vector<std::string> extensions = {".dat", ".DAT"};
 
-    ArchiveBase *TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
-    ArchiveBase *TryOpenTH06(unsigned char *buffer, uint32_t size, std::string file_name);
+    ArchiveBase *TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
+    ArchiveBase *TryOpenTH06(unsigned char *buffer, uint64_t size, std::string file_name);
 
-    bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override {
+    bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override {
         if (ext == "dat" || ext == "DAT")
             return Read<uint32_t>(buffer, 0) == sig;
 

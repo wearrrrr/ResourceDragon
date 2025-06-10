@@ -151,7 +151,7 @@ void *decompressEntry(DatFile *dat, unsigned idx) {
 }
 
 
-ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint32_t size, std::string file_name) {
+ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint64_t size, std::string file_name) {
     DatFile dat = {};
     std::unordered_map<std::string, DatEntry> entries;
     openDatFromBuffer(&dat, buffer, size);
@@ -162,6 +162,6 @@ ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint32_t size, std::strin
     return new THDATArchive(dat, entries);
 }
 
-ArchiveBase *THDAT::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
+ArchiveBase *THDAT::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     return TryOpenTH06(buffer, size, file_name);
 }

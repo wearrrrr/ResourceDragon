@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name)
+ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
@@ -23,7 +23,7 @@ ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     return nullptr;
 }
 
-ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t version) {
+ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint64_t size, uint8_t version) {
     uint32_t index_size = Read<uint32_t>(buffer, 3);
     uint32_t file_count = Read<uint32_t>(buffer, 7);
 
@@ -87,7 +87,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint32_t size, uint8_t ver
     return new PFSArchive(this, entries, key.toVector());
 }
 
-bool PFSFormat::CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const
+bool PFSFormat::CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const
 {
     if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;

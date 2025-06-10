@@ -7,9 +7,9 @@ class SAPakFormat : public ArchiveFormat {
 
     std::vector<std::string> extensions = {"pak"};
 
-    ArchiveBase *TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
+    ArchiveBase *TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
 
-    bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &_ext) const override {
+    bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &_ext) const override {
         return Read<uint32_t>(buffer, 0) == sig;
     };
     std::string GetTag() const override {

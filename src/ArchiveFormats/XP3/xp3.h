@@ -24,13 +24,13 @@ class XP3Format : public ArchiveFormat {
             0x58, 0x50, 0x33, 0x0d, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01
         };
 
-        ArchiveBase *TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
+        ArchiveBase *TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
 
         std::string GetTag() const override {
             return this->tag;
         };
 
-        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &_ext) const override {
+        bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &_ext) const override {
             return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
         };
 };

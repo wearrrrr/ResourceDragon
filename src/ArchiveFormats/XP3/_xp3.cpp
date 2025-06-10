@@ -2,7 +2,7 @@
 
 static XP3Crypt *ALG_DEFAULT = new NekoworksCrypt();
 
-ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) {
+ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     int64_t base_offset = 0;
 
     if (!CanHandleFile(buffer, size, "")) {
@@ -13,7 +13,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
     int64_t dir_offset = base_offset + Read<uint64_t>(buffer, base_offset + 0x0B);
 
     if (dir_offset < 0x13 || dir_offset >= size) return nullptr;
-    
+
     if (Read<uint32_t>(buffer, dir_offset) == 0x80) {
         dir_offset = base_offset + Read<int64_t>(buffer, dir_offset + 0x9);
         if (dir_offset < 0x13) return nullptr;
@@ -164,7 +164,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint32_t size, std::strin
             Logger::log("yuz/sen/dls entry found! I don't know how to handle these!!");
         } else if (entry_size > 7) {
             uint32_t hash = header.read<uint32_t>();
-            int16_t name_size = header.read<int16_t>(); 
+            int16_t name_size = header.read<int16_t>();
             if (name_size > 0) {
                 entry_size -= 6;
                 if (name_size * 2 <= entry_size)
@@ -204,7 +204,7 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
         }
 
         return (const char*)stream.data();
-    } 
+    }
     else {
         // Encrypted entries
         stream.resize(entry->size);

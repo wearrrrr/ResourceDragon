@@ -21,8 +21,8 @@ class HSPArchive : public ArchiveFormat {
 
         uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
 
-        ArchiveBase* TryOpen(unsigned char *buffer, uint32_t size, std::string file_name) override;
-        bool CanHandleFile(unsigned char *buffer, uint32_t size, const std::string &ext) const override;
+        ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
+        bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override;
         std::string GetTag() const override {
             return this->tag;
         }
