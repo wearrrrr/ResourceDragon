@@ -13,7 +13,7 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
         return nullptr;
     }
 
-    int64_t dir_offset = base_offset + Read<uint64_t>(buffer, base_offset + 0x0B);
+    uint64_t dir_offset = base_offset + Read<uint64_t>(buffer, base_offset + 0x0B);
 
     if (dir_offset < 0x13 || dir_offset >= size) return nullptr;
 
@@ -93,8 +93,8 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
                             goto NextEntry;
                         }
                         entry.isEncrypted = header.read<uint32_t>() != 0;
-                        int64_t file_size = header.read<int64_t>();
-                        int64_t packed_size = header.read<int64_t>();
+                        uint64_t file_size = header.read<uint64_t>();
+                        uint64_t packed_size = header.read<int64_t>();
                         if (file_size >= UINT32_MAX || packed_size > UINT32_MAX || packed_size > size)
                         {
                             goto NextEntry;
@@ -132,9 +132,9 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
                                 bool compressed = header.read<int32_t>() != 0;
-                                int64_t segment_offset = base_offset + header.read<int64_t>();
+                                uint64_t segment_offset = base_offset + header.read<uint64_t>();
                                 int64_t segment_size = header.read<int64_t>();
-                                int64_t segment_packed_size = header.read<int64_t>();
+                                uint64_t segment_packed_size = header.read<uint64_t>();
                                 if (segment_offset > size || segment_packed_size > size)
                                 {
                                     goto NextEntry;

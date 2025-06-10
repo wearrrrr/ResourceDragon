@@ -1,7 +1,8 @@
 #include <Image.h>
 #include <Utils.h>
 #include "../util/Logger.h"
-#include "gl3.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
 {
@@ -75,6 +76,22 @@ void Image::UnloadAnimation(GifAnimation* animation)
     return;
 }
 
+GLuint Image::LoadTex(const unsigned char* data, int width, int height, uint32_t mode) {
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
+
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        Logger::log("OpenGL error uploading texture: 0x%x", err);
+    }
+    return image_texture;
+}
 
 bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, uint32_t mode) {
     int image_width = 0;
@@ -104,15 +121,7 @@ bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, V
     image_height = converted_surface->h;
     image_data = (unsigned char *)(converted_surface->pixels);
 
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
-
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    GLuint image_texture = LoadTex(image_data, image_width, image_height, mode);
 
     SDL_DestroySurface(converted_surface);
 
@@ -137,7 +146,7 @@ bool Image::IsGif(const std::string &ext) {
     return ext == "gif";
 }
 
-const std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "tga", "tif", "tiff", "jxl"};
+const std::string image_exts[] = {"png", "jpg", "jpeg", "bmp", "webp", "svg", "tga", "tif", "tiff", "jxl", "dds"};
 
 bool Image::IsImageExtension(const std::string &ext)
 {

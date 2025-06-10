@@ -37,11 +37,6 @@ void PreviewWindow::RenderImagePreview() {
     if (texture->id) {
         ImVec2 image_size = ImVec2(*texture->size.x * img_preview__zoom, *texture->size.y * img_preview__zoom);
         ImVec2 cursor = ImGui::GetCursorScreenPos();
-        if (preview_state.texture.firstFrame) {
-            img_preview__pan = {(region_size.x - image_size.x) * 0.5f, 0.0f};
-            img_preview__zoom = 1.0f;
-            preview_state.texture.firstFrame = false;
-        }
         ImVec2 draw_pos = Floor(cursor + img_preview__pan);
         ImVec2 draw_end = draw_pos + Floor(image_size);
         ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);

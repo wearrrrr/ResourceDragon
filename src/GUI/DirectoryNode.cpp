@@ -10,7 +10,11 @@
 #include <Utils.h>
 #include "../state.h"
 #include "../util/Text.h"
+#include "Image.h"
 #include "gl3.h"
+
+#include "../ResourceFormats/DDS.h"
+using dds::ReadResult;
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
     for (const auto &entry : entries) {
@@ -87,7 +91,6 @@ void UnloadSelectedFile() {
     preview_state.texture.anim = {};
     preview_state.texture.frame = 0;
     preview_state.texture.last_frame_time = 0;
-    preview_state.texture.firstFrame = true;
 
     preview_state.content_type = PContentType::UNKNOWN;
 
@@ -302,9 +305,26 @@ void HandleFileClick(DirectoryNode *node) {
         preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
-            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
-            if (*preview_state.texture.size.x < 256) {
-                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
+            if (ext == "dds") {
+                dds::Image image;
+                auto result = dds::readImage(entry_buffer, size, &image);
+                if (result != ReadResult::Success) {
+                    Logger::log("Failed to load DDS into memory! D:");
+                    preview_state.content_type = IMAGE;
+                    free(entry_buffer);
+                }
+                auto& mip = image.mipmaps[0];
+                Logger::log("DDS Load: %dx%d, %zu bytes", image.width, image.height, mip.size());
+                auto id = Image::LoadTex(mip.data(), image.width, image.height);
+                preview_state.texture.id = id;
+                *preview_state.texture.size.x = image.width;
+                *preview_state.texture.size.y = image.height;
+                Logger::log("%d x %d", image.width, image.height);
+            } else {
+                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
+                if (*preview_state.texture.size.x < 256) {
+                    Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
+                }
             }
             preview_state.content_type = IMAGE;
             free(entry_buffer);

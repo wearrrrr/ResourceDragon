@@ -8,9 +8,9 @@ typedef class XP3Crypt XP3Crypt;
 
 struct Segment {
     bool IsCompressed;
-    int64_t Offset;
+    uint64_t Offset;
     int64_t Size;
-    int64_t PackedSize;
+    uint64_t PackedSize;
 };
 
 struct Entry {
