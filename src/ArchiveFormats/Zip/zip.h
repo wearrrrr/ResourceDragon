@@ -27,22 +27,43 @@ class ZipFormat : public ArchiveFormat {
 
 class ZipArchive : public ArchiveBase {
 public:
-    std::unordered_map<std::string, Entry*> entries;
+    std::unordered_map<std::string, Entry> entries;
+    zip_t *zip_arc;
 
-    explicit ZipArchive(std::unordered_map<std::string, Entry*> entries) : entries(entries) {}
+    ZipArchive(std::unordered_map<std::string, Entry> entries, zip_t *za) : entries(entries) {
+        zip_arc = za;
+    }
 
     const char* OpenStream(const Entry *entry, unsigned char *buffer) override {
-        return (const char*)entry->data.data();
+        if (!entry) return nullptr;
+
+        zip_file_t *zf = zip_fopen_index(zip_arc, entry->index, 0);
+        if (!zf) {
+            Logger::error("Failed to open file '%s' by index!", entry->name.c_str());
+            return nullptr;
+        }
+
+        char *buf = (char*)malloc(entry->size);
+        if (!buf) {
+            zip_fclose(zf);
+            return nullptr;
+        }
+
+        zip_fread(zf, buf, entry->size);
+        zip_fclose(zf);
+
+        return buf;
     }
 
     std::unordered_map<std::string, Entry*> GetEntries() override {
-        return this->entries;
+        std::unordered_map<std::string, Entry*> entries;
+        for (auto& entry : this->entries)
+            entries[entry.first] = &entry.second;
+        return entries;
     }
 
     ~ZipArchive() {
-        for (auto &pair : this->entries) {
-            delete pair.second;
-        }
         this->entries.clear();
+        zip_close(zip_arc);
     }
 };

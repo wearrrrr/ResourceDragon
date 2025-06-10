@@ -22,6 +22,7 @@ struct Entry {
 
     uint32_t packedSize;
     bool isPacked;
+    uint64_t index;
 
     std::vector<Segment> segments;
     bool isEncrypted;
