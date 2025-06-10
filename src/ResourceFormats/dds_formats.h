@@ -1,3 +1,6 @@
+// dds_image by spnda -- https://github.com/spnda/dds_image/
+// show them your love if you got use out of DDS decoding, not me :)
+
 #pragma once
 
 #include <cstdint>
