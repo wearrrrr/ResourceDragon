@@ -549,7 +549,7 @@ namespace dds {
             return ReadResult::UnsupportedFormat;
 
         // arraySize is populated with the additional DX10 header.
-        uint64_t totalSize = 0;
+        // uint64_t totalSize = 0;
         for (uint32_t i = 0; i < image->arraySize; ++i) {
             auto mipmaps = max(header->mipmapCount, 1u);
             auto width = header->width;
@@ -558,7 +558,7 @@ namespace dds {
 			image->mipmaps.reserve(mipmaps);
             for (uint32_t mip = 0; mip < mipmaps && width != 0; ++mip) {
                 uint32_t size = computeMipmapSize(image->format, width, height);
-                totalSize += static_cast<uint64_t>(size);
+                // totalSize += static_cast<uint64_t>(size);
 
                 image->mipmaps.emplace_back(ptr, size);
                 ptr += size;
