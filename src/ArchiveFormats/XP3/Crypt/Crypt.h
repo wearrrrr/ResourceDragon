@@ -113,8 +113,6 @@ class AkabeiCrypt : public XP3Crypt {
             std::vector<uint8_t> out = buffer;
 
             auto key = GetKey(entry->hash);
-            Logger::log("%x", m_seed);
-            Logger::log("AkabeiCrypt: Key is %x", key.data());
             int key_pos = (int)(offset);
             for (int i = 0; i < count; ++i) {
                 out[pos+i] ^= key[key_pos++ & 0x1F];

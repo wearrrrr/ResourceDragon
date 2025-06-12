@@ -2,6 +2,8 @@
 #include "Entry.h"
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
+#include <lz4.h>
+#include <cstring>
 
 static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
 
@@ -185,26 +187,21 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
 
 static std::vector<uint8_t> stream;
 static std::vector<uint8_t> decrypted;
+static std::vector<uint8_t> decompressed;
 
 const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
     stream.clear();
     if (entry->segments.size() == 1 && !entry->isEncrypted) {
         Segment segment = entry->segments.at(0);
+        stream.resize(segment.Size);
         if (segment.IsCompressed) {
-            stream.resize(segment.Size);
-            uLongf decompressed_size = (uLongf)(segment.Size);
-            uLongf compressed_size = (uLongf)(segment.PackedSize);
+            uLongf decompressed_size = segment.Size;
+            uLongf compressed_size = segment.PackedSize;
             if (uncompress(stream.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
                 Logger::error("XP3: Failed to decompress entry!");
-                return nullptr;
-            }
-            if (decompressed_size != (uLongf)segment.Size) {
-                Logger::error("XP3: Decompressed size does not match entry size!");
-                return nullptr;
             }
         } else {
-            stream.resize(entry->size);
             memcpy(stream.data(), buffer + entry->offset, entry->size);
         }
 
@@ -217,16 +214,6 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
         memcpy(stream.data(), buffer + segment.Offset, segment.Size);
 
         decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, segment.Size);
-
-        // if (segment.IsCompressed) {
-        //     uLongf decompressed_size = (uLongf)(segment.Size);
-        //     uLongf compressed_size = (uLongf)(segment.PackedSize);
-        //     if (uncompress(decrypted.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
-        //         Logger::error("XP3: Failed to decompress entry!");
-        //         return nullptr;
-        //     }
-        // }
-
         return (const char*)decrypted.data();
     }
 

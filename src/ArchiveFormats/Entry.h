@@ -20,7 +20,7 @@ struct Entry {
     uint64_t size;
     time_t lastModified;
 
-    uint32_t packedSize;
+    uint64_t packedSize;
     bool isPacked;
     uint64_t index;
 
