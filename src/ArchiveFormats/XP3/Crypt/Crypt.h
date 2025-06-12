@@ -5,7 +5,6 @@
 
 #include <Entry.h>
 #include "../../../BinaryReader.h"
-#include "../../../util/Logger.h"
 
 class XP3Crypt {
 public:
@@ -14,7 +13,6 @@ public:
         bool ObfuscatedIndex = false;
 
         virtual std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) = 0;
-        virtual uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) = 0;
         virtual uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) = 0;
 
         virtual ~XP3Crypt() = default;
@@ -43,10 +41,6 @@ class NoCrypt : public XP3Crypt {
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             return buffer;
         }
-
-        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
-            return value;
-        }
         uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
             return value;
         }
@@ -58,13 +52,6 @@ class NoCrypt : public XP3Crypt {
 
 class HibikiCrypt : public XP3Crypt {
     public:
-        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
-            if (0 != (offset & 4) || offset <= 0x64)
-                return (uint8_t)(value ^ (entry->hash >> 5));
-            else
-                return (uint8_t)(value ^ (entry->hash >> 8));
-        }
-
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             uint8_t key1 = (uint8_t)(entry->hash >> 5);
             uint8_t key2 = (uint8_t)(entry->hash >> 8);
@@ -83,7 +70,7 @@ class HibikiCrypt : public XP3Crypt {
         }
 
         std::string GetCryptName() override {
-            return "Hibiki";
+            return "HibikiCrypt";
         }
 };
 
@@ -103,12 +90,6 @@ class AkabeiCrypt : public XP3Crypt {
             return oss.str();
         }
 
-        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
-            int key_pos = (int)(offset) & 0x1F;
-            auto key = GetKey(entry->hash)[key_pos];
-            return value ^ key;
-        }
-
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             std::vector<uint8_t> out = buffer;
 
@@ -125,7 +106,7 @@ class AkabeiCrypt : public XP3Crypt {
         }
 
         std::string GetCryptName() override {
-            return "Akabei";
+            return "AkabeiCrypt";
         }
 
     private:
@@ -141,45 +122,42 @@ class AkabeiCrypt : public XP3Crypt {
         }
 };
 
-class NekoworksCrypt : public XP3Crypt {
-    std::vector<uint8_t> m_key;
+class SmileCrypt : XP3Crypt {
+    private:
+        uint32_t m_key_xor;
+        uint8_t m_first_xor;
+        uint8_t m_zero_xor;
+
     public:
-        NekoworksCrypt() : m_key({0x15, 0x48, 0xE2, 0x9C}) {}
-        NekoworksCrypt(const std::vector<uint8_t> &key) {
-            m_key = key;
-        }
+    SmileCrypt (uint32_t key_xor, uint8_t first_xor, uint8_t zero_xor) {
+        m_key_xor = key_xor;
+        m_first_xor = first_xor;
+        m_zero_xor = zero_xor;
+    }
 
-        std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
-            auto key = InitKey(entry->hash);
-            for (int i = 0; i < count; ++i)
-            {
-                buffer[pos+i] ^= key[(offset + i) % 31];
+    std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
+        uint32_t hash = entry->hash ^ m_key_xor;
+        uint8_t key = (uint8_t)(hash ^ (hash >> 8) ^ (hash >> 16) ^ (hash >> 24));
+        if (key == 0) {
+            key = m_zero_xor;
+        }
+        if (offset == 0 && count > 0) {
+            if ((hash & 0xFF) == 0) {
+                hash = m_first_xor;
             }
-            return buffer;
+            buffer[pos] ^= (uint8_t)hash;
         }
+        for (int i = 0; i < count; i++) {
+            buffer[pos+1] ^= key;
+        }
+        return buffer;
+    }
 
-        uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
-            return 0;
-        }
+    uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
+        return value;
+    }
 
-        // no-op
-        uint8_t Encrypt(Entry *entry, uint64_t offset, uint8_t value) override {
-            Logger::warn("NekoworksCrypt: Encrypt is not supported");
-            return value;
-        }
-
-        std::vector<uint8_t> InitKey(uint32_t hash) {
-            hash &= 0x7FFFFFFF;
-            hash = (hash << 31) | hash;
-            auto key = m_key;
-            for (int i = 0; i < 31; ++i) {
-                key[i] ^= (uint8_t)hash;
-                hash = (hash & 0xFFFFFFFE) << 23 | hash >> 8;
-            }
-            return m_key;
-        }
-
-        std::string GetCryptName() override {
-            return "Nekoworks";
-        }
+    std::string GetCryptName() override {
+        return "SmileCrypt";
+    }
 };

@@ -17,9 +17,17 @@
 using dds::ReadResult;
 
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
+    const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
-        if (node->FullPath.contains(entry.second->name)) {
-            return entry.second;
+        const std::string& name = entry.second->name;
+
+        if (fullPath.size() >= name.size() &&
+            fullPath.compare(fullPath.size() - name.size(), name.size(), name) == 0) {
+            if (fullPath.size() == name.size() ||
+                fullPath[fullPath.size() - name.size() - 1] == '/' ||
+                fullPath[fullPath.size() - name.size() - 1] == '\\') {
+                return entry.second;
+            }
         }
     }
     return nullptr;

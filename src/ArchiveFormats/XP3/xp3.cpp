@@ -5,7 +5,7 @@
 #include <lz4.h>
 #include <cstring>
 
-static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
+static XP3Crypt *ALG_DEFAULT = new NoCrypt();
 
 ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     int64_t base_offset = 0;
@@ -113,7 +113,6 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
 
                         auto name = TextConverter::UTF16ToUTF8(entry.crypt->ReadName(header));
                         if (name.empty()) {
-                            Logger::error("XP3: Failed to read entry name!");
                             goto NextEntry;
                         }
                         if (entry.crypt->ObfuscatedIndex)
@@ -192,13 +191,13 @@ static std::vector<uint8_t> decompressed;
 const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
     stream.clear();
+    Segment segment = entry->segments.at(0);
+    stream.resize(segment.Size);
     if (entry->segments.size() == 1 && !entry->isEncrypted) {
-        Segment segment = entry->segments.at(0);
-        stream.resize(segment.Size);
         if (segment.IsCompressed) {
-            uLongf decompressed_size = segment.Size;
-            uLongf compressed_size = segment.PackedSize;
-            if (uncompress(stream.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
+            uLongf decompressed_size = entry->size;
+            uLongf compressed_size = entry->packedSize;
+            if (uncompress(stream.data(), &decompressed_size, buffer + entry->offset, compressed_size) != Z_OK) {
                 Logger::error("XP3: Failed to decompress entry!");
             }
         } else {
@@ -209,11 +208,8 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
     }
     else {
         // Encrypted entries
-        Segment segment = entry->segments.at(0);
-        stream.resize(segment.Size);
-        memcpy(stream.data(), buffer + segment.Offset, segment.Size);
-
-        decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, segment.Size);
+        memcpy(stream.data(), buffer + entry->offset, entry->size);
+        decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, entry->size);
         return (const char*)decrypted.data();
     }
 
