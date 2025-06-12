@@ -92,7 +92,9 @@ class AkabeiCrypt : public XP3Crypt {
         uint32_t m_seed;
 
     public:
-        AkabeiCrypt() : m_seed(0) {}
+        AkabeiCrypt() {
+            m_seed = 0xE5BDEC8A;
+        }
         AkabeiCrypt(uint32_t seed) : m_seed(seed) {}
 
         std::string ToString() const {
@@ -103,18 +105,19 @@ class AkabeiCrypt : public XP3Crypt {
 
         uint8_t Decrypt(const Entry *entry, uint64_t offset, uint8_t value) override {
             int key_pos = (int)(offset) & 0x1F;
-            auto key = GetKey(entry->hash);
-            return value ^ key[key_pos];
+            auto key = GetKey(entry->hash)[key_pos];
+            return value ^ key;
         }
 
         std::vector<uint8_t> Decrypt(const Entry *entry, uint64_t offset, std::vector<uint8_t> buffer, int pos, int count) override {
             std::vector<uint8_t> out = buffer;
 
             auto key = GetKey(entry->hash);
+            Logger::log("%x", m_seed);
             Logger::log("AkabeiCrypt: Key is %x", key.data());
             int key_pos = (int)(offset);
             for (int i = 0; i < count; ++i) {
-                out[pos] ^= key[key_pos++ & 0x1F];
+                out[pos+i] ^= key[key_pos++ & 0x1F];
             }
             return out;
         }

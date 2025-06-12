@@ -3,7 +3,7 @@
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
 
-static XP3Crypt *ALG_DEFAULT = new NoCrypt();
+static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
 
 ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
     int64_t base_offset = 0;
@@ -213,26 +213,21 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
     else {
         // Encrypted entries
         Segment segment = entry->segments.at(0);
-        Logger::log("%d", segment.IsCompressed);
         stream.resize(segment.Size);
         memcpy(stream.data(), buffer + segment.Offset, segment.Size);
-        decrypted.resize(entry->size);
-        if (segment.IsCompressed) {
-            Logger::log("Decompressing Entry %s", entry->name.c_str());
-            uLongf decompressed_size = (uLongf)(segment.Size);
-            uLongf compressed_size = (uLongf)(segment.PackedSize);
-            if (uncompress(decrypted.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
-                Logger::error("XP3: Failed to decompress entry!");
-                return nullptr;
-            }
-        }
-        decrypted = entry->crypt->Decrypt(entry, segment.Offset, stream, 0, stream.size());
-        return (const char*)decrypted.data();
 
-        // char* result = (char*)malloc(decrypted.size());
-        // if (result) {
-        //     memcpy(result, decrypted.data(), decrypted.size());
+        decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, segment.Size);
+
+        // if (segment.IsCompressed) {
+        //     uLongf decompressed_size = (uLongf)(segment.Size);
+        //     uLongf compressed_size = (uLongf)(segment.PackedSize);
+        //     if (uncompress(decrypted.data(), &decompressed_size, buffer + segment.Offset, compressed_size) != Z_OK) {
+        //         Logger::error("XP3: Failed to decompress entry!");
+        //         return nullptr;
+        //     }
         // }
+
+        return (const char*)decrypted.data();
     }
 
     return nullptr;
