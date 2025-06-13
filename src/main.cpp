@@ -60,7 +60,8 @@ void RenderFBContextMenu(ImGuiIO *io) {
             ImGui::EndMenu();
         }
         if (rootNode->IsVirtualRoot) {
-            if (ImGui::MenuItem("Extract")) VirtualArc_ExtractEntry();
+            if (ImGui::MenuItem("Extract File")) VirtualArc_ExtractEntry();
+            if (ImGui::MenuItem("Extract All")) VirtualArc_ExtractAll();
         }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;

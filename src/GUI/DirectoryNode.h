@@ -30,4 +30,5 @@ void SetupDisplayDirectoryNode(DirectoryNode *node);
 void UnloadSelectedFile();
 void FreeDirectoryTree(DirectoryNode* node);
 
-void VirtualArc_ExtractEntry();
+void VirtualArc_ExtractEntry(std::string path = "extracted/");
+void VirtualArc_ExtractAll();

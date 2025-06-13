@@ -48,42 +48,60 @@ bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err) 
     return true;
 }
 
-void VirtualArc_ExtractEntry() {
+inline bool ValidateGlobals() {
     if (!loaded_arc_base) {
         Logger::error("No loaded archive! This is a bug!");
+        return false;
     }
     if (!selected_entry) {
         Logger::error("No selected entry found! This is a bug!");
-        return;
+        return false;
     }
     if (!current_buffer) {
         Logger::error("current_buffer is not initialized! This is a bug!");
+        return false;
+    }
+    return true;
+}
+
+void VirtualArc_ExtractEntry(std::string path, Entry *entry) {
+    if (!ValidateGlobals()) return;
+
+    const char *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
+
+    Logger::log("%s", entry->name.c_str());
+
+    #ifdef linux
+    std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
+    #endif
+
+    fs::path fullOutputPath = fs::path(path) / entry->name;
+
+    std::error_code err;
+    if (!CreateDirectoryRecursive(fullOutputPath.parent_path().string(), err)) {
+        Logger::error("Failed to create directory: %s", err.message().c_str());
         return;
     }
 
-    const char *extracted = loaded_arc_base->OpenStream(selected_entry, current_buffer);
-
-    Logger::log("%s", selected_entry->name.c_str());
-
-    #ifdef linux
-    std::replace(selected_entry->name.begin(), selected_entry->name.end(), '\\', '/');
-    #endif
-
-
-    fs::path entryPath(selected_entry->name);
-    std::error_code err;
-    std::string extraPath = "";
-    if (entryPath.has_parent_path()) {
-        auto parentDir = entryPath.parent_path().string();
-        extraPath = parentDir;
-    }
-    if (!CreateDirectoryRecursive("extracted/" + extraPath, err)) {
-        Logger::error("Failed to create directory: %s", err.message().c_str());
-    }
-
-    std::ofstream outFile("extracted/" + selected_entry->name, std::ios::binary);
-    outFile.write(extracted, selected_entry->size);
+    std::ofstream outFile(fullOutputPath, std::ios::binary);
+    outFile.write(extracted, entry->size);
     outFile.close();
+}
+
+void VirtualArc_ExtractAll() {
+    if (!ValidateGlobals()) return;
+
+    auto entries = loaded_arc_base->GetEntries();
+
+    auto fileName = fs::path(rootNode->FileName).filename().string();
+
+    for (auto &entry : entries) {
+        VirtualArc_ExtractEntry("extracted/" + fileName + "/", entry.second);
+    }
+}
+
+void VirtualArc_ExtractEntry(std::string path) {
+    VirtualArc_ExtractEntry(path, selected_entry);
 }
 
 void UnloadSelectedFile() {
@@ -377,7 +395,7 @@ void HandleFileClick(DirectoryNode *node) {
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
                 std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
                 editor.SetText(TextConverter::UTF16ToUTF8(utf16));
-            }else {
+            } else {
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);
