@@ -386,7 +386,7 @@ void HandleFileClick(DirectoryNode *node) {
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             }
         } else if (ElfFile::IsValid(entry_buffer)) {
-            auto *elfFile = new ElfFile(node->FullPath);
+            auto *elfFile = new ElfFile(entry_buffer, size);
             preview_state.contents.elfFile = elfFile;
             preview_state.content_type = ELF;
             free(entry_buffer);

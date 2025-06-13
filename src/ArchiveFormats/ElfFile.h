@@ -101,8 +101,6 @@ struct Elf64_Header {
 
 class ElfFile {
 private:
-  unsigned char *mFileStream;
-  fs::path mFilePath;
   union {
     Elf32_Header elf32;
     Elf64_Header elf64;
@@ -111,32 +109,25 @@ private:
   bool mIsValid = true;
 
 public:
-  ElfFile(const fs::path &filePath) {
-    mFilePath = filePath;
-    auto [buffer, size] = read_file_to_buffer<unsigned char>(filePath.string().c_str());
+  ElfFile(const unsigned char *buffer, uint64_t size) {
     if (size < 52L) {
       Logger::error("File is smaller than minimum possible elf size! This is not a valid ELF file.");
       mIsValid = false;
       return;
     }
-    mFileStream = buffer;
 
-    ElfClass elfClass = (ElfClass)(mFileStream[4]);
+    ElfClass elfClass = (ElfClass)(buffer[4]);
 
     if (elfClass == ElfClass::ELF32) {
-      mElfHeader.elf32 = *(Elf32_Header *)(mFileStream);
+      mElfHeader.elf32 = *(Elf32_Header *)(buffer);
       mElfClass = ElfClass::ELF32;
     } else if (elfClass == ElfClass::ELF64) {
-      mElfHeader.elf64 = *(Elf64_Header *)(mFileStream);
+      mElfHeader.elf64 = *(Elf64_Header *)(buffer);
       mElfClass = ElfClass::ELF64;
     } else {
       mIsValid = false;
       return;
     }
-  };
-  ~ElfFile() {
-    free(mFileStream);
-    mFileStream = nullptr;
   };
 
   const Elf32_Header* GetElf32Header() const {
