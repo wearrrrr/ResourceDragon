@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../ArchiveFormat.h"
 #include <unordered_map>
 

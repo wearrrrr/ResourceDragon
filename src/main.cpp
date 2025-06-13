@@ -21,7 +21,7 @@
 #include <ArchiveFormats/XP3/xp3.h>
 #include <ArchiveFormats/Zip/zip.h>
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #include <cmath>
@@ -166,6 +166,7 @@ inline void RegisterFormat(T *arc_fmt) {
 int main(int argc, char *argv[]) {
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
+    RegisterFormat<NitroPlus::NPK>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<SonicAdv::PAK>();
     RegisterFormat<THDAT>();

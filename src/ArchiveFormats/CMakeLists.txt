@@ -3,8 +3,9 @@ add_library(ArchiveFormats
     ExeFile.cpp
 
     HSP/hsp.cpp
-    NitroPlus/mpk.cpp
     NitroPlus/npa.cpp
+    NitroPlus/npk.cpp
+    NitroPlus/mpk.cpp
     PFS/pfs.cpp
     SonicAdv/pak.cpp
     Touhou/thdat.cpp
