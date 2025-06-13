@@ -377,7 +377,7 @@ void HandleFileClick(DirectoryNode *node) {
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
                 std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
                 editor.SetText(TextConverter::UTF16ToUTF8(utf16));
-            } else {
+            }else {
                 editor.SetText(text);
             }
             editor.SetTextChanged(false);

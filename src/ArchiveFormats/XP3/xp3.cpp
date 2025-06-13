@@ -2,6 +2,7 @@
 #include "Entry.h"
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
+#include <jxl/decode.h>
 #include <lz4.h>
 #include <cstring>
 
@@ -184,6 +185,79 @@ ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::strin
     return new XP3Archive(dir);
 }
 
+std::vector<uint8_t> DecompressLz4(const Entry *entry, std::vector<uint8_t> buffer) {
+    Logger::error("DecompressLZ4 called! We don't support this yet...");
+    return {};
+};
+std::vector<uint8_t> DecompressMdf(const Entry *entry, std::vector<uint8_t> buffer) {
+    Logger::error("DecompressMdf called! We don't support this yet...");
+    return {};
+};
+
+std::vector<uint8_t> DecryptScript(int enc_type, const std::vector<uint8_t>& input, uint32_t unpacked_size) {
+    size_t input_size = input.size();
+
+    if (enc_type == 2) {
+        // Check we have at least 16 bytes for two Int64 reads
+        if (input_size < 16)
+            throw std::runtime_error("Input too short for enc_type 2");
+        std::vector<uint8_t> compressed_data(input.begin() + 16, input.end());
+        return {};
+    }
+
+    // For enc_type 0 or 1, prepare output vector with capacity +2 bytes for BOM
+    std::vector<uint8_t> output;
+    output.reserve(unpacked_size);
+
+    output.push_back(0xFF);
+    output.push_back(0xFE);
+
+    for (size_t pos = 0; pos + 1 < input_size; pos += 2) {
+        uint16_t c = input[pos] | (input[pos + 1] << 8);
+
+        if (enc_type == 1) {
+            c = ((c & 0xAAAA) >> 1) | ((c & 0x5555) << 1);
+        } else if (c < 0x20) {
+            continue;
+        } else {
+            c = c ^ (((c & 0xFE) << 8) ^ 1);
+        }
+        output.push_back(static_cast<uint8_t>(c & 0xFF));
+        output.push_back(static_cast<uint8_t>(c >> 8));
+
+        if (output.size() >= unpacked_size)
+            break;
+    }
+    return output;
+}
+
+std::vector<uint8_t> EntryReadFilter(const Entry *entry, const std::vector<uint8_t>& buffer) {
+    if (entry->size <= 5 /* || entry->Type == "audio" */)
+        return buffer;
+
+    if (buffer.size() < 5)
+        return buffer;
+
+    uint32_t signature = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
+
+    if (signature == 0x184D2204) {
+        // LZ4 magic
+        return DecompressLz4(entry, buffer);
+    }
+
+    uint32_t mdfSig = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16);
+    if (mdfSig == 0x00666D64) { // 'mdf' little-endian
+        return DecompressMdf(entry, buffer);
+    }
+
+    if ((signature & 0xFF00FFFFu) == 0xFF00FEFEu && buffer[2] < 3 && buffer[4] == 0xFE) {
+        std::vector<uint8_t> script_data(buffer.begin() + 5, buffer.end());
+        return DecryptScript(buffer[2], script_data, entry->size);
+    }
+
+    return buffer;
+}
+
 static std::vector<uint8_t> stream;
 static std::vector<uint8_t> decrypted;
 static std::vector<uint8_t> decompressed;
@@ -192,7 +266,7 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
 {
     stream.clear();
     Segment segment = entry->segments.at(0);
-    stream.resize(segment.Size);
+    stream.resize(entry->size);
     if (entry->segments.size() == 1 && !entry->isEncrypted) {
         if (segment.IsCompressed) {
             uLongf decompressed_size = entry->size;
@@ -204,12 +278,15 @@ const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
             memcpy(stream.data(), buffer + entry->offset, entry->size);
         }
 
+        stream = EntryReadFilter(entry, stream);
+
         return (const char*)stream.data();
     }
     else {
         // Encrypted entries
         memcpy(stream.data(), buffer + entry->offset, entry->size);
-        decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, entry->size);
+        decrypted = EntryReadFilter(entry, entry->crypt->Decrypt(entry, 0, stream, 0, entry->size));
+
         return (const char*)decrypted.data();
     }
 
