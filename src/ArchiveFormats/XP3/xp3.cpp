@@ -227,6 +227,7 @@ std::vector<uint8_t> DecryptScript(int enc_type, const std::vector<uint8_t>& inp
 
         if (output.size() >= unpacked_size)
             break;
+        output[output.size() - 2] = '\0';
     }
     return output;
 }
