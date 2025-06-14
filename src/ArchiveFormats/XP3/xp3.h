@@ -20,17 +20,17 @@ class XP3Format : public ArchiveFormat {
 
         std::vector<std::string> extensions = {"xp3", "exe"};
 
-        static constexpr unsigned char xp3_header[] = {
+        static constexpr uint8_t xp3_header[] = {
             0x58, 0x50, 0x33, 0x0d, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01
         };
 
-        ArchiveBase *TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
+        ArchiveBase *TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
 
         std::string GetTag() const override {
             return this->tag;
         };
 
-        bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &_ext) const override {
+        bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &_ext) const override {
             return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
         };
 };
@@ -54,5 +54,5 @@ class XP3Archive : public ArchiveBase {
                 entries[entry.first] = &entry.second;
             return entries;
         }
-        const char *OpenStream(const Entry *entry, unsigned char *buffer) override;
+        const char *OpenStream(const Entry *entry, uint8_t *buffer) override;
 };

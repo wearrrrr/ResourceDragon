@@ -2,12 +2,12 @@
 #include <unordered_map>
 #include <algorithm>
 
-int32_t FindString(unsigned char *section_base, size_t section_size, const std::vector<unsigned char> &pattern, int step = 1)
+int32_t FindString(uint8_t *section_base, size_t section_size, const std::vector<uint8_t> &pattern, int step = 1)
 {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
 
-    unsigned char *data = section_base;
+    uint8_t *data = section_base;
     size_t pattern_size = pattern.size();
     size_t max_offset = section_size - pattern_size;
 
@@ -21,7 +21,7 @@ int32_t FindString(unsigned char *section_base, size_t section_size, const std::
 }
 
 
-ArchiveBase* HSPArchive::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name)
+ArchiveBase* HSPArchive::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
 {
 
     ExeFile *exe = nullptr;
@@ -88,7 +88,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_byte
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     uint32_t base = section->pointerToRawData;
     uint32_t size = section->sizeOfRawData;
-    int32_t possible_key_pos = FindString(based_pointer<unsigned char>(exe->buffer, base), size, offset_bytes);
+    int32_t possible_key_pos = FindString(based_pointer<uint8_t>(exe->buffer, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
 }
@@ -96,7 +96,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_byte
 uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
-    std::vector<unsigned char> offset_bytes(offset_str.begin(), offset_str.end());
+    std::vector<uint8_t> offset_bytes(offset_str.begin(), offset_str.end());
     int32_t key_pos = -1;
     uint32_t found_section_offset = 0x0;
 
@@ -123,7 +123,7 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
     return Read<uint32_t>(exe->buffer, (found_section_offset + key_pos) + 0x17);
 }
 
-bool HSPArchive::CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const
+bool HSPArchive::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
 {
     if (std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;
@@ -142,9 +142,9 @@ bool HSPArchive::CanHandleFile(unsigned char *buffer, uint64_t size, const std::
     return false;
 }
 
-const char *DPMArchive::OpenStream(const Entry *entry, unsigned char *buffer)
+const char *DPMArchive::OpenStream(const Entry *entry, uint8_t *buffer)
 {
-    unsigned char *data = buffer + entry->offset;
+    uint8_t *data = buffer + entry->offset;
 
     if (entry->key) {
         return (const char*)DecryptEntry(data, entry->size, entry->key);

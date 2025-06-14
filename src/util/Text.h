@@ -2,6 +2,7 @@
 
 #include <string>
 #include <algorithm>
+#include <cstdint>
 #ifdef linux
 #include "iconv.h"
 #endif
@@ -85,11 +86,11 @@ class Text {
         // Not even going to pretend like I know what these functions do :lesanae:
         static inline void ltrim(std::string &str) {
             str.erase(str.begin(), std::find_if(str.begin(), str.end(),
-                [](unsigned char chr) { return !std::isspace(chr); }));
+                [](uint8_t chr) { return !std::isspace(chr); }));
         }
-        
+
         static inline void rtrim(std::string &str) {
             str.erase(std::find_if(str.rbegin(), str.rend(),
-                [](unsigned char chr) { return !std::isspace(chr); }).base(), str.end());
+                [](uint8_t chr) { return !std::isspace(chr); }).base(), str.end());
         }
 };

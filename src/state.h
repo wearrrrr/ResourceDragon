@@ -35,7 +35,7 @@ struct TimeInfo {
 struct PWinStateAudio {
   Mix_Music *music;
   bool playing;
-  unsigned char *buffer;
+  uint8_t *buffer;
   int volumePercent;
   TimeInfo time;
   SDL_TimerID update_timer;
@@ -44,7 +44,7 @@ struct PWinStateAudio {
 };
 
 struct PWinStateContents {
-    unsigned char *data;
+    uint8_t *data;
     size_t size;
     std::string path;
     std::string ext;
@@ -114,7 +114,7 @@ inline PreviewWinState preview_state = {
 inline ExtractorManager extractor_manager;
 
 inline ArchiveBase *loaded_arc_base = nullptr;
-inline unsigned char *current_buffer = nullptr;
+inline uint8_t *current_buffer = nullptr;
 inline Entry *selected_entry = nullptr;
 
 inline TextEditor editor;
@@ -134,3 +134,8 @@ inline bool text_editor__unsaved_changes = false;
 inline int inotify_fd;
 inline int inotify_wd;
 #endif
+
+template <typename T>
+T *malloc(size_t size) {
+    return (T*)malloc(size);
+}

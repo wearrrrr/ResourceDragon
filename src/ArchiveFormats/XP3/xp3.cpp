@@ -8,7 +8,7 @@
 
 static XP3Crypt *ALG_DEFAULT = new NoCrypt();
 
-ArchiveBase *XP3Format::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
+ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) {
     int64_t base_offset = 0;
 
     if (!CanHandleFile(buffer, size, "")) {
@@ -264,7 +264,7 @@ static std::vector<uint8_t> stream;
 static std::vector<uint8_t> decrypted;
 static std::vector<uint8_t> decompressed;
 
-const char *XP3Archive::OpenStream(const Entry *entry, unsigned char *buffer)
+const char *XP3Archive::OpenStream(const Entry *entry, uint8_t *buffer)
 {
     stream.clear();
     Segment segment = entry->segments.at(0);

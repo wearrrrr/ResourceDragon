@@ -1,11 +1,11 @@
 #include "../ArchiveFormat.h"
 
 struct BitReader {
-    const unsigned char *buffer;
+    const uint8_t *buffer;
     size_t size;
     size_t position;
-    unsigned char current_byte;
-    unsigned char bitmask;
+    uint8_t current_byte;
+    uint8_t bitmask;
 };
 
 #define ENTRY_NAME_LENGTH 256
@@ -26,7 +26,7 @@ struct DatFile {
 
     unsigned file_table_offset;
 
-    unsigned char initialized;
+    uint8_t initialized;
 };
 
 int findPbg3Entry(DatFile *dat, const char *entry);
@@ -39,10 +39,10 @@ class THDAT : public ArchiveFormat {
 
     std::vector<std::string> extensions = {".dat", ".DAT"};
 
-    ArchiveBase *TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
-    ArchiveBase *TryOpenTH06(unsigned char *buffer, uint64_t size, std::string file_name);
+    ArchiveBase *TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
+    ArchiveBase *TryOpenTH06(uint8_t *buffer, uint64_t size, std::string file_name);
 
-    bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override {
+    bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const override {
         if (ext == "dat" || ext == "DAT")
             return Read<uint32_t>(buffer, 0) == sig;
 
@@ -58,7 +58,7 @@ class THDATArchive : public ArchiveBase {
     DatFile dat;
     std::unordered_map<std::string, DatEntry> entries;
     // Kinda forced my hand to use this because apparently at some point things get corrupted and things stop decoding properly aaaaaaghh
-    std::unordered_map<std::string, std::vector<unsigned char>> decompressed_cache;
+    std::unordered_map<std::string, std::vector<uint8_t>> decompressed_cache;
 
     THDATArchive(const DatFile &dat, std::unordered_map<std::string, DatEntry> entries) {
         this->dat = dat;
@@ -75,9 +75,9 @@ class THDATArchive : public ArchiveBase {
             void* raw = decompressEntry(&dat, index);
             if (!raw) continue;
 
-            std::vector<unsigned char> data(
-                reinterpret_cast<unsigned char*>(raw),
-                reinterpret_cast<unsigned char*>(raw) + datEntry.size
+            std::vector<uint8_t> data(
+                reinterpret_cast<uint8_t*>(raw),
+                reinterpret_cast<uint8_t*>(raw) + datEntry.size
             );
             free(raw);
 
@@ -93,7 +93,7 @@ class THDATArchive : public ArchiveBase {
         return entry_map;
     }
 
-    const char* OpenStream(const Entry* entry, unsigned char* buffer) override {
+    const char* OpenStream(const Entry* entry, uint8_t* buffer) override {
         auto it = decompressed_cache.find(entry->name);
         if (it == decompressed_cache.end()) return nullptr;
         return reinterpret_cast<const char*>(it->second.data());

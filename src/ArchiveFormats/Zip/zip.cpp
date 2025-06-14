@@ -14,9 +14,9 @@ zip_t *OpenZipFromFile(std::string file_name) {
     return arc;
 }
 
-zip_t *OpenZipFromBuffer(unsigned char *buffer, uint64_t size) {
+zip_t *OpenZipFromBuffer(uint8_t *buffer, uint64_t size) {
     zip_error_t err;
-    std::unique_ptr<unsigned char[]> heap_buffer(new unsigned char[size]);
+    std::unique_ptr<uint8_t[]> heap_buffer(new uint8_t[size]);
     memcpy(heap_buffer.get(), buffer, size);
 
     zip_source_t *src_buf = zip_source_buffer_create(heap_buffer.get(), size, ZIP_SOURCE_FREE, &err);
@@ -38,8 +38,8 @@ zip_t *OpenZipFromBuffer(unsigned char *buffer, uint64_t size) {
     return za;
 };
 
-ArchiveBase* ZipFormat::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
-    std::unique_ptr<unsigned char[]> heap_buffer(new unsigned char[size]);
+ArchiveBase* ZipFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) {
+    std::unique_ptr<uint8_t[]> heap_buffer(new uint8_t[size]);
     memcpy(heap_buffer.get(), buffer, size);
 
     zip_t *za;

@@ -65,10 +65,10 @@ struct Pe32SectionHeader {
 
 class ExeFile {
     public:
-		unsigned char *buffer;
+		uint8_t *buffer;
 		PeHeader header;
 		std::map<std::string, Pe32SectionHeader> sections;
-		ExeFile(unsigned char *buffer) {
+		ExeFile(uint8_t *buffer) {
 			this->buffer = buffer;
 			this->header = GetPEHeader();
 			this->sections = ParseSectionHeaders();
@@ -83,5 +83,5 @@ class ExeFile {
 		Pe32SectionHeader* GetSectionHeader(std::string target_section);
 		std::map<std::string, Pe32SectionHeader> ParseSectionHeaders();
 
-        static bool SigCheck(unsigned char *buffer);
+        static bool SigCheck(uint8_t *buffer);
 };

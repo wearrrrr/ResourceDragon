@@ -60,7 +60,7 @@ static_assert(sizeof(ElfIdent) == EI_NIDENT);
 
 struct Elf32_Header {
   union {
-    unsigned char e_ident_raw[EI_NIDENT];
+    uint8_t e_ident_raw[EI_NIDENT];
     ElfIdent e_ident;
   };
   ElfType e_type;
@@ -79,7 +79,7 @@ struct Elf32_Header {
 };
 struct Elf64_Header {
   union {
-    unsigned char e_ident_raw[EI_NIDENT];
+    uint8_t e_ident_raw[EI_NIDENT];
     ElfIdent e_ident;
   };
   ElfType e_type;
@@ -109,7 +109,7 @@ private:
   bool mIsValid = true;
 
 public:
-  ElfFile(const unsigned char *buffer, uint64_t size) {
+  ElfFile(const uint8_t *buffer, uint64_t size) {
     if (size < 52L) {
       Logger::error("File is smaller than minimum possible elf size! This is not a valid ELF file.");
       mIsValid = false;
@@ -194,5 +194,5 @@ public:
 
 
 
-  static bool IsValid(unsigned char *buffer);
+  static bool IsValid(uint8_t *buffer);
 };

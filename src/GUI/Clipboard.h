@@ -9,6 +9,6 @@ struct ClipboardFile {
 };
 
 namespace Clipboard {
-    void CopyBufferToClipboard(unsigned char *buffer, size_t size, std::string file_name);
+    void CopyBufferToClipboard(uint8_t *buffer, size_t size, std::string file_name);
     void CopyFilePathToClipboard(const std::string &path);
 };

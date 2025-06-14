@@ -21,8 +21,8 @@ class HSPArchive : public ArchiveFormat {
 
         uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
 
-        ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
-        bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override;
+        ArchiveBase* TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
+        bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const override;
         std::string GetTag() const override {
             return this->tag;
         }
@@ -47,9 +47,9 @@ class DPMArchive : public ArchiveBase {
             this->arc_key = arc_key;
             this->dpm_size = dpm_size;
         };
-        unsigned char* DecryptEntry(unsigned char *data, uint32_t data_size, uint32_t entry_key) {
+        uint8_t* DecryptEntry(uint8_t *data, uint32_t data_size, uint32_t entry_key) {
             // TODO: These values seem to swap between games? Maybe different versions of the engine..?
-            unsigned char *buffer = new unsigned char[data_size];
+            uint8_t *buffer = (uint8_t*)malloc(data_size);
             memcpy(buffer, data, data_size);
 
             uint8_t s1 = 0x55;
@@ -76,5 +76,5 @@ class DPMArchive : public ArchiveBase {
             }
             return entriesMap;
         }
-        const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
+        const char* OpenStream(const Entry *entry, uint8_t *buffer) override;
 };

@@ -1,6 +1,6 @@
 #include "ExeFile.h"
 
-uint32_t GetPEOffset(unsigned char *buffer) {
+uint32_t GetPEOffset(uint8_t *buffer) {
 	return *based_pointer<uint32_t>(buffer, 0x3C);
 }
 
@@ -17,7 +17,7 @@ Pe32OptionalHeader ExeFile::GetPEOptionalHeader() {
 	return *based_pointer<Pe32OptionalHeader>(buffer, pe_optional_offset);
 }
 
-bool ExeFile::SigCheck(unsigned char *buffer)
+bool ExeFile::SigCheck(uint8_t *buffer)
 {
     uint16_t mz_signature = *based_pointer<uint16_t>(buffer, 0x0);
 	uint32_t pe_offset = GetPEOffset(buffer);

@@ -16,7 +16,7 @@ struct GifAnimation {
 };
 
 namespace Image {
-    GLuint LoadTex(const unsigned char* data, int width, int height, uint32_t mode = GL_LINEAR);
+    GLuint LoadTex(const uint8_t* data, int width, int height, uint32_t mode = GL_LINEAR);
     bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, uint32_t mode = GL_LINEAR);
     bool LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation);
     bool UnloadTexture(GLuint texture);

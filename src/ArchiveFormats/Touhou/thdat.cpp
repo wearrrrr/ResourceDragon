@@ -28,7 +28,7 @@ static void byteSeek(BitReader *reader, unsigned offset) {
     }
 }
 
-static unsigned char testBit(BitReader *reader) {
+static uint8_t testBit(BitReader *reader) {
     return (reader->current_byte & reader->bitmask) != 0;
 }
 
@@ -86,7 +86,7 @@ char parseDatHeader(DatFile *dat) {
     return 0;
 }
 
-char openDatFromBuffer(DatFile *dat, const unsigned char *buffer, size_t size) {
+char openDatFromBuffer(DatFile *dat, const uint8_t *buffer, size_t size) {
     dat->reader.buffer = buffer;
     dat->reader.size = size;
     dat->reader.position = 0;
@@ -123,22 +123,22 @@ void *decompressEntry(DatFile *dat, unsigned idx) {
 
     byteSeek(&dat->reader, data_offset);
 
-    unsigned char *out = (unsigned char*)malloc(uncompressed_size);
+    uint8_t *out = (uint8_t*)malloc(uncompressed_size);
     if (!out) return NULL;
 
     unsigned out_idx = 0;
     while (out_idx < uncompressed_size) {
-        unsigned char is_raw = readBits(&dat->reader, 1);
+        uint8_t is_raw = readBits(&dat->reader, 1);
         if (is_raw) {
-            unsigned char b = readBits(&dat->reader, 8);
+            uint8_t b = readBits(&dat->reader, 8);
             out[out_idx++] = b;
             dictionary[dict_idx++] = b;
             dict_idx %= LZSS_DICTIONARY_SIZE;
         } else {
             unsigned short offset = readBits(&dat->reader, LZSS_OFFSET) - 1;
-            unsigned char length = readBits(&dat->reader, LZSS_LENGTH) + LZSS_MIN_MATCH;
+            uint8_t length = readBits(&dat->reader, LZSS_LENGTH) + LZSS_MIN_MATCH;
             for (int j = offset; j < offset + length && out_idx < uncompressed_size; ++j) {
-                unsigned char b = dictionary[j % LZSS_DICTIONARY_SIZE];
+                uint8_t b = dictionary[j % LZSS_DICTIONARY_SIZE];
                 out[out_idx++] = b;
                 dictionary[dict_idx++] = b;
                 dict_idx %= LZSS_DICTIONARY_SIZE;
@@ -151,7 +151,7 @@ void *decompressEntry(DatFile *dat, unsigned idx) {
 }
 
 
-ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint64_t size, std::string file_name) {
+ArchiveBase *THDAT::TryOpenTH06(uint8_t *buffer, uint64_t size, std::string file_name) {
     DatFile dat = {};
     std::unordered_map<std::string, DatEntry> entries;
     openDatFromBuffer(&dat, buffer, size);
@@ -162,6 +162,6 @@ ArchiveBase *THDAT::TryOpenTH06(unsigned char *buffer, uint64_t size, std::strin
     return new THDATArchive(dat, entries);
 }
 
-ArchiveBase *THDAT::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) {
+ArchiveBase *THDAT::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) {
     return TryOpenTH06(buffer, size, file_name);
 }

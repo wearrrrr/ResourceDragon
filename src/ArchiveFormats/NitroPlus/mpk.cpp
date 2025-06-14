@@ -3,7 +3,7 @@
 
 static int constexpr MPKMaxPath = 224;
 
-ArchiveBase *MPKFormat::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name)
+ArchiveBase *MPKFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
@@ -53,7 +53,7 @@ ArchiveBase *MPKFormat::TryOpen(unsigned char *buffer, uint64_t size, std::strin
     return new MPKArchive(entries);
 }
 
-bool MPKFormat::CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const
+bool MPKFormat::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
 {
     if (ReadMagic<uint32_t>(buffer) == sig) {
         return true;
@@ -62,7 +62,7 @@ bool MPKFormat::CanHandleFile(unsigned char *buffer, uint64_t size, const std::s
     return false;
 }
 
-const char *MPKArchive::OpenStream(const Entry *entry, unsigned char *buffer)
+const char *MPKArchive::OpenStream(const Entry *entry, uint8_t *buffer)
 {
     MPKEntry *mpkEntry = (MPKEntry*)entry;
 

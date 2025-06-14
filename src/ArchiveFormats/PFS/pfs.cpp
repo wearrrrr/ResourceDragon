@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint64_t size, std::string file_name)
+ArchiveBase *PFSFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
@@ -23,7 +23,7 @@ ArchiveBase *PFSFormat::TryOpen(unsigned char *buffer, uint64_t size, std::strin
     return nullptr;
 }
 
-ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint64_t size, uint8_t version) {
+ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) {
     uint32_t index_size = Read<uint32_t>(buffer, 3);
     uint32_t file_count = Read<uint32_t>(buffer, 7);
 
@@ -35,7 +35,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint64_t size, uint8_t ver
         Logger::error("Index size is greater than the file size! This is invalid.");
         return nullptr;
     }
-    unsigned char *index_buf = (unsigned char*)malloc(index_size);
+    uint8_t *index_buf = (uint8_t*)malloc(index_size);
     Seek(0x7);
 
     Read(index_buf, buffer, index_size);
@@ -87,7 +87,7 @@ ArchiveBase *PFSFormat::OpenPF(unsigned char *buffer, uint64_t size, uint8_t ver
     return new PFSArchive(this, entries, key.toVector());
 }
 
-bool PFSFormat::CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const
+bool PFSFormat::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
 {
     if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;
@@ -100,8 +100,8 @@ bool PFSFormat::CanHandleFile(unsigned char *buffer, uint64_t size, const std::s
     return false;
 }
 
-const char* PFSArchive::OpenStream(const Entry *entry, unsigned char *buffer) {
-    unsigned char* output = (unsigned char*)malloc(entry->size);
+const char* PFSArchive::OpenStream(const Entry *entry, uint8_t *buffer) {
+    uint8_t* output = (uint8_t*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
     pfs_fmt->buffer_position += entry->size;

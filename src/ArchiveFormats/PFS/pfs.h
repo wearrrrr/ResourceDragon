@@ -8,10 +8,10 @@ class PFSFormat : public ArchiveFormat {
 
     std::vector<std::string> extensions = {"pfs", "000", "001", "002", "003", "004", "005", "010"};
 
-    ArchiveBase *OpenPF(unsigned char *buffer, uint64_t size, uint8_t version);
+    ArchiveBase *OpenPF(uint8_t *buffer, uint64_t size, uint8_t version);
 
-    ArchiveBase* TryOpen(unsigned char *buffer, uint64_t size, std::string file_name) override;
-    bool CanHandleFile(unsigned char *buffer, uint64_t size, const std::string &ext) const override;
+    ArchiveBase* TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
+    bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const override;
     std::string GetTag() const override {
         return this->tag;
     }
@@ -36,5 +36,5 @@ class PFSArchive : public ArchiveBase {
                 entries[entry.first] = &entry.second;
             return entries;
         }
-        const char* OpenStream(const Entry *entry, unsigned char *buffer) override;
+        const char* OpenStream(const Entry *entry, uint8_t *buffer) override;
 };

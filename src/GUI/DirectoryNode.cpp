@@ -290,17 +290,18 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
 void HandleFileClick(DirectoryNode *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    unsigned char* entry_buffer = nullptr;
+    bool isVirtualRoot = rootNode->IsVirtualRoot;
+    uint8_t* entry_buffer = nullptr;
     size_t size = 0;
 
-    if (rootNode->IsVirtualRoot && !node->IsDirectory) {
+    if (isVirtualRoot && !node->IsDirectory) {
         selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
 
         if (selected_entry) {
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
-                entry_buffer = (unsigned char *)malloc(size);
+                entry_buffer = malloc<uint8_t>(size);
                 memcpy(entry_buffer, arc_read, size);
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
@@ -308,9 +309,9 @@ void HandleFileClick(DirectoryNode *node) {
             }
         }
     } else {
-        auto [fs_buffer, fs_size] = read_file_to_buffer<unsigned char>(node->FullPath.c_str());
+        auto [fs_buffer, fs_size] = read_file_to_buffer<uint8_t>(node->FullPath.c_str());
         size = fs_size;
-        entry_buffer = (unsigned char*)malloc(size);
+        entry_buffer = malloc<uint8_t>(size);
         memcpy(entry_buffer, fs_buffer, size);
         free(fs_buffer);
     }
@@ -335,17 +336,14 @@ void HandleFileClick(DirectoryNode *node) {
                 dds::Image image;
                 auto result = dds::readImage(entry_buffer, size, &image);
                 if (result != ReadResult::Success) {
-                    Logger::log("Failed to load DDS into memory! D:");
+                    Logger::log("Failed to load DDS into memory!");
                     preview_state.content_type = IMAGE;
                     free(entry_buffer);
                 }
-                auto& mip = image.mipmaps[0];
-                Logger::log("DDS Load: %dx%d, %zu bytes", image.width, image.height, mip.size());
-                auto id = Image::LoadTex(mip.data(), image.width, image.height);
+                auto id = Image::LoadTex(image.mipmaps[0].data(), image.width, image.height);
                 preview_state.texture.id = id;
                 *preview_state.texture.size.x = image.width;
                 *preview_state.texture.size.y = image.height;
-                Logger::log("%d x %d", image.width, image.height);
             } else {
                 Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
                 if (*preview_state.texture.size.x < 256) {
@@ -361,7 +359,7 @@ void HandleFileClick(DirectoryNode *node) {
             preview_state.texture.last_frame_time = SDL_GetTicks();
             free(entry_buffer);
         } else if (Audio::IsAudio(ext)) {
-            if (rootNode->IsVirtualRoot) {
+            if (isVirtualRoot) {
                 preview_state.audio.buffer = entry_buffer;
                 SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
                 current_sound = Mix_LoadMUS_IO(snd_io, true);
@@ -385,11 +383,11 @@ void HandleFileClick(DirectoryNode *node) {
                 preview_state.audio.time.total_time_sec = duration % 60;
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             }
+
         } else if (ElfFile::IsValid(entry_buffer)) {
             auto *elfFile = new ElfFile(entry_buffer, size);
             preview_state.contents.elfFile = elfFile;
             preview_state.content_type = ELF;
-            free(entry_buffer);
         } else {
             auto text = std::string((char*)entry_buffer, size);
             if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
@@ -422,7 +420,7 @@ void HandleFileClick(DirectoryNode *node) {
         free(current_buffer);
     }
 
-    current_buffer = (unsigned char *)malloc(size);
+    current_buffer = malloc<uint8_t>(size);
     memcpy(current_buffer, entry_buffer, size);
     free(entry_buffer);
 
