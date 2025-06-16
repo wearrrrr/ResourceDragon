@@ -449,7 +449,7 @@ void DisplayDirectoryNode(DirectoryNode *node) {
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
-            if (!CanReadDirectory(node->FullPath)) {
+            if (!rootNode->IsVirtualRoot && !CanReadDirectory(node->FullPath)) {
                 Logger::error("Cannot access directory: %s", node->FullPath.c_str());
                 ui_error.title = "Access Denied";
                 ui_error.message = "You do not have permission to access this directory.";

@@ -4,6 +4,7 @@
 #include <ImVec2Util.h>
 #include <fstream>
 #include "../util/Text.h"
+#include "imgui.h"
 #include "state.h"
 #include "../icons.h"
 
@@ -110,9 +111,10 @@ void PreviewWindow::RenderAudioPlayer() {
             }
         }
         ImGui::SameLine();
-        ImGui::BeginGroup();
         // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
+        // Actually.. This is fixable, but the solution involves ditching SDL3_mixer for midi.
         if (!curr_sound_is_midi) {
+            ImGui::BeginGroup();
             if (ImGui::Button(RW_ICON, {40, 0})) {
                 double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
                 new_pos > 0
@@ -120,15 +122,13 @@ void PreviewWindow::RenderAudioPlayer() {
                     : Mix_SetMusicPosition(0);
             }
             ImGui::SameLine();
-            if (!curr_sound_is_midi) {
-                ImGui::Text("%02d:%02d / %02d:%02d",
-                    time.current_time_min,
-                    time.current_time_sec,
-                    time.total_time_min,
-                    time.total_time_sec
-                );
-                ImGui::SameLine();
-            }
+            ImGui::Text("%02d:%02d / %02d:%02d",
+                time.current_time_min,
+                time.current_time_sec,
+                time.total_time_min,
+                time.total_time_sec
+            );
+            ImGui::SameLine();
             const double current_pos = Mix_GetMusicPosition(current_sound);
             const double total_time = time.total_time_min * 60 + time.total_time_sec;
             if (total_time > 0.0) {

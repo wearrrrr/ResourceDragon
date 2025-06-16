@@ -18,7 +18,7 @@ void Audio::InitAudioSystem() {
     spec.freq = MIX_DEFAULT_FREQUENCY;
 
     #ifdef MIDI_SUPPORT
-    bool load_sf2 = Mix_SetSoundFonts("8bitsf.SF2");
+    bool load_sf2 = Mix_SetSoundFonts("opl4.sf2");
     if (!load_sf2) {
         Logger::error("Failed to load soundfont: %s", SDL_GetError());
     }
