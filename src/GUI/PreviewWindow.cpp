@@ -4,7 +4,7 @@
 #include <ImVec2Util.h>
 #include <fstream>
 #include "../util/Text.h"
-#include "../state.h"
+#include "state.h"
 #include "../icons.h"
 
 void PreviewWindow::RenderImagePreview() {

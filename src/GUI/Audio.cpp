@@ -1,7 +1,7 @@
 #include <Audio.h>
 #include <Utils.h>
 #include <DirectoryNode.h>
-#include "../state.h"
+#include "state.h"
 
 void Audio::MusicFinishedCallback() {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
