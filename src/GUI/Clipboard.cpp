@@ -24,7 +24,7 @@ void ClipboardCleanup(void *userdata) {
     delete (ClipboardFile*)(userdata);
 }
 
-void Clipboard::CopyBufferToClipboard(uint8_t *buffer, size_t size, std::string file_name) {
+void Clipboard::CopyBufferToClipboard(u8 *buffer, size_t size, std::string file_name) {
     std::string tempPath = "/tmp/rd/";
     std::string filename = tempPath + file_name;
 

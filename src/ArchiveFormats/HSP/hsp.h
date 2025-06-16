@@ -10,7 +10,7 @@ class HSPArchive : public ArchiveFormat {
         std::string tag = "HSP";
         std::string description = "Hot Soup Processor 3 Resource Archive";
 
-        uint32_t DefaultKey = 0xAC52AE58;
+        u32 DefaultKey = 0xAC52AE58;
 
         std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
 
@@ -19,10 +19,10 @@ class HSPArchive : public ArchiveFormat {
         };
 
 
-        uint32_t FindExeKey(ExeFile *exe, uint32_t dpmx_offset);
+        u32 FindExeKey(ExeFile *exe, u32 dpmx_offset);
 
-        ArchiveBase* TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
-        bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const override;
+        ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
+        bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;
         std::string GetTag() const override {
             return this->tag;
         }
@@ -32,32 +32,32 @@ class DPMArchive : public ArchiveBase {
     public:
         std::unordered_map<std::string, Entry> entries;
 
-        uint32_t arc_key;
+        u32 arc_key;
         size_t dpm_size;
-        uint8_t seed_1;
-        uint8_t seed_2;
+        u8 seed_1;
+        u8 seed_2;
         DPMArchive() {
             seed_1 = 0xAA;
             seed_2 = 0x55;
         };
-        DPMArchive(std::unordered_map<std::string, Entry> entries, uint32_t arc_key, size_t dpm_size) {
+        DPMArchive(std::unordered_map<std::string, Entry> entries, u32 arc_key, size_t dpm_size) {
             seed_1 = ((((arc_key >> 16) & 0xFF) * (arc_key & 0xFF) / 3) ^ dpm_size);
             seed_2 = ((((arc_key >> 8)  & 0xFF) * ((arc_key >> 24) & 0xFF) / 5) ^ dpm_size ^ 0xAA);
             this->entries = entries;
             this->arc_key = arc_key;
             this->dpm_size = dpm_size;
         };
-        uint8_t* DecryptEntry(uint8_t *data, uint32_t data_size, uint32_t entry_key) {
+        u8* DecryptEntry(u8 *data, u32 data_size, u32 entry_key) {
             // TODO: These values seem to swap between games? Maybe different versions of the engine..?
-            uint8_t *buffer = (uint8_t*)malloc(data_size);
+            u8 *buffer = (u8*)malloc(data_size);
             memcpy(buffer, data, data_size);
 
-            uint8_t s1 = 0x55;
-            uint8_t s2 = 0xAA;
+            u8 s1 = 0x55;
+            u8 s2 = 0xAA;
             s1 = (seed_1 + ((entry_key >> 16) ^ (entry_key + s1)));
             s2 = (seed_2 + ((entry_key >> 24) ^ ((entry_key >> 8) + s2)));
-            uint8_t val = 0;
-            for (uint32_t i = 0; i < data_size; i++) {
+            u8 val = 0;
+            for (u32 i = 0; i < data_size; i++) {
                 val += (s1 ^ (buffer[i] - s2));
                 buffer[i] = val;
             }
@@ -76,5 +76,5 @@ class DPMArchive : public ArchiveBase {
             }
             return entriesMap;
         }
-        const char* OpenStream(const Entry *entry, uint8_t *buffer) override;
+        const char* OpenStream(const Entry *entry, u8 *buffer) override;
 };

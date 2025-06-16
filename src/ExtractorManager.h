@@ -17,7 +17,7 @@ public:
     m_formats.erase(tag);
   }
 
-  ArchiveFormat *getExtractorFor(uint8_t *buffer, uint64_t size, const std::string &ext) {
+  ArchiveFormat *getExtractorFor(u8 *buffer, u64 size, const std::string &ext) {
     for (const auto &format : m_formats) {
       /* TODO:
         this is bad! we should not be returning the first one that happens to

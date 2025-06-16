@@ -45,6 +45,9 @@ if (NOT WIN32)
     include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
 endif()
 
+add_library(util INTERFACE)
+target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
 add_subdirectory(src/ArchiveFormats)
 add_subdirectory(src/GUI)
 add_subdirectory(src/Scripting)
@@ -65,6 +68,6 @@ if (WIN32)
 endif()
 
 # Internal libs
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting)
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
 # Third party libs
 target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip lua ${OPENGL})

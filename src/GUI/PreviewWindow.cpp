@@ -52,8 +52,8 @@ void PreviewWindow::RenderGifPreview() {
     ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
     ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
 
-    uint32_t now = SDL_GetTicks();
-    uint32_t frame_delay = (uint32_t)anim.delays[texture->frame];
+    u32 now = SDL_GetTicks();
+    u32 frame_delay = (u32)anim.delays[texture->frame];
     if (now - texture->last_frame_time >= frame_delay) {
         texture->frame = (texture->frame + 1) % anim.frame_count;
         texture->last_frame_time = now;

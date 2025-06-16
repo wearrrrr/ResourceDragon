@@ -14,9 +14,9 @@ zip_t *OpenZipFromFile(std::string file_name) {
     return arc;
 }
 
-zip_t *OpenZipFromBuffer(uint8_t *buffer, uint64_t size) {
+zip_t *OpenZipFromBuffer(u8 *buffer, u64 size) {
     zip_error_t err;
-    std::unique_ptr<uint8_t[]> heap_buffer(new uint8_t[size]);
+    std::unique_ptr<u8[]> heap_buffer(new u8[size]);
     memcpy(heap_buffer.get(), buffer, size);
 
     zip_source_t *src_buf = zip_source_buffer_create(heap_buffer.get(), size, ZIP_SOURCE_FREE, &err);
@@ -38,8 +38,8 @@ zip_t *OpenZipFromBuffer(uint8_t *buffer, uint64_t size) {
     return za;
 };
 
-ArchiveBase* ZipFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) {
-    std::unique_ptr<uint8_t[]> heap_buffer(new uint8_t[size]);
+ArchiveBase* ZipFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
+    std::unique_ptr<u8[]> heap_buffer(new u8[size]);
     memcpy(heap_buffer.get(), buffer, size);
 
     zip_t *za;
@@ -60,9 +60,9 @@ ArchiveBase* ZipFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file
 
         Entry entry = {
             .name = std::string(stat.name),
-            .size = static_cast<uint32_t>(stat.size),
+            .size = static_cast<u32>(stat.size),
             .lastModified = stat.mtime,
-            .packedSize = static_cast<uint32_t>(stat.comp_size),
+            .packedSize = static_cast<u32>(stat.comp_size),
             .index = i
         };
 

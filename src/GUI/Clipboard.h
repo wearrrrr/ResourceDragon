@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <string>
+#include <util/int.h>
 
 struct ClipboardFile {
     std::string path;
@@ -9,6 +10,6 @@ struct ClipboardFile {
 };
 
 namespace Clipboard {
-    void CopyBufferToClipboard(uint8_t *buffer, size_t size, std::string file_name);
+    void CopyBufferToClipboard(u8 *buffer, size_t size, std::string file_name);
     void CopyFilePathToClipboard(const std::string &path);
 };

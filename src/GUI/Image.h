@@ -6,6 +6,7 @@
 #include <SDL3_image/SDL_image.h>
 #include "gl3.h"
 #include "../vec2.h"
+#include <util/int.h>
 
 struct GifAnimation {
     std::vector<GLuint> frames;
@@ -16,8 +17,8 @@ struct GifAnimation {
 };
 
 namespace Image {
-    GLuint LoadTex(const uint8_t* data, int width, int height, uint32_t mode = GL_LINEAR);
-    bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, uint32_t mode = GL_LINEAR);
+    GLuint LoadTex(const u8* data, int width, int height, u32 mode = GL_LINEAR);
+    bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode = GL_LINEAR);
     bool LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation);
     bool UnloadTexture(GLuint texture);
     void UnloadAnimation(GifAnimation* animation);

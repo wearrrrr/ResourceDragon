@@ -3,23 +3,23 @@
 
 static int constexpr MPKMaxPath = 224;
 
-ArchiveBase *MPKFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
+ArchiveBase *MPKFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
     // Move past byte magic.
     Seek(0x4);
 
-    uint32_t FileCount;
-    uint16_t MinorVersion;
-    uint16_t MajorVersion;
+    u32 FileCount;
+    u16 MinorVersion;
+    u16 MajorVersion;
     char name[MPKMaxPath];
 
     std::unordered_map<std::string, MPKEntry> entries;
 
-    MinorVersion = Read<uint16_t>(buffer);
-    MajorVersion = Read<uint16_t>(buffer);
-    FileCount = Read<uint16_t>(buffer);
+    MinorVersion = Read<u16>(buffer);
+    MajorVersion = Read<u16>(buffer);
+    FileCount = Read<u16>(buffer);
 
     if (MinorVersion != 0 || MajorVersion != 2) {
         Logger::error("Unsupported MPK Version! Version found: %u.%u", MajorVersion, MinorVersion);
@@ -27,9 +27,9 @@ ArchiveBase *MPKFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     }
 
     Seek(0x40);
-    for (uint32_t i = 0; i < FileCount; i++) {
-        uint32_t compression = Read<uint32_t>(buffer);
-        uint32_t id = Read<uint32_t>(buffer);
+    for (u32 i = 0; i < FileCount; i++) {
+        u32 compression = Read<u32>(buffer);
+        u32 id = Read<u32>(buffer);
 
         if (compression != 0 && compression != 1) {
             Logger::warn("Unknown compression type! %x", compression);
@@ -41,9 +41,9 @@ ArchiveBase *MPKFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file
 
         entry.Id = id;
         entry.Compressed = compression;
-        entry.Offset = Read<uint64_t>(buffer);
-        entry.CompressedSize = Read<uint64_t>(buffer);
-        entry.size = Read<uint64_t>(buffer);
+        entry.Offset = Read<u64>(buffer);
+        entry.CompressedSize = Read<u64>(buffer);
+        entry.size = Read<u64>(buffer);
         Read(name, buffer, MPKMaxPath);
         name[MPKMaxPath - 1] = '\0';
         entry.name = name;
@@ -53,16 +53,16 @@ ArchiveBase *MPKFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     return new MPKArchive(entries);
 }
 
-bool MPKFormat::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
+bool MPKFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
-    if (ReadMagic<uint32_t>(buffer) == sig) {
+    if (ReadMagic<u32>(buffer) == sig) {
         return true;
     }
 
     return false;
 }
 
-const char *MPKArchive::OpenStream(const Entry *entry, uint8_t *buffer)
+const char *MPKArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
     MPKEntry *mpkEntry = (MPKEntry*)entry;
 

@@ -1,18 +1,15 @@
 #pragma once
-
-#include <filesystem>
 #include <string>
 
-#include "../zero_templates.h"
-#include "../util/Logger.h"
-
-namespace fs = std::filesystem;
+#include <util/Logger.h>
+#include <util/int.h>
+#include "zero_templates.h"
 
 /**
   ELF spec information obtained from: https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.eheader.html
 **/
 
-enum class ElfABI : uint8_t {
+enum class ElfABI : u8 {
   NONE = 0,
   HPUX = 1,
   NETBSD = 2,
@@ -27,7 +24,7 @@ enum class ElfABI : uint8_t {
   OPENVMS = 13,
 };
 
-enum class ElfClass : uint8_t {
+enum class ElfClass : u8 {
   NONE = 0,
   ELF32 = 1,
   ELF64 = 2,
@@ -35,7 +32,7 @@ enum class ElfClass : uint8_t {
 
 #define EI_NIDENT 16
 
-enum class ElfType : uint16_t {
+enum class ElfType : u16 {
   ET_NONE = 0,
   ET_REL = 1,
   ET_EXEC = 2,
@@ -48,53 +45,53 @@ enum class ElfType : uint16_t {
 };
 
 struct ElfIdent {
-  uint8_t magic[4];
+  u8 magic[4];
   ElfClass class_type;
-  uint8_t data_encoding;
-  uint8_t version;
+  u8 data_encoding;
+  u8 version;
   ElfABI os_abi;
-  uint8_t abi_version;
-  uint8_t pad[7];
+  u8 abi_version;
+  u8 pad[7];
 };
 static_assert(sizeof(ElfIdent) == EI_NIDENT);
 
 struct Elf32_Header {
   union {
-    uint8_t e_ident_raw[EI_NIDENT];
+    u8 e_ident_raw[EI_NIDENT];
     ElfIdent e_ident;
   };
   ElfType e_type;
-  uint16_t e_machine;
-  uint32_t e_version;
-  uint32_t e_entry;
-  uint32_t e_phoff;
-  uint32_t e_shoff;
-  uint32_t e_flags;
-  uint16_t e_ehsize;
-  uint16_t e_phentsize;
-  uint16_t e_phnum;
-  uint16_t e_shentsize;
-  uint16_t e_shnum;
-  uint16_t e_shstrndx;
+  u16 e_machine;
+  u32 e_version;
+  u32 e_entry;
+  u32 e_phoff;
+  u32 e_shoff;
+  u32 e_flags;
+  u16 e_ehsize;
+  u16 e_phentsize;
+  u16 e_phnum;
+  u16 e_shentsize;
+  u16 e_shnum;
+  u16 e_shstrndx;
 };
 struct Elf64_Header {
   union {
-    uint8_t e_ident_raw[EI_NIDENT];
+    u8 e_ident_raw[EI_NIDENT];
     ElfIdent e_ident;
   };
   ElfType e_type;
-  uint16_t e_machine;
-  uint32_t e_version;
-  uint64_t e_entry;
-  uint64_t e_phoff;
-  uint64_t e_shoff;
-  uint32_t e_flags;
-  uint16_t e_ehsize;
-  uint16_t e_phentsize;
-  uint16_t e_phnum;
-  uint16_t e_shentsize;
-  uint16_t e_shnum;
-  uint16_t e_shstrndx;
+  u16 e_machine;
+  u32 e_version;
+  u64 e_entry;
+  u64 e_phoff;
+  u64 e_shoff;
+  u32 e_flags;
+  u16 e_ehsize;
+  u16 e_phentsize;
+  u16 e_phnum;
+  u16 e_shentsize;
+  u16 e_shnum;
+  u16 e_shstrndx;
 };
 
 
@@ -109,7 +106,7 @@ private:
   bool mIsValid = true;
 
 public:
-  ElfFile(const uint8_t *buffer, uint64_t size) {
+  ElfFile(const u8 *buffer, u64 size) {
     if (size < 52L) {
       Logger::error("File is smaller than minimum possible elf size! This is not a valid ELF file.");
       mIsValid = false;
@@ -194,5 +191,10 @@ public:
 
 
 
-  static bool IsValid(uint8_t *buffer);
+  static bool IsValid(u8 *buffer)
+  {
+      // Check if the first 4 bytes match the ELF magic number
+      u32 magic = *based_pointer<u32>(buffer, 0);
+      return magic == PackUInt(0x7F, 'E', 'L', 'F');
+  }
 };

@@ -5,11 +5,14 @@
 #include <algorithm>
 #include <functional>
 
+
+
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Utils.h>
-#include "../state.h"
-#include "../util/Text.h"
+#include "state.h"
+#include <util/Text.h>
+#include <util/int.h>
 #include "Image.h"
 #include "gl3.h"
 
@@ -223,7 +226,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
                     .LastModified = Utils::GetLastModifiedTime(path),
-                    .LastModifiedUnix = (uint64_t)(fs::last_write_time(entry).time_since_epoch().count()),
+                    .LastModifiedUnix = (u64)fs::last_write_time(entry).time_since_epoch().count(),
                     .Children = {},
                     .IsDirectory = entry.is_directory()
                 };
@@ -262,7 +265,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
         .FileSize = Utils::GetFileSize(rootPath),
         .FileSizeBytes = is_dir ? 0 : fs::file_size(rootPath),
         .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .LastModifiedUnix = (uint64_t)fs::last_write_time(rootPath).time_since_epoch().count(),
+        .LastModifiedUnix = (u64)fs::last_write_time(rootPath).time_since_epoch().count(),
         .Parent = parent,
         .Children = {},
         .IsDirectory = is_dir,
@@ -297,7 +300,7 @@ void HandleFileClick(DirectoryNode *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
     bool isVirtualRoot = rootNode->IsVirtualRoot;
-    uint8_t* entry_buffer = nullptr;
+    u8* entry_buffer = nullptr;
     size_t size = 0;
 
     if (isVirtualRoot && !node->IsDirectory) {
@@ -307,7 +310,7 @@ void HandleFileClick(DirectoryNode *node) {
             if (current_buffer) {
                 const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
-                entry_buffer = malloc<uint8_t>(size);
+                entry_buffer = malloc<u8>(size);
                 memcpy(entry_buffer, arc_read, size);
             } else {
                 Logger::error("current_buffer is not initialized, aborting.");
@@ -315,9 +318,9 @@ void HandleFileClick(DirectoryNode *node) {
             }
         }
     } else {
-        auto [fs_buffer, fs_size] = read_file_to_buffer<uint8_t>(node->FullPath.c_str());
+        auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.c_str());
         size = fs_size;
-        entry_buffer = malloc<uint8_t>(size);
+        entry_buffer = malloc<u8>(size);
         memcpy(entry_buffer, fs_buffer, size);
         free(fs_buffer);
     }
@@ -426,7 +429,7 @@ void HandleFileClick(DirectoryNode *node) {
         free(current_buffer);
     }
 
-    current_buffer = malloc<uint8_t>(size);
+    current_buffer = malloc<u8>(size);
     memcpy(current_buffer, entry_buffer, size);
     free(entry_buffer);
 

@@ -2,7 +2,7 @@
 
 #include <string>
 #include "lua.hpp"
-#include "../util/Logger.h"
+#include <util/Logger.h>
 
 class LuaUtils {
 public:

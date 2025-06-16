@@ -5,12 +5,12 @@
 #include <algorithm>
 
 
-ArchiveBase *PFSFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
+ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
 {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
     // - '0' converts to ascii representation
-    uint8_t version = Read<uint8_t>(buffer, 2) - '0';
+    u8 version = Read<u8>(buffer, 2) - '0';
 
     switch (version) {
         case 6:
@@ -23,9 +23,9 @@ ArchiveBase *PFSFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     return nullptr;
 }
 
-ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) {
-    uint32_t index_size = Read<uint32_t>(buffer, 3);
-    uint32_t file_count = Read<uint32_t>(buffer, 7);
+ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
+    u32 index_size = Read<u32>(buffer, 3);
+    u32 file_count = Read<u32>(buffer, 7);
 
     if (!IsSaneFileCount(file_count)) {
         Logger::error("File count is %d. This is way too high!", file_count);
@@ -35,7 +35,7 @@ ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) 
         Logger::error("Index size is greater than the file size! This is invalid.");
         return nullptr;
     }
-    uint8_t *index_buf = (uint8_t*)malloc(index_size);
+    u8 *index_buf = (u8*)malloc(index_size);
     Seek(0x7);
 
     Read(index_buf, buffer, index_size);
@@ -46,14 +46,14 @@ ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) 
 
     std::unordered_map<std::string, Entry> entries;
 
-    uint32_t index_offset = 4;
-    for (uint32_t i = 0; i < file_count; ++i) {
+    u32 index_offset = 4;
+    for (u32 i = 0; i < file_count; ++i) {
         if (index_offset + 4 > index_size) {
             Logger::error("Unexpected end of index when reading name length.");
             break;
         }
 
-        uint32_t name_length = Read<uint32_t>(index_buf, index_offset);
+        u32 name_length = Read<u32>(index_buf, index_offset);
         if (index_offset + 4 + name_length + 8 + 8 > index_size) {
             Logger::error("Index overrun when reading entry %d", i);
             break;
@@ -62,8 +62,8 @@ ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) 
         std::string name = ReadStringWithLength(index_buf + index_offset + 4, name_length);
         index_offset += name_length + 8;
 
-        uint32_t offset = Read<uint32_t>(index_buf, index_offset);
-        uint32_t size = Read<uint32_t>(index_buf, index_offset + 4);
+        u32 offset = Read<u32>(index_buf, index_offset);
+        u32 size = Read<u32>(index_buf, index_offset + 4);
         index_offset += 8;
 
         Entry entry;
@@ -87,25 +87,25 @@ ArchiveBase *PFSFormat::OpenPF(uint8_t *buffer, uint64_t size, uint8_t version) 
     return new PFSArchive(this, entries, key.toVector());
 }
 
-bool PFSFormat::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
+bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
     if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;
     }
 
-    if (ReadMagic<uint16_t>(buffer) == PackUInt16('p', 'f')) {
+    if (ReadMagic<u16>(buffer) == PackUInt16('p', 'f')) {
         return true;
     }
 
     return false;
 }
 
-const char* PFSArchive::OpenStream(const Entry *entry, uint8_t *buffer) {
-    uint8_t* output = (uint8_t*)malloc(entry->size);
+const char* PFSArchive::OpenStream(const Entry *entry, u8 *buffer) {
+    u8* output = (u8*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
     pfs_fmt->buffer_position += entry->size;
-    for (uint32_t i = 0; i < entry->size; ++i)
+    for (u32 i = 0; i < entry->size; ++i)
     {
         output[i] ^= key[i % key.size()];
     }

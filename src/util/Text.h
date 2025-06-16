@@ -7,6 +7,8 @@
 #include "iconv.h"
 #endif
 
+#include <util/int.h>
+
 class TextConverter {
     public:
         static std::string UTF16ToUTF8(const std::u16string& utf16_str) {
@@ -86,11 +88,11 @@ class Text {
         // Not even going to pretend like I know what these functions do :lesanae:
         static inline void ltrim(std::string &str) {
             str.erase(str.begin(), std::find_if(str.begin(), str.end(),
-                [](uint8_t chr) { return !std::isspace(chr); }));
+                [](u8 chr) { return !std::isspace(chr); }));
         }
 
         static inline void rtrim(std::string &str) {
             str.erase(std::find_if(str.rbegin(), str.rend(),
-                [](uint8_t chr) { return !std::isspace(chr); }).base(), str.end());
+                [](u8 chr) { return !std::isspace(chr); }).base(), str.end());
         }
 };

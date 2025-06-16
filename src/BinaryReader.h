@@ -1,20 +1,20 @@
 #pragma once
 
+#include <util/int.h>
 #include <vector>
-#include <cstdint>
 #include <optional>
 #include <string>
 
 class BinaryReader {
 
 public:
-    const std::vector<uint8_t>& data;
+    const std::vector<u8>& data;
     size_t position;
-    explicit BinaryReader(const std::vector<uint8_t>& buffer) : data(buffer), position(0) {}
+    explicit BinaryReader(const std::vector<u8> &buffer) : data(buffer), position(0) {}
 
-    std::optional<uint8_t> peek() const {
+    std::optional<u8> peek() const {
         if (position >= data.size()) return std::nullopt;
-        return data[position]; 
+        return data[position];
     }
 
     template <typename T>

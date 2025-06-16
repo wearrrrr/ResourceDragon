@@ -1,16 +1,16 @@
-#include "../ArchiveFormat.h"
+#include <ArchiveFormat.h>
 
 class SAPakFormat : public ArchiveFormat {
     std::string tag = "SonicAdv.PAK";
     std::string description = "Sonic Adventure Resource Archive";
-    uint32_t sig = PackUInt32(0x01, 'p', 'a', 'k');
+    u32 sig = PackUInt32(0x01, 'p', 'a', 'k');
 
     std::vector<std::string> extensions = {"pak"};
 
-    ArchiveBase *TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override;
+    ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override;
 
-    bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &_ext) const override {
-        return Read<uint32_t>(buffer, 0) == sig;
+    bool CanHandleFile(u8 *buffer, u64 size, const std::string &_ext) const override {
+        return Read<u32>(buffer, 0) == sig;
     };
     std::string GetTag() const override {
         return this->tag;
@@ -35,7 +35,7 @@ class SAPakArchive : public ArchiveBase {
                 entries[entry.first] = &entry.second;
             return entries;
         }
-        const char *OpenStream(const Entry *entry, uint8_t *buffer) override;
+        const char *OpenStream(const Entry *entry, u8 *buffer) override;
 
 
 };

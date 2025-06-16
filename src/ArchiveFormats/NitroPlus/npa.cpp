@@ -1,11 +1,11 @@
 #include "npa.h"
 
-ArchiveBase *NPAFormat::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
+ArchiveBase *NPAFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
 {
     return nullptr;
 }
 
-bool NPAFormat::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
+bool NPAFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
     return false;
 }

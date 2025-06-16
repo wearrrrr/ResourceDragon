@@ -1,6 +1,6 @@
 #include <Image.h>
 #include <Utils.h>
-#include "../util/Logger.h"
+#include <util/Logger.h>
 #include <GL/glew.h>
 #include <GL/gl.h>
 
@@ -76,7 +76,7 @@ void Image::UnloadAnimation(GifAnimation* animation)
     return;
 }
 
-GLuint Image::LoadTex(const uint8_t* data, int width, int height, uint32_t mode) {
+GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
     GLuint image_texture;
     glGenTextures(1, &image_texture);
     glBindTexture(GL_TEXTURE_2D, image_texture);
@@ -93,10 +93,10 @@ GLuint Image::LoadTex(const uint8_t* data, int width, int height, uint32_t mode)
     return image_texture;
 }
 
-bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, uint32_t mode) {
+bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode) {
     int image_width = 0;
     int image_height = 0;
-    uint8_t *image_data;
+    u8 *image_data;
 
     SDL_IOStream *stream = SDL_IOFromConstMem(data, data_size);
     if (!stream) {
@@ -119,7 +119,7 @@ bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, V
 
     image_width = converted_surface->w;
     image_height = converted_surface->h;
-    image_data = (uint8_t*)(converted_surface->pixels);
+    image_data = (u8*)(converted_surface->pixels);
 
     GLuint image_texture = LoadTex(image_data, image_width, image_height, mode);
 

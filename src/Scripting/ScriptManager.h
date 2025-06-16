@@ -5,8 +5,8 @@
 #include <string>
 
 #include "LuaUtils.h"
-#include "../ArchiveFormats/ArchiveFormat.h"
-#include "../util/Logger.h"
+#include <ArchiveFormats/ArchiveFormat.h>
+#include <util/Logger.h>
 
 class LuaArchiveFormat : public ArchiveFormat {
     lua_State *m_state;
@@ -15,7 +15,7 @@ class LuaArchiveFormat : public ArchiveFormat {
     int lGetTagRef;
 
 public:
-    LuaArchiveFormat(lua_State *state, uint32_t signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
+    LuaArchiveFormat(lua_State *state, u32 signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
         if (!LuaUtils::Lua_GetFunction(m_state, canHandleFile)) return;
         lCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
         if (!LuaUtils::Lua_GetFunction(m_state, tryOpen)) return;
@@ -24,7 +24,7 @@ public:
         lGetTagRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
     }
 
-    bool CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const override {
+    bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
 
         lua_pushlstring(m_state, (const char*)buffer, size);
@@ -45,7 +45,7 @@ public:
         return result;
     }
 
-    ArchiveBase* TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) override {
+    ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
 
         lua_pushlstring(m_state, (const char*)buffer, size);

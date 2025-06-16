@@ -1,5 +1,4 @@
 add_library(ArchiveFormats
-    ElfFile.cpp
     ExeFile.cpp
 
     HSP/hsp.cpp
@@ -16,3 +15,5 @@ add_library(ArchiveFormats
 target_include_directories(ArchiveFormats PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_link_libraries(ArchiveFormats PRIVATE util)

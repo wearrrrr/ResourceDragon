@@ -8,7 +8,7 @@
 
 static XP3Crypt *ALG_DEFAULT = new NoCrypt();
 
-ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name) {
+ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     int64_t base_offset = 0;
 
     if (!CanHandleFile(buffer, size, "")) {
@@ -16,11 +16,11 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
         return nullptr;
     }
 
-    uint64_t dir_offset = base_offset + Read<uint64_t>(buffer, base_offset + 0x0B);
+    u64 dir_offset = base_offset + Read<u64>(buffer, base_offset + 0x0B);
 
     if (dir_offset < 0x13 || dir_offset >= size) return nullptr;
 
-    if (Read<uint32_t>(buffer, dir_offset) == 0x80) {
+    if (Read<u32>(buffer, dir_offset) == 0x80) {
         dir_offset = base_offset + Read<int64_t>(buffer, dir_offset + 0x9);
         if (dir_offset < 0x13) return nullptr;
     }
@@ -32,23 +32,23 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     }
     Logger::log("XP3 Header type: %s", header_type == XP3_HEADER_UNPACKED ? "Unpacked" : "Packed");
 
-    std::vector<uint8_t> header_stream;
+    std::vector<u8> header_stream;
     if (header_type == XP3_HEADER_UNPACKED) {
         int64_t header_size = Read<int64_t>(buffer, dir_offset + 0x1);
-        if ((uint64_t)header_size > UINT64_MAX) {
+        if ((u64)header_size > UINT64_MAX) {
             Logger::error("XP3: Header size is invalid!");
             return nullptr;
         }
         header_stream.resize(header_size);
-        memcpy(header_stream.data(), buffer + dir_offset + 0x9, (uint32_t)header_size);
+        memcpy(header_stream.data(), buffer + dir_offset + 0x9, (u32)header_size);
     } else {
         int64_t packed_size = Read<int64_t>(buffer, dir_offset + 0x1);
-        if ((uint64_t)packed_size > UINT64_MAX) {
+        if ((u64)packed_size > UINT64_MAX) {
             Logger::error("XP3: Packed size is invalid!");
             return nullptr;
         }
         int64_t header_size = Read<int64_t>(buffer, dir_offset + 0x9);
-        const uint8_t* compressed_data = buffer + dir_offset + 0x11;
+        const u8* compressed_data = buffer + dir_offset + 0x11;
         header_stream.resize(header_size);
         uLongf decompressed_size = (uLongf)(header_size);
         uLongf compressed_size = (uLongf)(packed_size);
@@ -68,7 +68,7 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     BinaryReader header(header_stream);
 
     while (header.peek().has_value()) {
-        uint32_t entry_signature = header.read<uint32_t>();
+        u32 entry_signature = header.read<u32>();
         int64_t entry_size = header.read<int64_t>();
         if (entry_size < 0) {
             Logger::error("XP3: Entry size is invalid!");
@@ -79,7 +79,7 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
         if (entry_signature == PackUInt32('F', 'i', 'l', 'e')) {
             Entry entry = {};
             while (entry_size > 0) {
-                uint32_t section = header.read<uint32_t>();
+                u32 section = header.read<u32>();
                 int64_t section_size = header.read<int64_t>();
                 entry_size -= 12;
                 if (section_size > entry_size)
@@ -95,9 +95,9 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
                         if (entry.size != 0 || !entry.name.empty()) {
                             goto NextEntry;
                         }
-                        entry.isEncrypted = header.read<uint32_t>() != 0;
-                        uint64_t file_size = header.read<uint64_t>();
-                        uint64_t packed_size = header.read<int64_t>();
+                        entry.isEncrypted = header.read<u32>() != 0;
+                        u64 file_size = header.read<u64>();
+                        u64 packed_size = header.read<int64_t>();
                         if (file_size >= UINT32_MAX || packed_size > UINT32_MAX || packed_size > size)
                         {
                             goto NextEntry;
@@ -134,9 +134,9 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
                                 bool compressed = header.read<int32_t>() != 0;
-                                uint64_t segment_offset = base_offset + header.read<uint64_t>();
+                                u64 segment_offset = base_offset + header.read<u64>();
                                 int64_t segment_size = header.read<int64_t>();
-                                uint64_t segment_packed_size = header.read<uint64_t>();
+                                u64 segment_packed_size = header.read<u64>();
                                 if (segment_offset > size || segment_packed_size > size)
                                 {
                                     goto NextEntry;
@@ -154,7 +154,7 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
                     }
                     case PackUInt32('a', 'd', 'l', 'r'): {
                         if (section_size == 4) {
-                            entry.hash = header.read<uint32_t>();
+                            entry.hash = header.read<u32>();
                         }
                     }
                     default: // unknown section
@@ -168,8 +168,7 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
         } else if ((entry_signature >> 24) == 0x3A) {
             Logger::log("yuz/sen/dls entry found! I don't know how to handle these!!");
         } else if (entry_size > 7) {
-            // uint32_t hash header.read<uint32_t>();
-            header.read<uint32_t>();
+            header.read<u32>();
             int16_t name_size = header.read<int16_t>();
             if (name_size > 0) {
                 entry_size -= 6;
@@ -185,35 +184,35 @@ ArchiveBase *XP3Format::TryOpen(uint8_t *buffer, uint64_t size, std::string file
     return new XP3Archive(dir);
 }
 
-std::vector<uint8_t> DecompressLz4(const Entry *entry, std::vector<uint8_t> buffer) {
+std::vector<u8> DecompressLz4(const Entry *entry, std::vector<u8> buffer) {
     Logger::error("DecompressLZ4 called! We don't support this yet...");
     return {};
 };
-std::vector<uint8_t> DecompressMdf(const Entry *entry, std::vector<uint8_t> buffer) {
+std::vector<u8> DecompressMdf(const Entry *entry, std::vector<u8> buffer) {
     Logger::error("DecompressMdf called! We don't support this yet...");
     return {};
 };
 
-std::vector<uint8_t> DecryptScript(int enc_type, const std::vector<uint8_t>& input, uint32_t unpacked_size) {
+std::vector<u8> DecryptScript(int enc_type, const std::vector<u8>& input, u32 unpacked_size) {
     size_t input_size = input.size();
 
     if (enc_type == 2) {
         // Check we have at least 16 bytes for two Int64 reads
         if (input_size < 16)
             throw std::runtime_error("Input too short for enc_type 2");
-        std::vector<uint8_t> compressed_data(input.begin() + 16, input.end());
+        std::vector<u8> compressed_data(input.begin() + 16, input.end());
         return {};
     }
 
     // For enc_type 0 or 1, prepare output vector with capacity +2 bytes for BOM
-    std::vector<uint8_t> output;
+    std::vector<u8> output;
     output.reserve(unpacked_size);
 
     output.push_back(0xFF);
     output.push_back(0xFE);
 
     for (size_t pos = 0; pos + 1 < input_size; pos += 2) {
-        uint16_t c = input[pos] | (input[pos + 1] << 8);
+        u16 c = input[pos] | (input[pos + 1] << 8);
 
         if (enc_type == 1) {
             c = ((c & 0xAAAA) >> 1) | ((c & 0x5555) << 1);
@@ -222,8 +221,8 @@ std::vector<uint8_t> DecryptScript(int enc_type, const std::vector<uint8_t>& inp
         } else {
             c = c ^ (((c & 0xFE) << 8) ^ 1);
         }
-        output.push_back(static_cast<uint8_t>(c & 0xFF));
-        output.push_back(static_cast<uint8_t>(c >> 8));
+        output.push_back(static_cast<u8>(c & 0xFF));
+        output.push_back(static_cast<u8>(c >> 8));
 
         if (output.size() >= unpacked_size)
             break;
@@ -233,38 +232,38 @@ std::vector<uint8_t> DecryptScript(int enc_type, const std::vector<uint8_t>& inp
     return output;
 }
 
-std::vector<uint8_t> EntryReadFilter(const Entry *entry, const std::vector<uint8_t>& buffer) {
+std::vector<u8> EntryReadFilter(const Entry *entry, const std::vector<u8>& buffer) {
     if (entry->size <= 5 /* || entry->Type == "audio" */)
         return buffer;
 
     if (buffer.size() < 5)
         return buffer;
 
-    uint32_t signature = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
+    u32 signature = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
 
     if (signature == 0x184D2204) {
         // LZ4 magic
         return DecompressLz4(entry, buffer);
     }
 
-    uint32_t mdfSig = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16);
+    u32 mdfSig = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16);
     if (mdfSig == 0x00666D64) { // 'mdf' little-endian
         return DecompressMdf(entry, buffer);
     }
 
     if ((signature & 0xFF00FFFFu) == 0xFF00FEFEu && buffer[2] < 3 && buffer[4] == 0xFE) {
-        std::vector<uint8_t> script_data(buffer.begin() + 5, buffer.end());
+        std::vector<u8> script_data(buffer.begin() + 5, buffer.end());
         return DecryptScript(buffer[2], script_data, entry->size);
     }
 
     return buffer;
 }
 
-static std::vector<uint8_t> stream;
-static std::vector<uint8_t> decrypted;
-static std::vector<uint8_t> decompressed;
+static std::vector<u8> stream;
+static std::vector<u8> decrypted;
+static std::vector<u8> decompressed;
 
-const char *XP3Archive::OpenStream(const Entry *entry, uint8_t *buffer)
+const char *XP3Archive::OpenStream(const Entry *entry, u8 *buffer)
 {
     stream.clear();
     Segment segment = entry->segments.at(0);

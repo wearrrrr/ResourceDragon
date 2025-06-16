@@ -2,12 +2,12 @@
 #include <unordered_map>
 #include <algorithm>
 
-int32_t FindString(uint8_t *section_base, size_t section_size, const std::vector<uint8_t> &pattern, int step = 1)
+int32_t FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pattern, int step = 1)
 {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
 
-    uint8_t *data = section_base;
+    u8 *data = section_base;
     size_t pattern_size = pattern.size();
     size_t max_offset = section_size - pattern_size;
 
@@ -21,13 +21,13 @@ int32_t FindString(uint8_t *section_base, size_t section_size, const std::vector
 }
 
 
-ArchiveBase* HSPArchive::TryOpen(uint8_t *buffer, uint64_t size, std::string file_name)
+ArchiveBase* HSPArchive::TryOpen(u8 *buffer, u64 size, std::string file_name)
 {
 
     ExeFile *exe = nullptr;
 
-    uint32_t dpmx_offset = 0;
-    uint32_t arc_key = 0;
+    u32 dpmx_offset = 0;
+    u32 arc_key = 0;
     bool is_pe = ExeFile::SigCheck(buffer);
 
     // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.
@@ -53,27 +53,27 @@ ArchiveBase* HSPArchive::TryOpen(uint8_t *buffer, uint64_t size, std::string fil
         Logger::error("Could not find 'DPMX' in the binary! Are you sure this game has a valid archive?");
     }
 
-    uint32_t file_count = Read<uint32_t>(buffer, dpmx_offset + 8);
+    u32 file_count = Read<u32>(buffer, dpmx_offset + 8);
 
     if (!IsSaneFileCount(file_count)) return nullptr;
 
-    uint32_t index_offset = (dpmx_offset + 0x10) + Read<uint32_t>(exe->buffer, dpmx_offset + 0xC);
-    uint32_t data_size = size - (index_offset + 32 * file_count);
+    u32 index_offset = (dpmx_offset + 0x10) + Read<u32>(exe->buffer, dpmx_offset + 0xC);
+    u32 data_size = size - (index_offset + 32 * file_count);
 
-    dpmx_offset += Read<uint32_t>(exe->buffer, dpmx_offset + 0x4);
+    dpmx_offset += Read<u32>(exe->buffer, dpmx_offset + 0x4);
 
     std::unordered_map<std::string, Entry> entries;
     entries.reserve(file_count);
 
-    for (uint32_t i = 0; i < file_count; i++) {
+    for (u32 i = 0; i < file_count; i++) {
         std::string file_name = ReadString(exe->buffer, index_offset);
         index_offset += 0x14;
 
         Entry entry = {
             .name = file_name,
-            .key = Read<uint32_t>(exe->buffer, index_offset),
-            .offset = Read<uint32_t>(exe->buffer, index_offset + 0x4) + dpmx_offset,
-            .size = Read<uint32_t>(exe->buffer, index_offset + 0x8),
+            .key = Read<u32>(exe->buffer, index_offset),
+            .offset = Read<u32>(exe->buffer, index_offset + 0x4) + dpmx_offset,
+            .size = Read<u32>(exe->buffer, index_offset + 0x8),
         };
 
         index_offset += 0xC;
@@ -86,19 +86,19 @@ ArchiveBase* HSPArchive::TryOpen(uint8_t *buffer, uint64_t size, std::string fil
 
 auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_bytes) {
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
-    uint32_t base = section->pointerToRawData;
-    uint32_t size = section->sizeOfRawData;
-    int32_t possible_key_pos = FindString(based_pointer<uint8_t>(exe->buffer, base), size, offset_bytes);
+    u32 base = section->pointerToRawData;
+    u32 size = section->sizeOfRawData;
+    int32_t possible_key_pos = FindString(based_pointer<u8>(exe->buffer, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
 }
 
-uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
+u32 HSPArchive::FindExeKey(ExeFile* exe, u32 dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
-    std::vector<uint8_t> offset_bytes(offset_str.begin(), offset_str.end());
+    std::vector<u8> offset_bytes(offset_str.begin(), offset_str.end());
     int32_t key_pos = -1;
-    uint32_t found_section_offset = 0x0;
+    u32 found_section_offset = 0x0;
 
     if (exe->ContainsSection(".rdata")) {
         auto [search, base] = FindKeyFromSection(exe, ".rdata", offset_bytes);
@@ -120,10 +120,10 @@ uint32_t HSPArchive::FindExeKey(ExeFile* exe, uint32_t dpmx_offset)
         return DefaultKey;
     };
 
-    return Read<uint32_t>(exe->buffer, (found_section_offset + key_pos) + 0x17);
+    return Read<u32>(exe->buffer, (found_section_offset + key_pos) + 0x17);
 }
 
-bool HSPArchive::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string &ext) const
+bool HSPArchive::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
     if (std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
         return false;
@@ -142,9 +142,9 @@ bool HSPArchive::CanHandleFile(uint8_t *buffer, uint64_t size, const std::string
     return false;
 }
 
-const char *DPMArchive::OpenStream(const Entry *entry, uint8_t *buffer)
+const char *DPMArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
-    uint8_t *data = buffer + entry->offset;
+    u8 *data = buffer + entry->offset;
 
     if (entry->key) {
         return (const char*)DecryptEntry(data, entry->size, entry->key);
