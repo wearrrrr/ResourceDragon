@@ -92,27 +92,6 @@ void RenderFBContextMenu(ImGuiIO *io) {
     }
 }
 
-void RenderQuitMenu(ImGuiIO *io) {
-    ImGui::SetNextWindowSize({600, 175});
-    ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
-    if (ImGui::BeginPopupModal("Quit Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextWrapped("Are you sure you'd like to quit?");
-        if (ImGui::Button("Confirm", {100, 0})) {
-            running = false;
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Close", {100, 0})) {
-            quitDialog = false;
-            ImGui::CloseCurrentPopup();
-        }
-        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-}
-
 void RenderPreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
@@ -474,8 +453,6 @@ int main(int argc, char *argv[]) {
         }
         ImGui::End();
         #endif
-
-        RenderQuitMenu(&io);
 
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             quitDialog = !quitDialog;

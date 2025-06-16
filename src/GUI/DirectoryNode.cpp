@@ -211,10 +211,15 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
         } else {
             fs::directory_iterator directoryIterator(parentPath);
             for (const auto &entry : directoryIterator) {
-                std::string path = entry.path().string();
+                fs::path path = entry.path();
+                // Why the hell does steam still have this? It's an intentionally broken symlink.
+                // https://github.com/ValveSoftware/steam-for-linux/issues/5245
+                if (path.filename().string().contains(".steampath")) {
+                    continue;
+                }
                 DirectoryNode *childNode = new DirectoryNode {
-                    .FullPath = path,
-                    .FileName = entry.path().filename().string(),
+                    .FullPath = path.string(),
+                    .FileName = path.filename().string(),
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
                     .LastModified = Utils::GetLastModifiedTime(path),
@@ -233,6 +238,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
             ui_error.message = errorMessage;
             ui_error.title = "Error accessing directory!";
             ui_error.show = true;
+
             return false;
     }
 }
@@ -427,6 +433,9 @@ void HandleFileClick(DirectoryNode *node) {
     rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
 }
 
+bool CanReadDirectory(const std::string& path) {
+    return access(path.c_str(), R_OK | X_OK) == 0;
+}
 
 void DisplayDirectoryNode(DirectoryNode *node) {
     ImGui::TableNextRow();
@@ -437,18 +446,24 @@ void DisplayDirectoryNode(DirectoryNode *node) {
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
-            if (rootNode->IsVirtualRoot) {
-                node->IsVirtualRoot = true;
-                node->Parent = rootNode;
-                rootNode = node;
+            if (!CanReadDirectory(node->FullPath)) {
+                Logger::error("Cannot access directory: %s", node->FullPath.c_str());
+                ui_error.title = "Access Denied";
+                ui_error.message = "You do not have permission to access this directory.";
+                ui_error.show = true;
             } else {
-                rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath, rootNode);
+                if (rootNode->IsVirtualRoot) {
+                    node->IsVirtualRoot = true;
+                    node->Parent = rootNode;
+                    rootNode = node;
+                } else {
+                    rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath, rootNode);
+                }
             }
         } else {
             HandleFileClick(node);
         }
     }
-
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
         if (loaded_arc_base) {
@@ -476,6 +491,8 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nu
 void SetupDisplayDirectoryNode(DirectoryNode *node) {
     ImGui::PushID(node);
 
+    ImGui::Text("%s", node->FullPath.c_str());
+
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);
     ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 100.0f);
@@ -501,10 +518,6 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
         }
         ImGui::PopID();
     }
-
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    AddDirectoryNodeChild(node->FullPath);
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
