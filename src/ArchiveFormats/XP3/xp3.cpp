@@ -130,10 +130,10 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
                         break;
                     }
                     case PackUInt32('s', 'e', 'g', 'm'): {
-                        int32_t segment_count = section_size / 0x1C;
+                        i32 segment_count = section_size / 0x1C;
                         if (segment_count > 0) {
                             for (int i = 0; i < segment_count; ++i) {
-                                bool compressed = header.read<int32_t>() != 0;
+                                bool compressed = header.read<i32>() != 0;
                                 u64 segment_offset = base_offset + header.read<u64>();
                                 int64_t segment_size = header.read<int64_t>();
                                 u64 segment_packed_size = header.read<u64>();

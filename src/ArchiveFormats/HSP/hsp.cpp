@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-int32_t FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pattern, int step = 1)
+i32 FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pattern, int step = 1)
 {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
@@ -88,7 +88,7 @@ auto FindKeyFromSection(ExeFile* exe, std::string section_name, auto offset_byte
     Pe32SectionHeader *section = exe->GetSectionHeader(section_name);
     u32 base = section->pointerToRawData;
     u32 size = section->sizeOfRawData;
-    int32_t possible_key_pos = FindString(based_pointer<u8>(exe->buffer, base), size, offset_bytes);
+    i32 possible_key_pos = FindString(based_pointer<u8>(exe->buffer, base), size, offset_bytes);
 
     return std::make_pair(possible_key_pos, base);
 }
@@ -97,7 +97,7 @@ u32 HSPArchive::FindExeKey(ExeFile* exe, u32 dpmx_offset)
 {
     std::string offset_str = std::to_string(dpmx_offset - 0x10000) + "\0";
     std::vector<u8> offset_bytes(offset_str.begin(), offset_str.end());
-    int32_t key_pos = -1;
+    i32 key_pos = -1;
     u32 found_section_offset = 0x0;
 
     if (exe->ContainsSection(".rdata")) {
