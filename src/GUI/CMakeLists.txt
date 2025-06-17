@@ -7,6 +7,7 @@ add_library(GUI
     PreviewWindow.cpp
     TextEditor/TextEditor.cpp
     Theme/BessDark.cpp
+    UIError.cpp
     Utils.cpp
 )
 

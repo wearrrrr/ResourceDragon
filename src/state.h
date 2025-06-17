@@ -14,6 +14,7 @@
 #include "GUI/Image.h"
 #include "ExtractorManager.h"
 #include "vec2.h"
+#include "GUI/UIError.h"
 
 #include <TextEditor/TextEditor.h>
 
@@ -71,12 +72,6 @@ struct PreviewWinState {
   PWinStateTexture texture;
 };
 
-struct UIError {
-  std::string message;
-  std::string title;
-  bool show = false;
-};
-
 inline PreviewWinState preview_state = {
     .content_type = PContentType::UNKNOWN,
     .contents = {
@@ -118,12 +113,6 @@ inline u8 *current_buffer = nullptr;
 inline Entry *selected_entry = nullptr;
 
 inline TextEditor editor;
-
-inline UIError ui_error = {
-  .message = "",
-  .title = "",
-  .show = false
-};
 
 inline float img_preview__zoom = 1.0f;
 inline ImVec2 img_preview__pan = {0.0f, 0.0f};

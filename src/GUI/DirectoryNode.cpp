@@ -1,19 +1,12 @@
-#include <cstring>
-#include <fstream>
-#include <filesystem>
-#include <unordered_map>
-#include <algorithm>
-#include <functional>
-
-
-
 #include <Audio.h>
 #include <DirectoryNode.h>
-#include <Utils.h>
-#include "state.h"
+#include <Image.h>
 #include <util/Text.h>
 #include <util/int.h>
-#include "Image.h"
+#include <Utils.h>
+
+#include "UIError.h"
+#include "state.h"
 #include "gl3.h"
 
 #include "../ResourceFormats/DDS.h"
@@ -238,9 +231,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
     } catch (const fs::filesystem_error &e) {
             const char *errorMessage = e.what();
             printf("Error accessing directory: %s\n", errorMessage);
-            ui_error.message = errorMessage;
-            ui_error.title = "Error accessing directory!";
-            ui_error.show = true;
+            ui_error = UIError::CreateError(errorMessage, "Error accessing directory!");
 
             return false;
     }
@@ -451,9 +442,7 @@ void DisplayDirectoryNode(DirectoryNode *node) {
         if (node->IsDirectory) {
             if (!rootNode->IsVirtualRoot && !CanReadDirectory(node->FullPath)) {
                 Logger::error("Cannot access directory: %s", node->FullPath.c_str());
-                ui_error.title = "Access Denied";
-                ui_error.message = "You do not have permission to access this directory.";
-                ui_error.show = true;
+                ui_error = UIError::CreateError("You do not have permission to access this directory!", "Access Denied");
             } else {
                 if (rootNode->IsVirtualRoot) {
                     node->IsVirtualRoot = true;

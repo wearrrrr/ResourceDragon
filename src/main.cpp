@@ -114,6 +114,7 @@ void RenderErrorPopup(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 250});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::TextWrapped("%s", ui_error.title.c_str());
         ImGui::TextWrapped("%s", ui_error.message.c_str());
         ImGui::Text("Press escape to close.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {

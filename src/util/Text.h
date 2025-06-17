@@ -2,7 +2,6 @@
 
 #include <string>
 #include <algorithm>
-#include <cstdint>
 #ifdef linux
 #include "iconv.h"
 #endif
@@ -19,7 +18,7 @@ class TextConverter {
             }
 
             size_t in_bytes_left = utf16_str.size() * sizeof(char16_t);
-            size_t out_bytes_left = in_bytes_left * 2; // Allocate enough space for UTF-8
+            size_t out_bytes_left = in_bytes_left * 2;
             char* in_buf = (char*)utf16_str.data();
             char* out_buf = new char[out_bytes_left];
             char* out_ptr = out_buf;
