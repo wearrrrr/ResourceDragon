@@ -130,6 +130,12 @@ void UnloadSelectedFile() {
         Mix_FreeMusic(preview_state.audio.music);
         preview_state.audio.music = nullptr;
     }
+    if (preview_state.audio.fluid_player) {
+        fluid_player_stop(preview_state.audio.fluid_player);
+        delete_fluid_player(preview_state.audio.fluid_player);
+        preview_state.audio.fluid_player = nullptr;
+        preview_state.audio.fluid_player = new_fluid_player(curr_synth);
+    }
     preview_state.audio.buffer = nullptr;
     preview_state.audio.playing = false;
     preview_state.audio.time = {
@@ -249,6 +255,21 @@ void UnloadArchive() {
         free(current_buffer);
         current_buffer = nullptr;
     }
+}
+
+std::filesystem::path LinuxExpandUserPath(const std::string& path) {
+    if (path.empty() || path[0] != '~') {
+        return std::filesystem::path(path);
+    }
+
+    const char* home = std::getenv("HOME");
+    if (path.size() == 1) {
+        return std::filesystem::path(home);
+    } else if (path[1] == '/') {
+        return std::filesystem::path(home) / path.substr(2);
+    }
+
+    return "/";
 }
 
 DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent) {
@@ -376,8 +397,6 @@ void HandleFileClick(DirectoryNode *node) {
                 free(entry_buffer);
             }
 
-            Logger::log("Current sound is midi? %s", curr_sound_is_midi ? "true" : "false");
-
             if (current_sound) {
                 preview_state.content_type = AUDIO;
                 Mix_PlayMusic(current_sound, 1);
@@ -465,6 +484,7 @@ void DisplayDirectoryNode(DirectoryNode *node) {
         } else {
             HandleFileClick(node);
         }
+        SetFilePath(rootNode->FullPath + "/");
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
@@ -489,11 +509,11 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nu
     };
 }
 
-char *file_path_buf = (char*)calloc(sizeof(char), 1024);
+static char *file_path_buf = (char*)calloc(sizeof(char), 1024);
 
-void SetFilePath(const char *file_path) {
-    memcpy(file_path_buf, file_path, strlen(file_path));
-    return;
+void SetFilePath(const std::string& file_path) {
+    std::strncpy(file_path_buf, file_path.c_str(), 1024);
+    file_path_buf[1023] = '\0';
 }
 
 #define FB_COLUMNS 3
@@ -502,7 +522,10 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
-        rootNode = CreateDirectoryNodeTreeFromPath(fs::path(file_path_buf).string());
+        std::string expanded_path = LinuxExpandUserPath(std::string(file_path_buf));
+        Logger::log(expanded_path);
+        SetFilePath(expanded_path);
+        rootNode = CreateDirectoryNodeTreeFromPath(expanded_path);
     }
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
@@ -546,6 +569,7 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
                     current_buffer = nullptr;
                 }
             }
+            SetFilePath(rootNode->FullPath + "/");
         }
     });
     ImGui::TableNextColumn();

@@ -1,5 +1,5 @@
 #!/bin/bash
-./build.sh
+./build.sh "$@"
 
 if (($? == 0)); then
     build/ResourceDragon

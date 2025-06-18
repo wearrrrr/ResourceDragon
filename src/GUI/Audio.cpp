@@ -42,6 +42,7 @@ void Audio::InitAudioSystem() {
     }
     fluid_synth_sfload(synth, "/usr/share/soundfonts/Roland_SC-88.sf2", 1);
     preview_state.audio.fluid_player = player;
+    curr_synth = synth;
 
 
     if (!Mix_OpenAudio(0, &spec)) {

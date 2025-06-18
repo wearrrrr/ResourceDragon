@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    SetFilePath(fs::canonical(path).string().c_str());
+    SetFilePath(fs::canonical(path).string());
 
     rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path).string());
 
