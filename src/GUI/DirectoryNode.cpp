@@ -1,11 +1,14 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Image.h>
+#include <cstdlib>
+#include <cstring>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
 
 #include "UIError.h"
+#include "imgui.h"
 #include "state.h"
 #include "gl3.h"
 
@@ -486,11 +489,21 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nu
     };
 }
 
+char *file_path_buf = (char*)calloc(sizeof(char), 1024);
+
+void SetFilePath(const char *file_path) {
+    memcpy(file_path_buf, file_path, strlen(file_path));
+    return;
+}
+
 #define FB_COLUMNS 3
 void SetupDisplayDirectoryNode(DirectoryNode *node) {
     ImGui::PushID(node);
 
-    ImGui::Text("%s", node->FullPath.c_str());
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        rootNode = CreateDirectoryNodeTreeFromPath(fs::path(file_path_buf).string());
+    }
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);

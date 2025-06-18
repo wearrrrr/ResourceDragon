@@ -26,6 +26,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
 void ReloadRootNode(DirectoryNode *node);
 void HandleFileClick(DirectoryNode *node);
 void DisplayDirectoryNode(DirectoryNode *node);
+void SetFilePath(const char *file_path);
 void SetupDisplayDirectoryNode(DirectoryNode *node);
 void UnloadSelectedFile();
 void FreeDirectoryTree(DirectoryNode* node);
