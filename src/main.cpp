@@ -4,6 +4,7 @@
 #include <GUI/DirectoryNode.h>
 #include <GUI/Clipboard.h>
 #include <GUI/PreviewWindow.h>
+#include <GUI/UIError.h>
 #include <Scripting/ScriptManager.h>
 #include <thread>
 
@@ -20,8 +21,6 @@
 #include <ArchiveFormats/Touhou/thdat.h>
 #include <ArchiveFormats/XP3/xp3.h>
 #include <ArchiveFormats/Zip/zip.h>
-
-// #define DEBUG
 
 #ifdef DEBUG
 #include <cmath>

@@ -96,7 +96,7 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
 
 
 void PreviewWindow::RenderAudioPlayer() {
-    if (current_sound) {
+    if (current_sound || curr_sound_is_midi) {
         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
         TimeInfo time = preview_state.audio.time;
         if (preview_state.audio.playing) {
@@ -113,56 +113,54 @@ void PreviewWindow::RenderAudioPlayer() {
         ImGui::SameLine();
         // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
         // Actually.. This is fixable, but the solution involves ditching SDL3_mixer for midi.
-        if (!curr_sound_is_midi) {
-            ImGui::BeginGroup();
-            if (ImGui::Button(RW_ICON, {40, 0})) {
-                double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
-                new_pos > 0
-                    ? Mix_SetMusicPosition(new_pos)
-                    : Mix_SetMusicPosition(0);
-            }
-            ImGui::SameLine();
-            ImGui::Text("%02d:%02d / %02d:%02d",
-                time.current_time_min,
-                time.current_time_sec,
-                time.total_time_min,
-                time.total_time_sec
-            );
-            ImGui::SameLine();
-            const double current_pos = Mix_GetMusicPosition(current_sound);
-            const double total_time = time.total_time_min * 60 + time.total_time_sec;
-            if (total_time > 0.0) {
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-
-                const float visual_pos = std::max(current_pos - 0.3, 0.0);
-                float scrubberProgress = visual_pos / total_time;
-                scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
-                bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
-
-                if (isDragging) {
-                    if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
-
-                    int new_pos = (int)(scrubberProgress * total_time);
-                    timeToSetOnRelease = new_pos;
-                    preview_state.audio.time.current_time_min = new_pos / 60;
-                    preview_state.audio.time.current_time_sec = new_pos % 60;
-                    preview_state.audio.scrubberDragging = true;
-                }
-
-                if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                    Mix_SetMusicPosition(timeToSetOnRelease);
-                    Mix_ResumeMusic();
-                    preview_state.audio.scrubberDragging = false;
-                }
-            }
-            ImGui::SameLine(0.0f, 16.0f);
-            if (ImGui::Button(FF_ICON, {40, 0})) {
-                double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
-                Mix_SetMusicPosition(new_pos);
-            }
-            ImGui::EndGroup();
+        ImGui::BeginGroup();
+        if (ImGui::Button(RW_ICON, {40, 0})) {
+            double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
+            new_pos > 0
+                ? Mix_SetMusicPosition(new_pos)
+                : Mix_SetMusicPosition(0);
         }
+        ImGui::SameLine();
+        ImGui::Text("%02d:%02d / %02d:%02d",
+            time.current_time_min,
+            time.current_time_sec,
+            time.total_time_min,
+            time.total_time_sec
+        );
+        ImGui::SameLine();
+        const double current_pos = Mix_GetMusicPosition(current_sound);
+        const double total_time = time.total_time_min * 60 + time.total_time_sec;
+        if (total_time > 0.0) {
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
+
+            const float visual_pos = std::max(current_pos - 0.3, 0.0);
+            float scrubberProgress = visual_pos / total_time;
+            scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
+            bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
+
+            if (isDragging) {
+                if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
+
+                int new_pos = (int)(scrubberProgress * total_time);
+                timeToSetOnRelease = new_pos;
+                preview_state.audio.time.current_time_min = new_pos / 60;
+                preview_state.audio.time.current_time_sec = new_pos % 60;
+                preview_state.audio.scrubberDragging = true;
+            }
+
+            if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+                Mix_SetMusicPosition(timeToSetOnRelease);
+                Mix_ResumeMusic();
+                preview_state.audio.scrubberDragging = false;
+            }
+        }
+        ImGui::SameLine(0.0f, 16.0f);
+        if (ImGui::Button(FF_ICON, {40, 0})) {
+            double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
+            Mix_SetMusicPosition(new_pos);
+        }
+        ImGui::EndGroup();
 
         ImGui::SameLine();
         bool looping = preview_state.audio.shouldLoop;
@@ -175,7 +173,11 @@ void PreviewWindow::RenderAudioPlayer() {
 
         ImGui::SameLine();
         if (ImGui::Button(STOP_ICON, {40, 0})) {
-            Mix_HaltMusic();
+            if (curr_sound_is_midi) {
+                fluid_player_stop(preview_state.audio.fluid_player);
+            } else {
+                Mix_HaltMusic();
+            }
             UnloadSelectedFile();
             preview_state.audio.playing = false;
             SDL_RemoveTimer(preview_state.audio.update_timer);

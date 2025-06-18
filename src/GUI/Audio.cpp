@@ -3,6 +3,8 @@
 #include <DirectoryNode.h>
 #include "state.h"
 
+#include <alsa/asoundlib.h>
+
 void Audio::MusicFinishedCallback() {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
         Mix_PlayMusic(preview_state.audio.music, 0);
@@ -11,18 +13,35 @@ void Audio::MusicFinishedCallback() {
     }
 }
 
+#ifndef DEBUG
+void ignore_alsa_log(const char* file, int line, const char* function, int err, const char* fmt, ...) {
+
+}
+#endif
+
 void Audio::InitAudioSystem() {
     SDL_AudioSpec spec;
     spec.channels = MIX_DEFAULT_CHANNELS;
     spec.format = MIX_DEFAULT_FORMAT;
     spec.freq = MIX_DEFAULT_FREQUENCY;
 
-    #ifdef MIDI_SUPPORT
-    bool load_sf2 = Mix_SetSoundFonts("opl4.sf2");
-    if (!load_sf2) {
-        Logger::error("Failed to load soundfont: %s", SDL_GetError());
-    }
+    #ifndef DEBUG
+    // if not debugging, tell fluidsynth and alsa logs to fuck off :D
+    fluid_set_log_function(FLUID_WARN, NULL, NULL);
+    fluid_set_log_function(FLUID_INFO, NULL, NULL);
+    fluid_set_log_function(FLUID_DBG, NULL, NULL);
+    snd_lib_error_set_handler(ignore_alsa_log);
+
     #endif
+    fluid_settings_t* settings = new_fluid_settings();
+    fluid_synth_t* synth = new_fluid_synth(settings);
+    fluid_player_t* player = new_fluid_player(synth);
+    fluid_audio_driver_t* driver = new_fluid_audio_driver(settings, synth);
+    if (!driver) {
+        Logger::error("Failed to create FluidSynth audio driver");
+    }
+    fluid_synth_sfload(synth, "/usr/share/soundfonts/Roland_SC-88.sf2", 1);
+    preview_state.audio.fluid_player = player;
 
 
     if (!Mix_OpenAudio(0, &spec)) {

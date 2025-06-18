@@ -1,8 +1,11 @@
 #pragma once
 
+#define DEBUG
+
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include "gl3.h"
+#include "fluidsynth.h" // IWYU pragma: keep
 #include <string>
 
 #ifdef linux
@@ -14,7 +17,6 @@
 #include "GUI/Image.h"
 #include "ExtractorManager.h"
 #include "vec2.h"
-#include "GUI/UIError.h"
 
 #include <TextEditor/TextEditor.h>
 
@@ -35,6 +37,7 @@ struct TimeInfo {
 
 struct PWinStateAudio {
   Mix_Music *music;
+  fluid_player_t* fluid_player;
   bool playing;
   u8 *buffer;
   int volumePercent;
@@ -73,37 +76,8 @@ struct PreviewWinState {
 };
 
 inline PreviewWinState preview_state = {
-    .content_type = PContentType::UNKNOWN,
-    .contents = {
-        .data = nullptr,
-        .size = 0,
-        .path = "",
-        .ext = "",
-        .fileName = "",
-        .elf_header = {},
-        .elfFile = nullptr,
-    },
-    .audio = {
-        .music = nullptr,
-        .playing = false,
-        .buffer = nullptr,
-        .volumePercent = 100,
-        .time = {
-            .total_time_min = 0,
-            .total_time_sec = 0,
-            .current_time_min = 0,
-            .current_time_sec = 0,
-        },
-        .update_timer = 0,
-        .shouldLoop = false,
-        .scrubberDragging = false,
-      },
-    .texture = {
-        .id = 0,
-        .size = {},
-        .anim = {},
-        .frame = 0,
-        .last_frame_time = 0,
+    .audio {
+        .volumePercent = 100
     }
 };
 inline ExtractorManager extractor_manager;

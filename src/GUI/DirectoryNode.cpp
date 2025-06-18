@@ -373,6 +373,8 @@ void HandleFileClick(DirectoryNode *node) {
                 free(entry_buffer);
             }
 
+            Logger::log("Current sound is midi? %s", curr_sound_is_midi ? "true" : "false");
+
             if (current_sound) {
                 preview_state.content_type = AUDIO;
                 Mix_PlayMusic(current_sound, 1);
@@ -382,6 +384,11 @@ void HandleFileClick(DirectoryNode *node) {
                 preview_state.audio.time.total_time_min = duration / 60;
                 preview_state.audio.time.total_time_sec = duration % 60;
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+            }
+
+            if (curr_sound_is_midi) {
+                fluid_player_add(preview_state.audio.fluid_player, "test.mid");
+                fluid_player_play(preview_state.audio.fluid_player);
             }
 
         } else if (ElfFile::IsValid(entry_buffer)) {
