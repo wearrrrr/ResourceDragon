@@ -63,18 +63,16 @@ inline bool ValidateGlobals() {
     return true;
 }
 
-void VirtualArc_ExtractEntry(std::string path, Entry *entry) {
+void VirtualArc_ExtractEntry(fs::path path, Entry *entry) {
     if (!ValidateGlobals()) return;
 
     const char *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
-
-    Logger::log("%s", entry->name.c_str());
 
     #ifdef linux
     std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
     #endif
 
-    fs::path fullOutputPath = fs::path(path) / entry->name;
+    fs::path fullOutputPath = path / entry->name;
 
     std::error_code err;
     if (!CreateDirectoryRecursive(fullOutputPath.parent_path().string(), err)) {
@@ -111,39 +109,23 @@ void UnloadSelectedFile() {
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
 
-    preview_state.texture.id = 0;
-    preview_state.texture.size = {};
-    preview_state.texture.anim = {};
-    preview_state.texture.frame = 0;
-    preview_state.texture.last_frame_time = 0;
-
+    preview_state.texture.id = {};
     preview_state.content_type = PContentType::UNKNOWN;
-
-    preview_state.contents.data = nullptr;
-    preview_state.contents.size = 0;
-    preview_state.contents.path = "";
-    preview_state.contents.ext = "";
-    preview_state.contents.elf_header = {};
-    preview_state.contents.elfFile = nullptr;
+    preview_state.contents = {};
 
     if (preview_state.audio.music) {
         Mix_FreeMusic(preview_state.audio.music);
-        preview_state.audio.music = nullptr;
+        preview_state.audio.music = {};
     }
     if (preview_state.audio.fluid_player) {
         fluid_player_stop(preview_state.audio.fluid_player);
         delete_fluid_player(preview_state.audio.fluid_player);
-        preview_state.audio.fluid_player = nullptr;
+        preview_state.audio.fluid_player = {};
         preview_state.audio.fluid_player = new_fluid_player(curr_synth);
     }
-    preview_state.audio.buffer = nullptr;
+    preview_state.audio.buffer = {};
     preview_state.audio.playing = false;
-    preview_state.audio.time = {
-        .total_time_min = 0,
-        .total_time_sec = 0,
-        .current_time_min = 0,
-        .current_time_sec = 0,
-    };
+    preview_state.audio.time = {};
     preview_state.audio.scrubberDragging = false;
     if (preview_state.audio.update_timer) {
         SDL_RemoveTimer(preview_state.audio.update_timer);
@@ -523,7 +505,6 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
         std::string expanded_path = LinuxExpandUserPath(std::string(file_path_buf));
-        Logger::log(expanded_path);
         SetFilePath(expanded_path);
         rootNode = CreateDirectoryNodeTreeFromPath(expanded_path);
     }
@@ -563,7 +544,8 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
             } else {
                 UnloadArchive();
                 FreeDirectoryTree(rootNode);
-                rootNode = CreateDirectoryNodeTreeFromPath(fs::path(node->FullPath).parent_path().string());
+                auto parent_path = fs::path(node->FullPath).parent_path();
+                rootNode = CreateDirectoryNodeTreeFromPath(parent_path.string());
                 if (current_buffer) {
                     free(current_buffer);
                     current_buffer = nullptr;
