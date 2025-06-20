@@ -466,7 +466,12 @@ void DisplayDirectoryNode(DirectoryNode *node) {
         } else {
             HandleFileClick(node);
         }
-        SetFilePath(rootNode->FullPath + "/");
+        if (rootNode->FullPath.ends_with("/")) {
+            SetFilePath(rootNode->FullPath);
+        } else {
+            SetFilePath(rootNode->FullPath + "/");
+        }
+
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         selectedItem = node;
@@ -551,7 +556,7 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
                     current_buffer = nullptr;
                 }
             }
-            SetFilePath(rootNode->FullPath + "/");
+            SetFilePath(rootNode->FullPath);
         }
     });
     ImGui::TableNextColumn();

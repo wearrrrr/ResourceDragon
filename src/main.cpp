@@ -182,9 +182,10 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    SetFilePath(fs::canonical(path).string());
+    auto canonical_path = fs::canonical(path).string() + "/";
 
-    rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(path).string());
+    SetFilePath(canonical_path);
+    rootNode = CreateDirectoryNodeTreeFromPath(canonical_path);
 
     #ifdef linux
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
