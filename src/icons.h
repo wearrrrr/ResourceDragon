@@ -4,3 +4,6 @@
 #define PAUSE_ICON "\ue803"
 #define FF_ICON "\ue804"
 #define RW_ICON "\ue805"
+#define HELP_ICON "\ue806"
+#define FOLDER_ICON "\ue808"
+#define FILE_ICON "\ue809"

@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <GUI/Audio.h>
 #include <GUI/Theme/Themes.h>
 #include <GUI/DirectoryNode.h>
@@ -7,9 +6,9 @@
 #include <GUI/UIError.h>
 #include <Scripting/ScriptManager.h>
 #include <thread>
+#include <filesystem>
 
 #include "state.h"
-#include "icons.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
@@ -21,6 +20,8 @@
 #include <ArchiveFormats/Touhou/thdat.h>
 #include <ArchiveFormats/XP3/xp3.h>
 #include <ArchiveFormats/Zip/zip.h>
+
+namespace fs = std::filesystem;
 
 #ifdef DEBUG
 #include <cmath>
@@ -272,21 +273,19 @@ int main(int argc, char *argv[]) {
     ImFontConfig iconConfig;
     iconConfig.MergeMode = true;
     iconConfig.GlyphMinAdvanceX = 18.0f;
-    const ImWchar icon_ranges[] = { 0xe800, 0xe805 };
+    const ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
-    #ifdef WIN32
-    const char *font_path = "fonts\\NotoSansCJK-Medium.woff2";
-    const char *icon_font_path = "fonts\\player-icons.ttf";
-    #else
-    const char *font_path = "fonts/NotoSansCJKjp-Medium.woff2";
-    const char *icon_font_path = "fonts/player-icons.ttf";
-    #endif
+    // I sure do love operator overloading :clueless:
+    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
+    auto icon_font_path = fs::path("fonts") / "icons.woff2";
 
-    if (fs::exists(font_path)) {
-        io.Fonts->AddFontFromFileTTF(font_path, 24, nullptr, gr.Data);
-        io.Fonts->AddFontFromFileTTF(icon_font_path, 18, &iconConfig, icon_ranges);
-    } else {
-        Logger::warn("Failed to locate font file! Attempted to search: %s", font_path);
+    auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
+    auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), 18, &iconConfig, icon_ranges);
+    if (!noto) {
+        Logger::warn("Failed to load main font! Continuing with default...");
+    }
+    if (!icons) {
+        Logger::warn("Failed to load icons! This will cause some things to not render properly.");
     }
 
     Theme::SetTheme("BessDark");
