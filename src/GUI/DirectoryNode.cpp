@@ -63,7 +63,7 @@ inline bool ValidateGlobals() {
     return true;
 }
 
-void VirtualArc_ExtractEntry(fs::path path, Entry *entry) {
+void VirtualArc_ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return;
 
     const char *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
@@ -75,12 +75,19 @@ void VirtualArc_ExtractEntry(fs::path path, Entry *entry) {
     fs::path fullOutputPath = path / entry->name;
 
     std::error_code err;
-    if (!CreateDirectoryRecursive(fullOutputPath.parent_path().string(), err)) {
-        Logger::error("Failed to create directory: %s", err.message().c_str());
-        return;
+
+    if (!outputPath.empty()) {
+        if (!CreateDirectoryRecursive(fullOutputPath, err)) {
+            Logger::error("Failed to create directory: %s", err.message().c_str());
+            return;
+        }
+    } else {
+        outputPath = fullOutputPath;
     }
 
-    std::ofstream outFile(fullOutputPath, std::ios::binary);
+
+
+    std::ofstream outFile(outputPath, std::ios::binary);
     outFile.write(extracted, entry->size);
     outFile.close();
 }

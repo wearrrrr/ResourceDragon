@@ -1,5 +1,10 @@
 #pragma once
 
+#include <filesystem>
+#include <ArchiveFormats/Entry.h>
+
+namespace fs = std::filesystem;
+
 #include <string>
 #include <vector>
 #include <util/int.h>
@@ -31,5 +36,6 @@ void SetupDisplayDirectoryNode(DirectoryNode *node);
 void UnloadSelectedFile();
 void FreeDirectoryTree(DirectoryNode* node);
 
+void VirtualArc_ExtractEntry(fs::path path, Entry *entry, fs::path outputPath = {});
 void VirtualArc_ExtractEntry(std::string path = "extracted/");
 void VirtualArc_ExtractAll();

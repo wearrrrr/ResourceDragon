@@ -50,7 +50,8 @@ void RenderFBContextMenu(ImGuiIO *io) {
                 if (!selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
                         if (rootNode->IsVirtualRoot) {
-                            Logger::error("Copying virtual files to the clipboard is currently not supported!");
+                            VirtualArc_ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/image.png");
+                            Clipboard::CopyFilePathToClipboard("/tmp/rd/image.png");
                         } else {
                             Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
                         }
