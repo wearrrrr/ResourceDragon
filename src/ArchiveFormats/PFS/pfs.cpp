@@ -2,7 +2,6 @@
 #include "../../sha1.h"
 
 #include <unordered_map>
-#include <algorithm>
 
 
 ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
@@ -39,10 +38,6 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
     Seek(0x7);
 
     Read(index_buf, buffer, index_size);
-
-    // std::ofstream outFile("index_buf", std::ios::binary);
-    // outFile.write((const char*)index_buf, index_size);
-    // outFile.close();
 
     std::unordered_map<std::string, Entry> entries;
 
@@ -89,9 +84,9 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
 
 bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
-    if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
-        return false;
-    }
+    // if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
+    //     return false;
+    // }
 
     if (ReadMagic<u16>(buffer) == PackUInt16('p', 'f')) {
         return true;
@@ -100,11 +95,14 @@ bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) cons
     return false;
 }
 
+
+
 const char* PFSArchive::OpenStream(const Entry *entry, u8 *buffer) {
     u8* output = (u8*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
-    pfs_fmt->buffer_position += entry->size;
+    if (key.empty()) return (const char*)output;
+
     for (u32 i = 0; i < entry->size; ++i)
     {
         output[i] ^= key[i % key.size()];
