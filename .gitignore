@@ -7,13 +7,4 @@ extracted/
 imgui.ini
 
 # Test files - Eventually, this will be moved into a directory.
-eXceed3.exe
-test.DAT
-test.mid
-test.ogg
-test.mpk
-test.pak
-test.pfs
-test.xp3
-test.zip
-bash
+tests/
