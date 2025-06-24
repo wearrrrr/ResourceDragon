@@ -66,7 +66,7 @@ inline bool ValidateGlobals() {
 void VirtualArc_ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return;
 
-    const char *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
+    const char *extracted = (const char*)loaded_arc_base->OpenStream(entry, current_buffer);
 
     #ifdef linux
     std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
@@ -312,7 +312,7 @@ void HandleFileClick(DirectoryNode *node) {
 
         if (selected_entry) {
             if (current_buffer) {
-                const char *arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
+                const char *arc_read = (const char*)loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
                 entry_buffer = malloc<u8>(size);
                 memcpy(entry_buffer, arc_read, size);

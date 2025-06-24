@@ -93,9 +93,9 @@ class THDATArchive : public ArchiveBase {
         return entry_map;
     }
 
-    const char* OpenStream(const Entry* entry, u8* buffer) override {
+    u8* OpenStream(const Entry* entry, u8* buffer) override {
         auto it = decompressed_cache.find(entry->name);
         if (it == decompressed_cache.end()) return nullptr;
-        return reinterpret_cast<const char*>(it->second.data());
+        return it->second.data();
     }
 };

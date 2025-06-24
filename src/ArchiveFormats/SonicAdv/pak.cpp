@@ -30,6 +30,6 @@ ArchiveBase *SAPakFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     return new SAPakArchive(entries);
 };
 
-const char *SAPakArchive::OpenStream(const Entry *entry, u8 *buffer) {
-    return (const char *)entry->data.data();
+u8* SAPakArchive::OpenStream(const Entry *entry, u8 *buffer) {
+    return (u8*)entry->data.data();
 };

@@ -23,19 +23,13 @@ class SAPakArchive : public ArchiveBase {
         SAPakArchive(const std::unordered_map<std::string, Entry> &entries) {
             this->entries = entries;
         };
-        // std::vector<Entry*> GetEntries() override {
-        //     std::vector<Entry*> entryList;
-        //     for (auto& entry : entries)
-        //         entryList.push_back(&entry);
-        //     return entryList;
-        // }
         std::unordered_map<std::string, Entry*> GetEntries() override {
             std::unordered_map<std::string, Entry*> entries;
             for (auto& entry : this->entries)
                 entries[entry.first] = &entry.second;
             return entries;
         }
-        const char *OpenStream(const Entry *entry, u8 *buffer) override;
+        u8* OpenStream(const Entry *entry, u8 *buffer) override;
 
 
 };

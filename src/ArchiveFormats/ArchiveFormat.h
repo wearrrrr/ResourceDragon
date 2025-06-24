@@ -16,7 +16,7 @@ bool VectorHas(std::vector<T> vec, T item) {
 
 class ArchiveBase {
     public:
-        virtual const char* OpenStream(const Entry *entry, u8 *buffer) = 0;
+        virtual u8* OpenStream(const Entry *entry, u8 *buffer) = 0;
         virtual std::unordered_map<std::string, Entry*> GetEntries() = 0;
         virtual ~ArchiveBase() = default;
 };
@@ -86,7 +86,7 @@ class ArchiveFormat {
         }
 
         std::string ReadStringWithLength(const u8* buffer, usize length) {
-            return std::string((const char*)(buffer), length);
+            return std::string((const char*)buffer, length);
         }
 
         ExeFile* ConvertToExeFile(u8 *buffer) {

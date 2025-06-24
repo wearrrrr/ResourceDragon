@@ -97,16 +97,16 @@ bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) cons
 
 
 
-const char* PFSArchive::OpenStream(const Entry *entry, u8 *buffer) {
+u8* PFSArchive::OpenStream(const Entry *entry, u8 *buffer) {
     u8* output = (u8*)malloc(entry->size);
     memcpy(output, buffer + entry->offset, entry->size);
 
-    if (key.empty()) return (const char*)output;
+    if (key.empty()) return output;
 
     for (u32 i = 0; i < entry->size; ++i)
     {
         output[i] ^= key[i % key.size()];
     }
 
-    return (const char*)(output);
+    return output;
 }

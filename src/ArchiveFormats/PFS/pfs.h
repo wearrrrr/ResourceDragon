@@ -36,5 +36,5 @@ class PFSArchive : public ArchiveBase {
                 entries[entry.first] = &entry.second;
             return entries;
         }
-        const char* OpenStream(const Entry *entry, u8 *buffer) override;
+        u8* OpenStream(const Entry *entry, u8 *buffer) override;
 };

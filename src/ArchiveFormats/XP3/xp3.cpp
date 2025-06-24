@@ -263,7 +263,7 @@ static std::vector<u8> stream;
 static std::vector<u8> decrypted;
 static std::vector<u8> decompressed;
 
-const char *XP3Archive::OpenStream(const Entry *entry, u8 *buffer)
+u8* XP3Archive::OpenStream(const Entry *entry, u8 *buffer)
 {
     stream.clear();
     Segment segment = entry->segments.at(0);
@@ -281,14 +281,14 @@ const char *XP3Archive::OpenStream(const Entry *entry, u8 *buffer)
 
         stream = EntryReadFilter(entry, stream);
 
-        return (const char*)stream.data();
+        return stream.data();
     }
     else {
         // Encrypted entries
         memcpy(stream.data(), buffer + entry->offset, entry->size);
         decrypted = EntryReadFilter(entry, entry->crypt->Decrypt(entry, 0, stream, 0, entry->size));
 
-        return (const char*)decrypted.data();
+        return decrypted.data();
     }
 
     return nullptr;

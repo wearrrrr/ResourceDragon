@@ -34,7 +34,7 @@ public:
         zip_arc = za;
     }
 
-    const char* OpenStream(const Entry *entry, u8 *buffer) override {
+    u8* OpenStream(const Entry *entry, u8 *buffer) override {
         if (!entry) return nullptr;
 
         zip_file_t *zf = zip_fopen_index(zip_arc, entry->index, 0);
@@ -43,7 +43,7 @@ public:
             return nullptr;
         }
 
-        char *buf = (char*)malloc(entry->size);
+        u8 *buf = (u8*)malloc(entry->size);
         if (!buf) {
             zip_fclose(zf);
             return nullptr;

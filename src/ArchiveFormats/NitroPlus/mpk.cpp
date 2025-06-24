@@ -62,13 +62,13 @@ bool MPKFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) cons
     return false;
 }
 
-const char *MPKArchive::OpenStream(const Entry *entry, u8 *buffer)
+u8* MPKArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
     MPKEntry *mpkEntry = (MPKEntry*)entry;
 
     unsigned char *entry_offset = buffer + mpkEntry->Offset;
 
-    char *data = new char[mpkEntry->size];
+    u8* data = (u8*)malloc(mpkEntry->size);
     memcpy(data, entry_offset, mpkEntry->size);
     return data;
 }

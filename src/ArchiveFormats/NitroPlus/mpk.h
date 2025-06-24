@@ -35,5 +35,5 @@ class MPKArchive : public ArchiveBase {
             }
             return entriesMap;
         }
-        const char* OpenStream(const Entry *entry, u8 *buffer) override;
+        u8* OpenStream(const Entry *entry, u8 *buffer) override;
 };

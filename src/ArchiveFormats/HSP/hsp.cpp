@@ -142,13 +142,13 @@ bool HSPArchive::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) con
     return false;
 }
 
-const char *DPMArchive::OpenStream(const Entry *entry, u8 *buffer)
+u8* DPMArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
     u8 *data = buffer + entry->offset;
 
     if (entry->key) {
-        return (const char*)DecryptEntry(data, entry->size, entry->key);
+        return DecryptEntry(data, entry->size, entry->key);
     }
 
-    return (const char*)(data);
+    return data;
 }
