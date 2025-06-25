@@ -102,13 +102,11 @@ void SelectableCopyableText(const std::string& text) {
 
     ImGui::Selectable(text.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
 
-    // Handle double-click to copy
     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
         ImGui::SetClipboardText(text.c_str());
         copiedTimestamps[text] = ImGui::GetTime();
     }
 
-    // Tooltip handling
     if (ImGui::IsItemHovered()) {
         auto it = copiedTimestamps.find(text);
         if (it != copiedTimestamps.end() && (ImGui::GetTime() - it->second < feedbackDuration)) {
@@ -118,7 +116,6 @@ void SelectableCopyableText(const std::string& text) {
         }
     }
 
-    // Optionally clear expired state
     if (copiedTimestamps.count(text) && ImGui::GetTime() - copiedTimestamps[text] >= feedbackDuration) {
         copiedTimestamps.erase(text);
     }
