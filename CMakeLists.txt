@@ -41,9 +41,10 @@ set(IMGUI_SRC
 
 )
 
-include_directories(vendored/imgui)
+include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
-include_directories(vendored/gles3)
+include_directories(vendored/gles3/)
+include_directories(vendored/utfcpp/source/)
 if (NOT WIN32)
     include_directories(/usr/include/freetype2  -I/usr/local/include/freetype2)
 endif()

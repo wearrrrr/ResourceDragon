@@ -3,6 +3,7 @@
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
 #include <fstream>
+#include <string_view>
 #include "../util/Text.h"
 #include "imgui.h"
 #include "state.h"
@@ -94,6 +95,36 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
     return active;
 }
 
+void SelectableCopyableText(const std::string& text) {
+    static std::unordered_map<std::string, double> copiedTimestamps;
+    constexpr double feedbackDuration = 1.0;
+
+
+    ImGui::Selectable(text.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
+
+    // Handle double-click to copy
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+        ImGui::SetClipboardText(text.c_str());
+        copiedTimestamps[text] = ImGui::GetTime();
+    }
+
+    // Tooltip handling
+    if (ImGui::IsItemHovered()) {
+        auto it = copiedTimestamps.find(text);
+        if (it != copiedTimestamps.end() && (ImGui::GetTime() - it->second < feedbackDuration)) {
+            ImGui::SetTooltip("Copied!");
+        } else {
+            ImGui::SetTooltip("Double-click to copy");
+        }
+    }
+
+    // Optionally clear expired state
+    if (copiedTimestamps.count(text) && ImGui::GetTime() - copiedTimestamps[text] >= feedbackDuration) {
+        copiedTimestamps.erase(text);
+    }
+
+    ImGui::PopID();
+}
 
 void PreviewWindow::RenderAudioPlayer() {
     if (current_sound || curr_sound_is_midi) {
@@ -197,21 +228,21 @@ void PreviewWindow::RenderAudioPlayer() {
         }
 
         std::string titleTag = std::string(Mix_GetMusicTitleTag(current_sound));
-        if (Text::trim(titleTag) != "") {
-            ImGui::Text("Title: %s", titleTag.c_str());
-        }
+        if (!Text::trim(titleTag).empty())
+            SelectableCopyableText("Title: " + titleTag);
+
         std::string authorTag = std::string(Mix_GetMusicArtistTag(current_sound));
-        if (!(Text::trim(authorTag) == "")) {
-            ImGui::Text("Artist: %s", authorTag.c_str());
-        }
+        if (!Text::trim(authorTag).empty())
+            SelectableCopyableText("Artist: " + authorTag);
+
         std::string albumTag = std::string(Mix_GetMusicAlbumTag(current_sound));
-        if (!(Text::trim(albumTag) == "")) {
-            ImGui::Text("Album: %s", albumTag.c_str());
-        }
+        if (!Text::trim(albumTag).empty())
+            SelectableCopyableText("Album: " + albumTag);
+
         std::string copyrightTag = std::string(Mix_GetMusicCopyrightTag(current_sound));
-        if (!(Text::trim(copyrightTag) == "")) {
-            ImGui::Text("Copyright: %s", copyrightTag.c_str());
-        }
+        if (!Text::trim(copyrightTag).empty())
+            SelectableCopyableText("Copyright: " + copyrightTag);
+
 
         int freq, channels;
         SDL_AudioFormat format;
