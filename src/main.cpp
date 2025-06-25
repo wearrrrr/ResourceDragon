@@ -50,7 +50,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
                 if (!selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
                         if (rootNode->IsVirtualRoot) {
-                            VirtualArc_ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/image.png");
+                            VirtualArc::ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/image.png");
                             Clipboard::CopyFilePathToClipboard("/tmp/rd/image.png");
                         } else {
                             Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
@@ -61,8 +61,8 @@ void RenderFBContextMenu(ImGuiIO *io) {
             ImGui::EndMenu();
         }
         if (rootNode->IsVirtualRoot) {
-            if (ImGui::MenuItem("Extract File")) VirtualArc_ExtractEntry();
-            if (ImGui::MenuItem("Extract All")) VirtualArc_ExtractAll();
+            if (ImGui::MenuItem("Extract File")) VirtualArc::ExtractEntry();
+            if (ImGui::MenuItem("Extract All")) VirtualArc::ExtractAll();
         }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;
@@ -79,7 +79,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
             if (ImGui::Button("Confirm", {100, 0})) {
                 fs::remove_all(selectedItem->FullPath);
                 if (selectedItem->FullPath == preview_state.contents.path) {
-                    UnloadSelectedFile();
+                    DirectoryNode::UnloadSelectedFile();
                 }
                 ReloadRootNode(rootNode);
                 ImGui::CloseCurrentPopup();
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     auto canonical_path = fs::canonical(path).string() + "/";
 
     SetFilePath(canonical_path);
-    rootNode = CreateDirectoryNodeTreeFromPath(canonical_path);
+    rootNode = DirectoryNode::CreateDirectoryNodeTreeFromPath(canonical_path);
 
     #ifdef linux
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
@@ -323,9 +323,9 @@ int main(int argc, char *argv[]) {
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();
                 if (fs::exists(dropped_path)) {
-                    DirectoryNode *newNode = CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
+                    DirectoryNode::Node *newNode = DirectoryNode::CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
                     rootNode = newNode;
-                    DirectoryNode *itemNode = new DirectoryNode {
+                    DirectoryNode::Node *itemNode = new DirectoryNode::Node {
                         .FullPath = dropped_path.string(),
                         .FileName = dropped_path.filename().string(),
                         .Parent = rootNode,
@@ -342,7 +342,7 @@ int main(int argc, char *argv[]) {
                 ReloadRootNode(rootNode);
             }
             if ((event.key.mod & SDL_KMOD_CTRL) && event.key.key == SDLK_D) {
-                UnloadSelectedFile();
+                DirectoryNode::UnloadSelectedFile();
             }
         }
 

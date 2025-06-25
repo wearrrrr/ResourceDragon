@@ -9,7 +9,7 @@ void Audio::MusicFinishedCallback() {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
         Mix_PlayMusic(preview_state.audio.music, 0);
     } else {
-        UnloadSelectedFile();
+        DirectoryNode::UnloadSelectedFile();
     }
 }
 

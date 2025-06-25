@@ -3,7 +3,6 @@
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
 #include <fstream>
-#include <string_view>
 #include "../util/Text.h"
 #include "imgui.h"
 #include "state.h"
@@ -99,17 +98,16 @@ void SelectableCopyableText(const std::string& text) {
     static std::unordered_map<std::string, double> copiedTimestamps;
     constexpr double feedbackDuration = 1.0;
 
-
     ImGui::Selectable(text.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
 
-    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         ImGui::SetClipboardText(text.c_str());
         copiedTimestamps[text] = ImGui::GetTime();
     }
 
     if (ImGui::IsItemHovered()) {
         auto it = copiedTimestamps.find(text);
-        if (it != copiedTimestamps.end() && (ImGui::GetTime() - it->second < feedbackDuration)) {
+        if (it != copiedTimestamps.end() && (ImGui::GetTime() - it->second) < feedbackDuration) {
             ImGui::SetTooltip("Copied!");
         } else {
             ImGui::SetTooltip("Double-click to copy");
@@ -206,7 +204,7 @@ void PreviewWindow::RenderAudioPlayer() {
             } else {
                 Mix_HaltMusic();
             }
-            UnloadSelectedFile();
+            DirectoryNode::UnloadSelectedFile();
             preview_state.audio.playing = false;
             SDL_RemoveTimer(preview_state.audio.update_timer);
             preview_state.audio.update_timer = 0;

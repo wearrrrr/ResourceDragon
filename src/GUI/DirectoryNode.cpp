@@ -15,7 +15,7 @@
 #include "../ResourceFormats/DDS.h"
 using dds::ReadResult;
 
-Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode *node) {
+Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode::Node *node) {
     const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
         const std::string& name = entry.second->name;
@@ -63,7 +63,7 @@ inline bool ValidateGlobals() {
     return true;
 }
 
-void VirtualArc_ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
+void VirtualArc::ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return;
 
     const char *extracted = (const char*)loaded_arc_base->OpenStream(entry, current_buffer);
@@ -92,7 +92,7 @@ void VirtualArc_ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
     outFile.close();
 }
 
-void VirtualArc_ExtractAll() {
+void VirtualArc::ExtractAll() {
     if (!ValidateGlobals()) return;
 
     auto entries = loaded_arc_base->GetEntries();
@@ -100,15 +100,15 @@ void VirtualArc_ExtractAll() {
     auto fileName = fs::path(rootNode->FileName).filename().string();
 
     for (auto &entry : entries) {
-        VirtualArc_ExtractEntry("extracted/" + fileName + "/", entry.second);
+        VirtualArc::ExtractEntry("extracted/" + fileName + "/", entry.second);
     }
 }
 
-void VirtualArc_ExtractEntry(std::string path) {
-    VirtualArc_ExtractEntry(path, selected_entry);
+void VirtualArc::ExtractEntry(std::string path) {
+    VirtualArc::ExtractEntry(path, selected_entry);
 }
 
-void UnloadSelectedFile() {
+void DirectoryNode::UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;
     }
@@ -142,28 +142,28 @@ void UnloadSelectedFile() {
     curr_sound_is_midi = false;
 }
 
-void FreeDirectoryTree(DirectoryNode *node) {
-    for (DirectoryNode* child : node->Children) {
+void DirectoryNode::FreeDirectoryTree(Node *node) {
+    for (Node* child : node->Children) {
         FreeDirectoryTree(child);
         delete child;
     }
     node->Children.clear();
 }
 
-inline void SortChildren(DirectoryNode *node) {
+inline void SortChildren(DirectoryNode::Node *node) {
     std::sort(node->Children.begin(), node->Children.end(),
-    [](const DirectoryNode* a, const DirectoryNode* b) {
+    [](const DirectoryNode::Node* a, const DirectoryNode::Node* b) {
         if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
 
         return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
     });
 }
 
-inline void SortChildrenBy(DirectoryNode* node, auto func) {
+inline void SortChildrenBy(DirectoryNode::Node* node, auto func) {
     std::sort(node->Children.begin(), node->Children.end(), func);
 }
 
-bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
+bool DirectoryNode::AddDirectoryNodes(Node *node, const fs::path &parentPath) {
     try {
         if (node->IsVirtualRoot) {
             auto entries = loaded_arc_base->GetEntries();
@@ -174,20 +174,20 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                 #endif
 
                 fs::path entryPath(entry.second->name);
-                DirectoryNode *current = node;
+                Node *current = node;
 
                 for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
                     std::string part = it->string();
                     bool isLast = (std::next(it) == entryPath.end());
 
                     auto found = std::find_if(current->Children.begin(), current->Children.end(),
-                        [&part](const DirectoryNode* child) {
+                        [&part](const Node* child) {
                             return child->FileName == part;
                         }
                     );
 
                     if (found == current->Children.end()) {
-                        DirectoryNode *newNode = new DirectoryNode{
+                        Node *newNode = new Node{
                             .FullPath = (current->FullPath.empty() ? part : current->FullPath + "/" + part),
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
@@ -211,7 +211,7 @@ bool AddDirectoryNodes(DirectoryNode *node, const fs::path &parentPath) {
                 if (path.filename().string().contains(".steampath")) {
                     continue;
                 }
-                DirectoryNode *childNode = new DirectoryNode {
+                Node *childNode = new Node {
                     .FullPath = path.string(),
                     .FileName = path.filename().string(),
                     .FileSize = Utils::GetFileSize(path),
@@ -261,9 +261,9 @@ std::filesystem::path LinuxExpandUserPath(const std::string& path) {
     return "/";
 }
 
-DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode *parent) {
+DirectoryNode::Node *DirectoryNode::CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Node *parent) {
     bool is_dir = fs::is_directory(rootPath);
-    DirectoryNode *newRootNode = new DirectoryNode {
+    Node *newRootNode = new Node {
         .FullPath = rootPath,
         .FileName = rootPath,
         .FileSize = Utils::GetFileSize(rootPath),
@@ -283,7 +283,7 @@ DirectoryNode *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Dire
     return newRootNode;
 }
 
-void ReloadRootNode(DirectoryNode *node) {
+void DirectoryNode::ReloadRootNode(Node *node) {
     if (fs::is_directory(node->FullPath)) {
         rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
     }
@@ -300,7 +300,7 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval;
 }
 
-void HandleFileClick(DirectoryNode *node) {
+void DirectoryNode::HandleFileClick(Node *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
     bool isVirtualRoot = rootNode->IsVirtualRoot;
@@ -449,7 +449,7 @@ bool CanReadDirectory(const std::string& path) {
     return access(path.c_str(), R_OK | X_OK) == 0;
 }
 
-void DisplayDirectoryNode(DirectoryNode *node) {
+void DirectoryNode::DisplayDirectoryNode(Node *node) {
     ImGui::TableNextRow();
     ImGui::PushID(node);
 
@@ -511,7 +511,7 @@ void SetFilePath(const std::string& file_path) {
 }
 
 #define FB_COLUMNS 3
-void SetupDisplayDirectoryNode(DirectoryNode *node) {
+void DirectoryNode::SetupDisplayDirectoryNode(Node *node) {
     ImGui::PushID(node);
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -533,11 +533,11 @@ void SetupDisplayDirectoryNode(DirectoryNode *node) {
         ImGui::PushID(col);
         if (ImGui::Selectable(name, false)) {
             if (strcmp(name, "Size") == 0) {
-                SortChildrenBy(node, [](const DirectoryNode* a, const DirectoryNode* b) {
+                SortChildrenBy(node, [](const Node* a, const Node* b) {
                     return a->FileSizeBytes > b->FileSizeBytes;
                 });
             } else if (strcmp(name, "Last Modified") == 0) {
-                SortChildrenBy(node, [](const DirectoryNode* a, const DirectoryNode* b) {
+                SortChildrenBy(node, [](const Node* a, const Node* b) {
                     return a->LastModifiedUnix < b->LastModifiedUnix;
                 });
             } else {
