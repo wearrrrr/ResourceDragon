@@ -3,6 +3,7 @@
 #include <Image.h>
 #include <cstdlib>
 #include <cstring>
+#include <readline/history.h>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
@@ -276,9 +277,7 @@ DirectoryNode::Node *DirectoryNode::CreateDirectoryNodeTreeFromPath(const std::s
         .IsVirtualRoot = !is_dir,
     };
 
-    if (is_dir || newRootNode->IsVirtualRoot) {
-        AddDirectoryNodes(newRootNode, rootPath);
-    }
+    AddDirectoryNodes(newRootNode, rootPath);
 
     return newRootNode;
 }
@@ -506,7 +505,8 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nu
 static char *file_path_buf = (char*)calloc(sizeof(char), 1024);
 
 void SetFilePath(const std::string& file_path) {
-    std::strncpy(file_path_buf, file_path.c_str(), 1024);
+    std::string normalized = file_path.ends_with("/") ? file_path : (file_path + "/");
+    std::strncpy(file_path_buf, normalized.c_str(), 1024);
     file_path_buf[1023] = '\0';
 }
 
@@ -556,6 +556,9 @@ void DirectoryNode::SetupDisplayDirectoryNode(Node *node) {
             } else {
                 UnloadArchive();
                 FreeDirectoryTree(rootNode);
+                if (node->FullPath.ends_with("/")) {
+                    node->FullPath.pop_back();
+                }
                 auto parent_path = fs::path(node->FullPath).parent_path();
                 rootNode = CreateDirectoryNodeTreeFromPath(parent_path.string());
                 if (current_buffer) {
