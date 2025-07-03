@@ -1,12 +1,13 @@
 #pragma once
 
-#include <string>
-#include "imgui.h"
+enum Theme {
+    BessDark
+};
 
-class Theme {
+class ThemeManager {
     public:
-        static void SetTheme(std::string name) {
-            if (name == "BessDark") {
+        static void SetTheme(Theme name) {
+            if (name == Theme::BessDark) {
                 BessDark();
             }
         };

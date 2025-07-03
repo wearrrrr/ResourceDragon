@@ -1,6 +1,7 @@
 #include "Themes.h"
+#include "imgui.h"
 
-void Theme::BessDark() {
+void ThemeManager::BessDark() {
     ImGuiStyle &style = ImGui::GetStyle();
     ImVec4 *colors = style.Colors;
 
