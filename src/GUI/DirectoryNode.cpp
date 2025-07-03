@@ -143,9 +143,9 @@ void DirectoryNode::UnloadSelectedFile() {
     curr_sound_is_midi = false;
 }
 
-void DirectoryNode::FreeDirectoryTree(Node *node) {
+void DirectoryNode::Unload(Node *node) {
     for (Node* child : node->Children) {
-        FreeDirectoryTree(child);
+        Unload(child);
         delete child;
     }
     node->Children.clear();
@@ -164,7 +164,7 @@ inline void SortChildrenBy(DirectoryNode::Node* node, auto func) {
     std::sort(node->Children.begin(), node->Children.end(), func);
 }
 
-bool DirectoryNode::AddDirectoryNodes(Node *node, const fs::path &parentPath) {
+bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
     try {
         if (node->IsVirtualRoot) {
             auto entries = loaded_arc_base->GetEntries();
@@ -262,7 +262,7 @@ std::filesystem::path LinuxExpandUserPath(const std::string& path) {
     return "/";
 }
 
-DirectoryNode::Node *DirectoryNode::CreateDirectoryNodeTreeFromPath(const std::string& rootPath, Node *parent) {
+DirectoryNode::Node *DirectoryNode::CreateTreeFromPath(const std::string& rootPath, Node *parent) {
     bool is_dir = fs::is_directory(rootPath);
     Node *newRootNode = new Node {
         .FullPath = rootPath,
@@ -277,14 +277,14 @@ DirectoryNode::Node *DirectoryNode::CreateDirectoryNodeTreeFromPath(const std::s
         .IsVirtualRoot = !is_dir,
     };
 
-    AddDirectoryNodes(newRootNode, rootPath);
+    AddNodes(newRootNode, rootPath);
 
     return newRootNode;
 }
 
 void DirectoryNode::ReloadRootNode(Node *node) {
     if (fs::is_directory(node->FullPath)) {
-        rootNode = CreateDirectoryNodeTreeFromPath(fs::canonical(node->FullPath).string());
+        rootNode = CreateTreeFromPath(fs::canonical(node->FullPath).string());
     }
 }
 
@@ -441,14 +441,14 @@ void DirectoryNode::HandleFileClick(Node *node) {
     memcpy(current_buffer, entry_buffer, size);
     free(entry_buffer);
 
-    rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath);
+    rootNode = CreateTreeFromPath(node->FullPath);
 }
 
 bool CanReadDirectory(const std::string& path) {
     return access(path.c_str(), R_OK | X_OK) == 0;
 }
 
-void DirectoryNode::DisplayDirectoryNode(Node *node) {
+void DirectoryNode::Display(Node *node) {
     ImGui::TableNextRow();
     ImGui::PushID(node);
 
@@ -466,7 +466,7 @@ void DirectoryNode::DisplayDirectoryNode(Node *node) {
                     node->Parent = rootNode;
                     rootNode = node;
                 } else {
-                    rootNode = CreateDirectoryNodeTreeFromPath(node->FullPath, rootNode);
+                    rootNode = CreateTreeFromPath(node->FullPath, rootNode);
                 }
             }
         } else {
@@ -511,14 +511,14 @@ void SetFilePath(const std::string& file_path) {
 }
 
 #define FB_COLUMNS 3
-void DirectoryNode::SetupDisplayDirectoryNode(Node *node) {
+void DirectoryNode::Setup(Node *node) {
     ImGui::PushID(node);
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
         std::string expanded_path = LinuxExpandUserPath(std::string(file_path_buf));
         SetFilePath(expanded_path);
-        rootNode = CreateDirectoryNodeTreeFromPath(expanded_path);
+        rootNode = CreateTreeFromPath(expanded_path);
     }
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
@@ -555,12 +555,12 @@ void DirectoryNode::SetupDisplayDirectoryNode(Node *node) {
                 rootNode = node->Parent;
             } else {
                 UnloadArchive();
-                FreeDirectoryTree(rootNode);
+                DirectoryNode::Unload(rootNode);
                 if (node->FullPath.ends_with("/")) {
                     node->FullPath.pop_back();
                 }
                 auto parent_path = fs::path(node->FullPath).parent_path();
-                rootNode = CreateDirectoryNodeTreeFromPath(parent_path.string());
+                rootNode = DirectoryNode::CreateTreeFromPath(parent_path.string());
                 if (current_buffer) {
                     free(current_buffer);
                     current_buffer = nullptr;
@@ -572,7 +572,7 @@ void DirectoryNode::SetupDisplayDirectoryNode(Node *node) {
     ImGui::TableNextColumn();
 
     for (auto childNode : node->Children) {
-        DisplayDirectoryNode(childNode);
+        Display(childNode);
     }
 
     ImGui::EndTable();

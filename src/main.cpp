@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     auto canonical_path = fs::canonical(path).string() + "/";
 
     SetFilePath(canonical_path);
-    rootNode = DirectoryNode::CreateDirectoryNodeTreeFromPath(canonical_path);
+    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
 
     #ifdef linux
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
@@ -323,7 +323,7 @@ int main(int argc, char *argv[]) {
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();
                 if (fs::exists(dropped_path)) {
-                    DirectoryNode::Node *newNode = DirectoryNode::CreateDirectoryNodeTreeFromPath(dropped_path_dir.string());
+                    DirectoryNode::Node *newNode = DirectoryNode::CreateTreeFromPath(dropped_path_dir.string());
                     rootNode = newNode;
                     DirectoryNode::Node *itemNode = new DirectoryNode::Node {
                         .FullPath = dropped_path.string(),
@@ -380,7 +380,7 @@ int main(int argc, char *argv[]) {
                 ImGui::OpenPopup("Error");
                 ui_error.show = false;
             }
-            SetupDisplayDirectoryNode(rootNode);
+            DirectoryNode::Setup(rootNode);
         }
 
         if (openDelPopup) {
@@ -483,7 +483,7 @@ int main(int argc, char *argv[]) {
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
 
-    FreeDirectoryTree(rootNode);
+    DirectoryNode::Unload(rootNode);
 
     #ifdef linux
     inotify_running = false;

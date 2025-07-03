@@ -23,15 +23,15 @@ namespace DirectoryNode {
         bool IsVirtualRoot = false;
     };
 
-    Node *CreateDirectoryNodeTreeFromPath(const std::string& rootPath, DirectoryNode::Node *parent = nullptr);
+    Node *CreateTreeFromPath(const std::string& rootPath, DirectoryNode::Node *parent = nullptr);
 
-    bool AddDirectoryNodes(Node *node, const fs::path &parentPath);
+    bool AddNodes(Node *node, const fs::path &parentPath);
     void ReloadRootNode(Node *node);
     void HandleFileClick(Node *node);
-    void DisplayDirectoryNode(Node *node);
-    void SetupDisplayDirectoryNode(Node *node);
+    void Display(Node *node);
+    void Setup(Node *node);
     void UnloadSelectedFile();
-    void FreeDirectoryTree(Node* node);
+    void Unload(Node* node);
 }
 
 void SetFilePath(const std::string& file_path);
