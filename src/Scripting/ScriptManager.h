@@ -60,9 +60,8 @@ public:
             return nullptr;
         }
         // TODO: Later on, this will return a table when successful, which we can use to construct a proper C++ class.
-        bool result = lua_toboolean(m_state, -1);
+        lua_toboolean(m_state, -1);
         lua_pop(m_state, 1);
-        Logger::log("try open: %d", result);
 
         lua_gc(m_state, LUA_GCCOLLECT, 0);
         return nullptr;
