@@ -42,7 +42,7 @@ inline DirectoryNode::Node *selectedItem;
 
 
 namespace VirtualArc {
-    void ExtractEntry(fs::path path, Entry *entry, fs::path outputPath = {});
+    bool ExtractEntry(fs::path path, Entry *entry, fs::path outputPath = {});
     void ExtractEntry(std::string path = "extracted/");
     void ExtractAll();
 }

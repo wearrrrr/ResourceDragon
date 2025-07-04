@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    auto canonical_path = fs::canonical(path).string() + "/";
+    auto canonical_path = fs::canonical(path);
 
     SetFilePath(canonical_path);
     rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);

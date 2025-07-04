@@ -1,8 +1,10 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Image.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <readline/history.h>
 #include <util/Text.h>
 #include <util/int.h>
@@ -64,44 +66,45 @@ inline bool ValidateGlobals() {
     return true;
 }
 
-void VirtualArc::ExtractEntry(fs::path path, Entry *entry, fs::path outputPath) {
-    if (!ValidateGlobals()) return;
+bool VirtualArc::ExtractEntry(fs::path basePath, Entry *entry, fs::path outputPath) {
+    if (!ValidateGlobals()) return false;
 
-    const char *extracted = (const char*)loaded_arc_base->OpenStream(entry, current_buffer);
-
-    #ifdef linux
+#ifdef linux
     std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
-    #endif
+#endif
 
-    fs::path fullOutputPath = path / entry->name;
+    fs::path fullOutputPath = basePath / entry->name;
 
     std::error_code err;
-
-    if (!outputPath.empty()) {
-        if (!CreateDirectoryRecursive(fullOutputPath, err)) {
-            Logger::error("Failed to create directory: %s", err.message().c_str());
-            return;
-        }
-    } else {
-        outputPath = fullOutputPath;
+    if (!CreateDirectoryRecursive(fullOutputPath.parent_path(), err)) {
+        Logger::error("Failed to create directory: %s", err.message().c_str());
+        return false;
     }
 
+    u8 *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
 
+    FILE *file = fopen(fullOutputPath.c_str(), "wb");
+    if (!file) return false;
+    fwrite(extracted, sizeof(u8), entry->size, file);
+    fclose(file);
 
-    std::ofstream outFile(outputPath, std::ios::binary);
-    outFile.write(extracted, entry->size);
-    outFile.close();
+    return true;
 }
 
 void VirtualArc::ExtractAll() {
     if (!ValidateGlobals()) return;
 
     auto entries = loaded_arc_base->GetEntries();
-
     auto fileName = fs::path(rootNode->FileName).filename().string();
 
+    fs::path basePath = fs::path("extracted") / fileName;
+    fs::create_directories(basePath);
+
     for (auto &entry : entries) {
-        VirtualArc::ExtractEntry("extracted/" + fileName + "/", entry.second);
+        bool extract = VirtualArc::ExtractEntry(basePath, entry.second);
+        if (!extract) {
+            Logger::error("Failed to extract: %s", entry.second->name.c_str());
+        }
     }
 }
 
