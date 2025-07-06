@@ -61,11 +61,11 @@ public:
         }
     };
 
-    static void dumpstack (lua_State *L) {
+    static void dumpstack(lua_State *L) {
       int top = lua_gettop(L);
       Logger::log("[Lua] Stack dump:");
       for (int i = 1; i <= top; i++) {
-        printf("[Lua] %d:\t%s\t", i, luaL_typename(L, i));
+        printf("\t\t [Lua] %d:\t%s\t", i, luaL_typename(L, i));
         switch (lua_type(L, i)) {
           case LUA_TNUMBER:
             printf("%g\n", lua_tonumber(L, i));
@@ -77,7 +77,7 @@ public:
             printf("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
             break;
           case LUA_TNIL:
-            printf("%s\n", "(nil)");
+            printf("(nil)\n");
             break;
           default:
             printf("%p\n", lua_topointer(L,i));

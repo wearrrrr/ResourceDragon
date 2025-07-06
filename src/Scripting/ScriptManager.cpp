@@ -1,5 +1,6 @@
 
 #include "ScriptManager.h"
+#include "LuaUtils.h"
 #include <lua.h>
 
 void ScriptManager::LoadFile(std::string path) {
