@@ -1,8 +1,11 @@
 #include <Image.h>
 #include <Utils.h>
 #include <util/Logger.h>
-#include <GL/glew.h>
 #include <GL/gl.h>
+
+#include "../ResourceFormats/DDS.h"
+#include "ResourceFormats/dds_formats.h"
+using dds::ReadResult;
 
 bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
 {
@@ -94,6 +97,20 @@ GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
 }
 
 bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode) {
+    dds::Image image;
+    auto result = dds::readImage((u8*)data, data_size, &image);
+    if (result == ReadResult::Success) {
+        auto id = Image::LoadTex(image.mipmaps[0].data(), image.width, image.height);
+        *out_texture = id;
+        *out_size.x = image.width;
+        *out_size.y = image.height;
+
+        return true;
+    } else if (result != ReadResult::InvalidMagic) {
+        Logger::log("Failed to load DDS into memory!");
+        Logger::log("Error: %s", dds::DecodeReadResult(result).c_str());
+    }
+
     int image_width = 0;
     int image_height = 0;
     u8 *image_data;

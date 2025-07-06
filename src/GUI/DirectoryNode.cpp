@@ -11,9 +11,6 @@
 #include "state.h"
 #include "gl3.h"
 
-#include "../ResourceFormats/DDS.h"
-using dds::ReadResult;
-
 Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode::Node *node) {
     const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
@@ -343,24 +340,9 @@ void DirectoryNode::HandleFileClick(Node *node) {
         preview_state.contents.fileName = node->FileName;
 
         if (Image::IsImageExtension(ext)) {
-            if (ext == "dds") {
-                dds::Image image;
-                auto result = dds::readImage(entry_buffer, size, &image);
-                if (result != ReadResult::Success) {
-                    Logger::log("Failed to load DDS into memory!");
-                    Logger::log("Error: %s", dds::DecodeReadResult(result).c_str());
-                    preview_state.content_type = IMAGE;
-                    free(entry_buffer);
-                }
-                auto id = Image::LoadTex(image.mipmaps[0].data(), image.width, image.height);
-                preview_state.texture.id = id;
-                *preview_state.texture.size.x = image.width;
-                *preview_state.texture.size.y = image.height;
-            } else {
-                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
-                if (*preview_state.texture.size.x < 256) {
-                    Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
-                }
+            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
+            if (*preview_state.texture.size.x < 256) {
+                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
             }
             preview_state.content_type = IMAGE;
             free(entry_buffer);

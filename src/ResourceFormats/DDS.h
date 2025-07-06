@@ -423,7 +423,7 @@ namespace dds {
         // Validate header. A DWORD (magic number) containing the four character code value 'DDS '
         // (0x20534444).
         if (*ddsMagic != dds::DdsMagicNumber::DDS)
-            return dds::ReadResult::Failure;
+            return dds::ReadResult::InvalidMagic;
 
         const dds::Dx10Header* additionalHeader = nullptr;
         if (hasBit(header->pixelFormat.flags, PixelFormatFlags::FourCC) &&
@@ -604,6 +604,8 @@ namespace dds {
 			    return "Success";
 			case Failure:
 			    return "Failure";
+			case InvalidMagic:
+			    return "Invalid Byte Magic";
 			case UnsupportedFormat:
 			    return "Unsupported Format";
 			case NoDx10Header:

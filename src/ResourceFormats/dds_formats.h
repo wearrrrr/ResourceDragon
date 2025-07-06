@@ -208,9 +208,10 @@ namespace dds {
     enum ReadResult {
         Success = 0,
         Failure = -1,
-        UnsupportedFormat = -2,
-        NoDx10Header = -3,
-        InvalidSize = -4,
+        InvalidMagic = -2,
+        UnsupportedFormat = -3,
+        NoDx10Header = -4,
+        InvalidSize = -5,
     };
 
     enum DdsMagicNumber {
