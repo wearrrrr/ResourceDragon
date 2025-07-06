@@ -1,11 +1,7 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Image.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <filesystem>
-#include <readline/history.h>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
@@ -352,6 +348,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
                 auto result = dds::readImage(entry_buffer, size, &image);
                 if (result != ReadResult::Success) {
                     Logger::log("Failed to load DDS into memory!");
+                    Logger::log("Error: %s", dds::DecodeReadResult(result).c_str());
                     preview_state.content_type = IMAGE;
                     free(entry_buffer);
                 }

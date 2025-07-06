@@ -597,4 +597,21 @@ namespace dds {
 		filestream.read(reinterpret_cast<char*>(image->data.data()), fileSize);
 		return readImage(image->data.data(), fileSize, image);
 	}
+
+	std::string inline DecodeReadResult(dds::ReadResult res) {
+	    switch (res) {
+			case Success:
+			    return "Success";
+			case Failure:
+			    return "Failure";
+			case UnsupportedFormat:
+			    return "Unsupported Format";
+			case NoDx10Header:
+			    return "No DX10 Header";
+			case InvalidSize:
+			    return "Invalid Size";
+			default:
+			    return "Unknown";
+		}
+	}
 } // namespace dds
