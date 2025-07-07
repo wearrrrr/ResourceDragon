@@ -16,11 +16,9 @@ Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, c
     for (const auto &entry : entries) {
         const std::string& name = entry.second->name;
 
-        if (fullPath.size() >= name.size() &&
-            fullPath.compare(fullPath.size() - name.size(), name.size(), name) == 0) {
-            if (fullPath.size() == name.size() ||
-                fullPath[fullPath.size() - name.size() - 1] == '/' ||
-                fullPath[fullPath.size() - name.size() - 1] == '\\') {
+        if (fullPath.size() >= name.size() && fullPath.compare(fullPath.size() - name.size(), name.size(), name) == 0) {
+            char lastChar = fullPath[fullPath.size() - name.size() - 1];
+            if (fullPath.size() == name.size() || lastChar == '/' || lastChar == '\\') {
                 return entry.second;
             }
         }
@@ -31,10 +29,8 @@ Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, c
 
 bool CreateDirectoryRecursive(const std::string &dirName, std::error_code &err) {
     err.clear();
-    if (!std::filesystem::create_directories(dirName, err))
-    {
-        if (std::filesystem::exists(dirName))
-        {
+    if (!std::filesystem::create_directories(dirName, err)) {
+        if (std::filesystem::exists(dirName)) {
             err.clear();
             return true;
         }
