@@ -19,12 +19,12 @@ class SAPakFormat : public ArchiveFormat {
 
 class SAPakArchive : public ArchiveBase {
     public:
-        std::unordered_map<std::string, Entry> entries;
-        SAPakArchive(const std::unordered_map<std::string, Entry> &entries) {
+        EntryMap entries;
+        SAPakArchive(const EntryMap &entries) {
             this->entries = entries;
         };
-        std::unordered_map<std::string, Entry*> GetEntries() override {
-            std::unordered_map<std::string, Entry*> entries;
+        EntryMapPtr GetEntries() override {
+            EntryMapPtr entries;
             for (auto& entry : this->entries)
                 entries[entry.first] = &entry.second;
             return entries;

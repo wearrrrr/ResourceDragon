@@ -50,7 +50,7 @@ ArchiveBase* ZipFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         za = OpenZipFromBuffer(buffer, size);
     }
 
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
     zip_int64_t num_entries = zip_get_num_entries(za, 0);
     entries.rehash(num_entries);
     for (zip_uint64_t i = 0; i < (zip_uint64_t)num_entries; i++) {

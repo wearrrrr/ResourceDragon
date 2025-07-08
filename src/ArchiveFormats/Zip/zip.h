@@ -27,10 +27,10 @@ class ZipFormat : public ArchiveFormat {
 
 class ZipArchive : public ArchiveBase {
 public:
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
     zip_t *zip_arc;
 
-    ZipArchive(std::unordered_map<std::string, Entry> entries, zip_t *za) : entries(entries) {
+    ZipArchive(EntryMap entries, zip_t *za) : entries(entries) {
         zip_arc = za;
     }
 
@@ -55,8 +55,8 @@ public:
         return buf;
     }
 
-    std::unordered_map<std::string, Entry*> GetEntries() override {
-        std::unordered_map<std::string, Entry*> entries;
+    EntryMapPtr GetEntries() override {
+        EntryMapPtr entries;
         for (auto& entry : this->entries)
             entries[entry.first] = &entry.second;
         return entries;

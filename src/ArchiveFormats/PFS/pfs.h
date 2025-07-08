@@ -19,19 +19,19 @@ class PFSFormat : public ArchiveFormat {
 
 class PFSArchive : public ArchiveBase {
     PFSFormat *pfs_fmt;
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
     std::vector<u8> key;
     public:
-        PFSArchive(const std::unordered_map<std::string, Entry> &entries) {
+        PFSArchive(const EntryMap &entries) {
             this->entries = entries;
         }
-        PFSArchive(PFSFormat *arc_fmt, const std::unordered_map<std::string, Entry> &entries, std::vector<u8> key) {
+        PFSArchive(PFSFormat *arc_fmt, const EntryMap &entries, std::vector<u8> key) {
             this->pfs_fmt = arc_fmt;
             this->entries = entries;
             this->key = key;
         }
-        std::unordered_map<std::string, Entry*> GetEntries() override {
-            std::unordered_map<std::string, Entry*> entries;
+        EntryMapPtr GetEntries() override {
+            EntryMapPtr entries;
             for (auto& entry : this->entries)
                 entries[entry.first] = &entry.second;
             return entries;

@@ -13,7 +13,7 @@
 #include "state.h"
 #include "gl3.h"
 
-Entry* FindEntryByNode(const std::unordered_map<std::string, Entry*> &entries, const DirectoryNode::Node *node) {
+Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
     const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
         const std::string& name = entry.second->name;

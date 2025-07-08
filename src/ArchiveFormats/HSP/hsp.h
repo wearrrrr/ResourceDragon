@@ -30,7 +30,7 @@ class HSPArchive : public ArchiveFormat {
 
 class DPMArchive : public ArchiveBase {
     public:
-        std::unordered_map<std::string, Entry> entries;
+        EntryMap entries;
 
         u32 arc_key;
         size_t dpm_size;
@@ -40,7 +40,7 @@ class DPMArchive : public ArchiveBase {
             seed_1 = 0xAA;
             seed_2 = 0x55;
         };
-        DPMArchive(std::unordered_map<std::string, Entry> entries, u32 arc_key, size_t dpm_size) {
+        DPMArchive(const EntryMap &entries, u32 arc_key, size_t dpm_size) {
             seed_1 = ((((arc_key >> 16) & 0xFF) * (arc_key & 0xFF) / 3) ^ dpm_size);
             seed_2 = ((((arc_key >> 8)  & 0xFF) * ((arc_key >> 24) & 0xFF) / 5) ^ dpm_size ^ 0xAA);
             this->entries = entries;
@@ -69,8 +69,8 @@ class DPMArchive : public ArchiveBase {
         //         basePtrs.push_back(&entry);
         //     return basePtrs;
         // }
-        std::unordered_map<std::string, Entry*> GetEntries() override {
-            std::unordered_map<std::string, Entry*> entriesMap;
+        EntryMapPtr GetEntries() override {
+            EntryMapPtr entriesMap;
             for (auto &entry : entries) {
                 entriesMap.insert({entry.first, &entry.second});
             }

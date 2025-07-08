@@ -37,8 +37,8 @@ class XP3Format : public ArchiveFormat {
 
 class XP3Archive : public ArchiveBase {
     public:
-        std::unordered_map<std::string, Entry> entries;
-        XP3Archive(std::unordered_map<std::string, Entry> entries) {
+        EntryMap entries;
+        XP3Archive(EntryMap entries) {
             this->entries = entries;
         };
 
@@ -48,8 +48,8 @@ class XP3Archive : public ArchiveBase {
         //         basePtrs.push_back(&entry);
         //     return basePtrs;
         // }
-        std::unordered_map<std::string, Entry*> GetEntries() override {
-            std::unordered_map<std::string, Entry*> entries;
+        EntryMapPtr GetEntries() override {
+            EntryMapPtr entries;
             for (auto& entry : this->entries)
                 entries[entry.first] = &entry.second;
             return entries;

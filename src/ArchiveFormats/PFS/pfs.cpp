@@ -39,7 +39,7 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
 
     Read(index_buf, buffer, index_size);
 
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
 
     u32 index_offset = 4;
     for (u32 i = 0; i < file_count; ++i) {

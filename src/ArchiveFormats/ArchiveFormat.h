@@ -9,10 +9,13 @@
 #include <util/Vector.h>
 #include "zero_templates.h"
 
+typedef std::unordered_map<std::string, Entry> EntryMap;
+typedef std::unordered_map<std::string, Entry*> EntryMapPtr;
+
 class ArchiveBase {
     public:
         virtual u8* OpenStream(const Entry *entry, u8 *buffer) = 0;
-        virtual std::unordered_map<std::string, Entry*> GetEntries() = 0;
+        virtual EntryMapPtr GetEntries() = 0;
         virtual ~ArchiveBase() = default;
 };
 

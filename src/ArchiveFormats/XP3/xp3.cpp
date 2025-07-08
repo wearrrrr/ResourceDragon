@@ -62,7 +62,7 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         }
     }
 
-    std::unordered_map<std::string, Entry> dir;
+    EntryMap dir;
     dir_offset = 0;
 
     BinaryReader header(header_stream);

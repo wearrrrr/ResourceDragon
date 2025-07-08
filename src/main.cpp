@@ -269,6 +269,7 @@ int main(int argc, char *argv[]) {
     // These characters aren't in any of the above glyph ranges, but are common in CJK text.
     range.AddChar(0x203B);
     range.AddChar(0x25CB);
+    range.AddChar(0x25A0);
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;

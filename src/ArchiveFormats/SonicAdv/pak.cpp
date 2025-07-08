@@ -3,7 +3,7 @@
 
 ArchiveBase *SAPakFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     u32 file_count = Read<u32>(buffer, 0x39);
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
     std::vector<std::string> names;
 
     Seek(0x3D);

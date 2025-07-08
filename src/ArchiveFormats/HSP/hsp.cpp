@@ -62,7 +62,7 @@ ArchiveBase* HSPArchive::TryOpen(u8 *buffer, u64 size, std::string file_name)
 
     dpmx_offset += Read<u32>(exe->buffer, dpmx_offset + 0x4);
 
-    std::unordered_map<std::string, Entry> entries;
+    EntryMap entries;
     entries.reserve(file_count);
 
     for (u32 i = 0; i < file_count; i++) {

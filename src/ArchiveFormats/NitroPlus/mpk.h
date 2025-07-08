@@ -28,8 +28,8 @@ class MPKArchive : public ArchiveBase {
         MPKArchive(const std::unordered_map<std::string, MPKEntry> &entries) {
             this->entries = entries;
         }
-        std::unordered_map<std::string, Entry*> GetEntries() override {
-            std::unordered_map<std::string, Entry*> entriesMap;
+        EntryMapPtr GetEntries() override {
+            EntryMapPtr entriesMap;
             for (auto &entry : entries) {
                 entriesMap.insert({entry.first, &entry.second});
             }

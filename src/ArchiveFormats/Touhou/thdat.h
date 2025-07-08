@@ -65,8 +65,8 @@ class THDATArchive : public ArchiveBase {
         this->entries = entries;
     }
 
-    std::unordered_map<std::string, Entry*> GetEntries() override {
-        std::unordered_map<std::string, Entry*> entry_map;
+    EntryMapPtr GetEntries() override {
+        EntryMapPtr entry_map;
 
         for (auto& [name, datEntry] : entries) {
             int index = findPbg3Entry(&dat, name.c_str());
