@@ -4,15 +4,10 @@
 #include "Entry.h"
 #include <cstring>
 #include <unordered_map>
-#include <algorithm>
 #include <util/Logger.h>
 #include <util/int.h>
+#include <util/Vector.h>
 #include "zero_templates.h"
-
-template <typename T = std::string>
-bool VectorHas(std::vector<T> vec, T item) {
-    return std::find(vec.begin(), vec.end(), item) != vec.end();
-}
 
 class ArchiveBase {
     public:
