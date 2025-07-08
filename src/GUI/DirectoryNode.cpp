@@ -1,7 +1,9 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Image.h>
+#include <cmath>
 #include <filesystem>
+#include <string>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
@@ -84,14 +86,13 @@ void VirtualArc::ExtractAll() {
     if (!ValidateGlobals()) return;
 
     auto entries = loaded_arc_base->GetEntries();
-    auto fileName = fs::path(rootNode->FileName).filename().string();
+    std::string fileName = fs::path(rootNode->FileName).filename().string();
 
-    fs::path basePath = fs::path("extracted") / fileName;
+    std::string basePath = "extracted/" + fileName;
     fs::create_directories(basePath);
 
     for (auto &entry : entries) {
-        bool extract = VirtualArc::ExtractEntry(basePath, entry.second);
-        if (!extract) {
+        if (!VirtualArc::ExtractEntry(basePath, entry.second)) {
             Logger::error("Failed to extract: %s", entry.second->name.c_str());
         }
     }
@@ -199,14 +200,15 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
             fs::directory_iterator directoryIterator(parentPath);
             for (const auto &entry : directoryIterator) {
                 fs::path path = entry.path();
+                std::string fileName = path.filename();
                 // Why the hell does steam still have this? It's an intentionally broken symlink.
                 // https://github.com/ValveSoftware/steam-for-linux/issues/5245
-                if (path.filename().string().contains(".steampath")) {
+                if (fileName.contains(".steampath")) {
                     continue;
                 }
                 Node *childNode = new Node {
                     .FullPath = path.string(),
-                    .FileName = path.filename().string(),
+                    .FileName = fileName,
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
                     .LastModified = Utils::GetLastModifiedTime(path),
@@ -220,11 +222,10 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         SortChildren(node);
         return true;
     } catch (const fs::filesystem_error &e) {
-            const char *errorMessage = e.what();
-            printf("Error accessing directory: %s\n", errorMessage);
-            ui_error = UIError::CreateError(errorMessage, "Error accessing directory!");
+        printf("Error accessing directory: %s\n", e.what());
+        ui_error = UIError::CreateError(e.what(), "Error accessing directory!");
 
-            return false;
+        return false;
     }
 }
 
@@ -282,10 +283,10 @@ void DirectoryNode::ReloadRootNode(Node *node) {
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     if (current_sound) {
-        int current_time = (int)Mix_GetMusicPosition(current_sound);
+        double current_time = Mix_GetMusicPosition(current_sound);
         if (!preview_state.audio.scrubberDragging) {
             preview_state.audio.time.current_time_min = current_time / 60;
-            preview_state.audio.time.current_time_sec = current_time % 60;
+            preview_state.audio.time.current_time_sec = fmod(current_time, 60);
         }
     }
     return interval;
@@ -303,12 +304,12 @@ void DirectoryNode::HandleFileClick(Node *node) {
 
         if (selected_entry) {
             if (current_buffer) {
-                const char *arc_read = (const char*)loaded_arc_base->OpenStream(selected_entry, current_buffer);
+                auto arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
                 size = selected_entry->size;
                 entry_buffer = malloc<u8>(size);
                 memcpy(entry_buffer, arc_read, size);
             } else {
-                Logger::error("current_buffer is not initialized, aborting.");
+                Logger::error("current_buffer is not initialized!");
                 return;
             }
         }
@@ -329,11 +330,14 @@ void DirectoryNode::HandleFileClick(Node *node) {
 
     if (format == nullptr) {
         UnloadSelectedFile();
-        preview_state.contents.data = current_buffer;
-        preview_state.contents.size = size;
-        preview_state.contents.path = node->FullPath;
-        preview_state.contents.ext = ext;
-        preview_state.contents.fileName = node->FileName;
+
+        preview_state.contents = {
+            .data = current_buffer,
+            .size = size,
+            .path = node->FullPath,
+            .ext = ext,
+            .fileName = node->FileName
+        };
 
         if (Image::IsImageExtension(ext)) {
             Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
@@ -366,11 +370,11 @@ void DirectoryNode::HandleFileClick(Node *node) {
             if (current_sound) {
                 preview_state.content_type = AUDIO;
                 Mix_PlayMusic(current_sound, 1);
-                int duration = (int)Mix_MusicDuration(current_sound);
+                double duration = Mix_MusicDuration(current_sound);
                 preview_state.audio.music = current_sound;
                 preview_state.audio.playing = true;
                 preview_state.audio.time.total_time_min = duration / 60;
-                preview_state.audio.time.total_time_sec = duration % 60;
+                preview_state.audio.time.total_time_sec = fmod(duration, 60.0);
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             }
 
