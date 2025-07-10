@@ -9,6 +9,7 @@
 #include <thread>
 #include <filesystem>
 
+#include "SDL3_mixer/SDL_mixer.h"
 #include "state.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -472,6 +473,8 @@ int main(int argc, char *argv[]) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
 
+    Mix_CloseAudio();
+
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);
     SDL_Quit();
@@ -479,9 +482,14 @@ int main(int argc, char *argv[]) {
     DirectoryNode::Unload(rootNode);
 
     #ifdef linux
+    if (inotify_thread.joinable()) {
+        inotify_thread.join();
+    }
     inotify_running = false;
     close(inotify_fd);
     #endif
+
+
 
     return 0;
 }
