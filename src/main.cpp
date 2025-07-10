@@ -30,7 +30,7 @@
 #endif
 
 #define DIRECTORY_LIST_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
-#define FILE_PREVIEW_FLAGS   DIRECTORY_TREE_FLAGS | ImGuiWindowFlags_HorizontalScrollbar
+#define FILE_PREVIEW_FLAGS   DIRECTORY_LIST_FLAGS | ImGuiWindowFlags_HorizontalScrollbar
 
 bool openDelPopup = false;
 bool running = true;
@@ -364,7 +364,7 @@ int main(int argc, char *argv[]) {
 
         ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
-        if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_TREE_FLAGS)) {
+        if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_LIST_FLAGS)) {
             RenderFBContextMenu(&io);
             RenderErrorPopup(&io);
             if (ui_error.show) {
@@ -459,7 +459,7 @@ int main(int argc, char *argv[]) {
 
         ImGui::Render();
 
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+        glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
         static const constexpr ImVec4 clear_color = {0.23f, 0.23f, 0.23f, 1.00f};
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
