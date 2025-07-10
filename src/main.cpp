@@ -22,19 +22,15 @@
 #include <ArchiveFormats/XP3/xp3.h>
 #include <ArchiveFormats/Zip/zip.h>
 
-namespace fs = std::filesystem;
-
 #define DEBUG
 
 #ifdef DEBUG
 #include <cmath>
-
 #define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
 #endif
 
-#define BACKGROUND_WIN_FLAGS ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs
-#define DIRECTORY_TREE_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
-#define FILE_PREVIEW_FLAGS   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_HorizontalScrollbar
+#define DIRECTORY_LIST_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
+#define FILE_PREVIEW_FLAGS   DIRECTORY_TREE_FLAGS | ImGuiWindowFlags_HorizontalScrollbar
 
 bool openDelPopup = false;
 bool running = true;
@@ -192,12 +188,12 @@ int main(int argc, char *argv[]) {
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
     inotify_fd = inotify_init();
     if (inotify_fd < 0) {
-        Logger::error("Error: inotify_init() failed");
+        Logger::error("inotify_init() failed!");
         return -1;
     }
     inotify_wd = inotify_add_watch(inotify_fd, path, INOTIFY_FLAGS);
     if (inotify_wd < 0) {
-        Logger::error("Error: inotify_add_watch() failed");
+        Logger::error("inotify_add_watch() failed!");
         close(inotify_fd);
         return -1;
     }
@@ -207,13 +203,13 @@ int main(int argc, char *argv[]) {
         while (inotify_running) {
             int length = read(inotify_fd, buffer, sizeof(buffer));
             if (length < 0) {
-                Logger::error("Error: read() failed from inotify_fd");
+                Logger::error("read() failed from inotify_fd!");
                 break;
             }
             int i = 0;
             while (i < length) {
                 inotify_event *event = (inotify_event*)&buffer[i];
-                if (event->mask & (INOTIFY_FLAGS)) {
+                if (event->mask & INOTIFY_FLAGS) {
                     ReloadRootNode(rootNode);
                 }
                 i += EVENT_SIZE + event->len;
@@ -222,9 +218,6 @@ int main(int argc, char *argv[]) {
     });
     inotify_thread.detach();
     #endif
-
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_PREFER_LIBDECOR, "0");
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
@@ -251,8 +244,7 @@ int main(int argc, char *argv[]) {
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    if (!gl_context)
-    {
+    if (!gl_context) {
         Logger::error("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
         return -1;
     }
@@ -281,9 +273,8 @@ int main(int argc, char *argv[]) {
     ImFontConfig iconConfig;
     iconConfig.MergeMode = true;
     iconConfig.GlyphMinAdvanceX = 18.0f;
-    const ImWchar icon_ranges[] = { 0xe800, 0xe809 };
+    const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
-    // I sure do love operator overloading :clueless:
     auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
     auto icon_font_path = fs::path("fonts") / "icons.woff2";
 
@@ -370,20 +361,6 @@ int main(int argc, char *argv[]) {
             io.Fonts->ClearTexData();
             cleared_font_input_data = true;
         }
-
-        ImGui::SetNextWindowPos({0, 0});
-        ImGui::SetNextWindowSize(window_size);
-        ImGui::Begin("BackgroundRender", nullptr, BACKGROUND_WIN_FLAGS);
-
-        constexpr ImU32 bgColor = IM_COL32(58, 58, 58, 255);
-
-        ImGui::GetWindowDrawList()->AddRectFilled(
-            {left_pan_width, 10},
-            {left_pan_width + splitterWidth, window_size.y},
-            bgColor
-        );
-
-        ImGui::End();
 
         ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
