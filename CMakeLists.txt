@@ -8,7 +8,7 @@ if (DEBUG)
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 else()
     set(CMAKE_CXX_FLAGS
-    "-Wall -Wextra -Oz -Wno-unused-parameter -Wno-missing-designated-field-initializers"
+    "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers"
 )
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 endif()

@@ -23,6 +23,8 @@
 
 namespace fs = std::filesystem;
 
+#define DEBUG
+
 #ifdef DEBUG
 #include <cmath>
 
@@ -224,6 +226,9 @@ int main(int argc, char *argv[]) {
     inotify_thread.detach();
     #endif
 
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
         Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
@@ -263,9 +268,15 @@ int main(int argc, char *argv[]) {
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
 
+    range.AddRanges(io.Fonts->GetGlyphRangesDefault());
+
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-    range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
+    range.AddRanges(io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    range.AddRanges(io.Fonts->GetGlyphRangesThai());
+    range.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
+    range.AddRanges(io.Fonts->GetGlyphRangesCyrillic());
+    range.AddRanges(io.Fonts->GetGlyphRangesGreek());
     // These characters aren't in any of the above glyph ranges, but are common in CJK text.
     range.AddChar(0x203B);
     range.AddChar(0x25A0);
@@ -357,6 +368,13 @@ int main(int argc, char *argv[]) {
         static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
 
         ImGui::NewFrame();
+
+        static bool cleared_font_input_data = false;
+        if (!cleared_font_input_data) {
+            io.Fonts->ClearInputData();
+            io.Fonts->ClearTexData();
+            cleared_font_input_data = true;
+        }
 
         ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize(window_size);
@@ -456,6 +474,8 @@ int main(int argc, char *argv[]) {
             ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
         }
         ImGui::End();
+
+
         #endif
 
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {

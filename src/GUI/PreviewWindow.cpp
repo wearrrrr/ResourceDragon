@@ -122,7 +122,7 @@ void SelectableCopyableText(const std::string& text) {
 }
 
 void PreviewWindow::RenderAudioPlayer() {
-    if (current_sound || curr_sound_is_midi) {
+    if (current_sound) {
         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
         TimeInfo time = preview_state.audio.time;
         if (preview_state.audio.playing) {
@@ -199,11 +199,7 @@ void PreviewWindow::RenderAudioPlayer() {
 
         ImGui::SameLine();
         if (ImGui::Button(STOP_ICON, {40, 0})) {
-            if (curr_sound_is_midi) {
-                fluid_player_stop(preview_state.audio.fluid_player);
-            } else {
-                Mix_HaltMusic();
-            }
+            Mix_HaltMusic();
             DirectoryNode::UnloadSelectedFile();
             preview_state.audio.playing = false;
             SDL_RemoveTimer(preview_state.audio.update_timer);

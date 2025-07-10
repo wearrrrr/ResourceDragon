@@ -5,7 +5,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include "gl3.h"
-#include "fluidsynth.h" // IWYU pragma: keep
 #include <string>
 
 #ifdef linux
@@ -37,7 +36,6 @@ struct TimeInfo {
 
 struct PWinStateAudio {
   Mix_Music *music;
-  fluid_player_t* fluid_player;
   bool playing;
   u8 *buffer;
   int volumePercent;

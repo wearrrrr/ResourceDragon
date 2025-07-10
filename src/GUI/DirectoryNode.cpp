@@ -13,6 +13,8 @@
 #include "state.h"
 #include "gl3.h"
 
+#include "icons.h"
+
 Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
     const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
@@ -118,12 +120,6 @@ void DirectoryNode::UnloadSelectedFile() {
         Mix_FreeMusic(preview_state.audio.music);
         preview_state.audio.music = {};
     }
-    if (preview_state.audio.fluid_player) {
-        fluid_player_stop(preview_state.audio.fluid_player);
-        delete_fluid_player(preview_state.audio.fluid_player);
-        preview_state.audio.fluid_player = {};
-        preview_state.audio.fluid_player = new_fluid_player(curr_synth);
-    }
     preview_state.audio.buffer = {};
     preview_state.audio.playing = false;
     preview_state.audio.time = {};
@@ -133,7 +129,6 @@ void DirectoryNode::UnloadSelectedFile() {
         preview_state.audio.update_timer = 0;
     }
     current_sound = nullptr;
-    curr_sound_is_midi = false;
 }
 
 void DirectoryNode::Unload(Node *node) {
@@ -377,12 +372,6 @@ void DirectoryNode::HandleFileClick(Node *node) {
                 preview_state.audio.time.total_time_sec = fmod(duration, 60.0);
                 preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             }
-
-            if (curr_sound_is_midi) {
-                fluid_player_add(preview_state.audio.fluid_player, "test.mid");
-                fluid_player_play(preview_state.audio.fluid_player);
-            }
-
         } else if (ElfFile::IsValid(entry_buffer)) {
             auto *elfFile = new ElfFile(entry_buffer, size);
             preview_state.contents.elfFile = elfFile;
@@ -496,12 +485,16 @@ void SetFilePath(const std::string& file_path) {
 void DirectoryNode::Setup(Node *node) {
     ImGui::PushID(node);
 
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 48);
     if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
         std::string expanded_path = LinuxExpandUserPath(std::string(file_path_buf));
         SetFilePath(expanded_path);
         rootNode = CreateTreeFromPath(expanded_path);
     }
+
+    ImGui::SameLine();
+
+    ImGui::Button(HELP_ICON, {40, 0});
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);
