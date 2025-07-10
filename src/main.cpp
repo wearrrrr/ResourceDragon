@@ -4,6 +4,7 @@
 #include <GUI/Clipboard.h>
 #include <GUI/PreviewWindow.h>
 #include <GUI/UIError.h>
+#include <SDL3/SDL_video.h>
 #include <Scripting/ScriptManager.h>
 #include <thread>
 #include <filesystem>
@@ -158,21 +159,17 @@ int main(int argc, char *argv[]) {
 
     ScriptManager *scriptManager = new ScriptManager();
 
-    std::thread scripting_thread([&]() {
-        try {
-            for (const auto &entry : fs::directory_iterator("scripts/")) {
-                const fs::path entry_path = entry.path();
-                if (entry_path.extension() == ".lua") {
-                    scriptManager->LoadFile(entry_path.string());
-                    RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
-                }
+    try {
+        for (const auto &entry : fs::directory_iterator("scripts/")) {
+            const fs::path entry_path = entry.path();
+            if (entry_path.extension() == ".lua") {
+                scriptManager->LoadFile(entry_path.string());
+                RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
             }
-        } catch (const fs::filesystem_error &e) {
-            Logger::error("Failed to start scripting! Error: %s", e.what());
         }
-
-    });
-    scripting_thread.detach();
+    } catch (const fs::filesystem_error &e) {
+        Logger::error("Failed to start scripting! Error: %s", e.what());
+    }
 
     #ifdef linux
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
@@ -227,10 +224,9 @@ int main(int argc, char *argv[]) {
     #endif
 
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_PREFER_LIBDECOR, "0");
 
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
-    {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
         return -1;
     }
@@ -314,8 +310,8 @@ int main(int argc, char *argv[]) {
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_ShowWindow(window);
 
-    const float splitterWidth = 10.0f;
-    const float minPanelSize = 400.0f;
+    const constexpr float splitterWidth = 10.0f;
+    const constexpr float minPanelSize = 400.0f;
     bool resizing = false;
 
     const std::string preview_win_label = "Preview";
@@ -324,7 +320,7 @@ int main(int argc, char *argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))) {
+            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)) {
                 running = false;
             }
 

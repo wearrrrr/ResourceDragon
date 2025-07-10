@@ -1,6 +1,7 @@
 #include <Audio.h>
 #include <Utils.h>
 #include <DirectoryNode.h>
+#include "SDL3_mixer/SDL_mixer.h"
 #include "state.h"
 
 #include <alsa/asoundlib.h>
@@ -23,8 +24,6 @@ void Audio::InitAudioSystem() {
         Logger::error("Failed to initialize SDL_mixer: %s", SDL_GetError());
         return;
     }
-
-    Mix_AllocateChannels(1);
 
     Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
     if (spec.freq == 0 || spec.format == 0 || spec.channels == 0) {

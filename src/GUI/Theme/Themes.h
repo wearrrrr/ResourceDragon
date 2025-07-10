@@ -6,7 +6,7 @@ enum Theme {
 
 class ThemeManager {
     public:
-        static void SetTheme(Theme name) {
+        static inline void SetTheme(Theme name) {
             if (name == Theme::BessDark) {
                 BessDark();
             }
