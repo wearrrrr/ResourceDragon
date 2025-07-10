@@ -269,10 +269,9 @@ int main(int argc, char *argv[]) {
     ImVector<ImWchar> gr;
 
     range.AddRanges(io.Fonts->GetGlyphRangesDefault());
-
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-    range.AddRanges(io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
     range.AddRanges(io.Fonts->GetGlyphRangesThai());
     range.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
     range.AddRanges(io.Fonts->GetGlyphRangesCyrillic());
