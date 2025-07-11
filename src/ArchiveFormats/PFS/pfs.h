@@ -15,6 +15,9 @@ class PFSFormat : public ArchiveFormat {
     std::string GetTag() const override {
         return this->tag;
     }
+    std::string GetDescription() const override {
+        return this->description;
+    }
 };
 
 class PFSArchive : public ArchiveBase {

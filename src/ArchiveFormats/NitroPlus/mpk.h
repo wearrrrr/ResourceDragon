@@ -20,6 +20,9 @@ class MPKFormat : public ArchiveFormat {
     std::string GetTag() const override {
         return this->tag;
     }
+    std::string GetDescription() const override {
+        return this->description;
+    }
 };
 
 class MPKArchive : public ArchiveBase {

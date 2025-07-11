@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lua.hpp"
+#include <cstdlib>
 #include <lua.h>
 #include <string>
 
@@ -13,15 +14,18 @@ class LuaArchiveFormat : public ArchiveFormat {
     int lCanHandleRef;
     int lTryOpenRef;
     int lGetTagRef;
+    int lGetDescriptionRef;
 
 public:
-    LuaArchiveFormat(lua_State *state, u32 signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag") : m_state(state) {
+    LuaArchiveFormat(lua_State *state, u32 signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag",  const char *getDescription = "RD__GetDescription") : m_state(state) {
         if (!LuaUtils::Lua_GetFunction(m_state, canHandleFile)) return;
         lCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
         if (!LuaUtils::Lua_GetFunction(m_state, tryOpen)) return;
         lTryOpenRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
         if (!LuaUtils::Lua_GetFunction(m_state, getTag)) return;
         lGetTagRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
+        if (!LuaUtils::Lua_GetFunction(m_state, getDescription)) return;
+        lGetDescriptionRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
     }
 
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
@@ -77,6 +81,17 @@ public:
 
         return lua_tostring(m_state, -1);
     };
+
+    std::string GetDescription() const override {
+        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetDescriptionRef);
+
+        if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
+            Logger::error("Failed to call GetDescription in lua code! This is a bug.");
+            return "GETDESC_FAIL";
+        }
+
+        return lua_tostring(m_state, -1);
+    }
 
     ~LuaArchiveFormat() {
         luaL_unref(m_state, LUA_REGISTRYINDEX, lCanHandleRef);

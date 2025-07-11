@@ -23,8 +23,6 @@
 #include <ArchiveFormats/XP3/xp3.h>
 #include <ArchiveFormats/Zip/zip.h>
 
-#define DEBUG
-
 #ifdef DEBUG
 #include <cmath>
 #define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs

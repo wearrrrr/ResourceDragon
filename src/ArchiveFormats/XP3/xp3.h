@@ -2,7 +2,6 @@
 
 #include <string>
 #include <zlib.h>
-#include <unordered_map>
 
 #include <ArchiveFormat.h>
 
@@ -26,13 +25,16 @@ class XP3Format : public ArchiveFormat {
 
         ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override;
 
-        std::string GetTag() const override {
-            return this->tag;
-        };
-
         bool CanHandleFile(u8 *buffer, u64 size, const std::string &_ext) const override {
             return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
         };
+
+        std::string GetTag() const override {
+            return this->tag;
+        };
+        std::string GetDescription() const override {
+            return this->description;
+        }
 };
 
 class XP3Archive : public ArchiveBase {

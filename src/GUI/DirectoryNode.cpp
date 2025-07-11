@@ -15,6 +15,34 @@
 
 #include "icons.h"
 
+void InfoDialog() {
+    if (ImGui::BeginPopupModal("Format Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+
+        if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 250.0f);
+            ImGui::TableSetupColumn("Tag", ImGuiTableColumnFlags_WidthStretch, 250.0f);
+            ImGui::TableHeadersRow();
+
+            for (const auto& pair : extractor_manager.GetFormats()) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Selectable(pair.first.c_str(), false);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Selectable(pair.second->GetDescription().c_str(), false);
+            }
+
+            ImGui::EndTable();
+        }
+
+
+        if (ImGui::Button("Close", {100, 0})) {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
     const std::string& fullPath = node->FullPath;
     for (const auto &entry : entries) {
@@ -494,7 +522,11 @@ void DirectoryNode::Setup(Node *node) {
 
     ImGui::SameLine();
 
-    ImGui::Button(HELP_ICON, {40, 0});
+    InfoDialog();
+
+    if (ImGui::Button(HELP_ICON, {40, 0})) {
+        ImGui::OpenPopup("Format Info");
+    };
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentDisable);

@@ -103,4 +103,7 @@ class ArchiveFormat {
         virtual std::string GetTag() const {
             return this->tag;
         };
+        virtual std::string GetDescription() const {
+            return this->description;
+        }
 };

@@ -1,12 +1,14 @@
 #pragma once
 
 #include "ArchiveFormats/ArchiveFormat.h"
-#include <unordered_map>
+#include <map>
 #include <memory>
+
+typedef std::map<std::string, std::unique_ptr<ArchiveFormat>> FormatMap;
 
 class ExtractorManager {
 private:
-  std::unordered_map<std::string, std::unique_ptr<ArchiveFormat>> m_formats;
+  FormatMap m_formats;
 
 public:
   void RegisterFormat(std::unique_ptr<ArchiveFormat> format) {
@@ -15,6 +17,10 @@ public:
 
   void UnregisterFormat(std::string tag) {
     m_formats.erase(tag);
+  }
+
+  FormatMap& GetFormats() {
+      return m_formats;
   }
 
   ArchiveFormat *getExtractorFor(u8 *buffer, u64 size, const std::string &ext) {

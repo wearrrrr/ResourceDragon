@@ -24,3 +24,8 @@ end
 function RD__GetTag()
     return "LUA_TEST"
 end
+
+
+function RD__GetDescription()
+    return 'Lua Test "Archive" (not really)'
+end
