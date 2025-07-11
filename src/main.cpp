@@ -93,7 +93,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     }
 }
 
-void RenderPreviewContextMenu() {
+void PreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
             if (preview_state.contents.size > 0) {
@@ -404,27 +404,10 @@ int main(int argc, char *argv[]) {
         else preview_win_title += " ";
         preview_win_title += "###Preview";
         if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
-            RenderPreviewContextMenu();
-            std::string ext = preview_state.contents.ext;
-            PContentType content_type = preview_state.content_type;
+            PreviewContextMenu();
             if (preview_state.contents.size > 0) {
-                switch (content_type) {
-                    case IMAGE:
-                        PreviewWindow::RenderImagePreview();
-                        break;
-                    case GIF:
-                        PreviewWindow::RenderGifPreview();
-                        break;
-                    case AUDIO:
-                        PreviewWindow::RenderAudioPlayer();
-                        break;
-                    case ELF:
-                        PreviewWindow::RenderElfPreview();
-                        break;
-                    default:
-                        PreviewWindow::RenderTextViewer(io);
-                        break;
-                }
+                PreviewWindow::RenderPreviewFor(preview_state.content_type);
+
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
                 }
