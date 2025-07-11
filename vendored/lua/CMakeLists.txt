@@ -56,7 +56,7 @@ enable_testing()
 
 # add_subdirectory(doc)
 add_subdirectory(src)
-add_subdirectory(tests)
+# add_subdirectory(tests)
 
 message(STATUS "Lua ${PROJECT_VERSION} is now configured for ${CMAKE_SYSTEM}!")
 # message(STATUS "  Platform:                               ${LUA_PLATFORM_SUPPORT} (${LUA_PLATFORM} requested)")
