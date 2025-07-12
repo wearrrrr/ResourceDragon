@@ -15,6 +15,12 @@
 
 #include "icons.h"
 
+namespace ImGui {
+    void Text(const std::string &str) {
+        ImGui::Text("%s", str.c_str());
+    };
+}
+
 void InfoDialog() {
     if (ImGui::BeginPopupModal("Format Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
 
@@ -26,9 +32,9 @@ void InfoDialog() {
             for (const auto& pair : extractor_manager.GetFormats()) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Selectable(pair.first.c_str(), false);
+                ImGui::Text(pair.first);
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Selectable(pair.second->GetDescription().c_str(), false);
+                ImGui::Text(pair.second->GetDescription());
             }
 
             ImGui::EndTable();
@@ -487,10 +493,10 @@ void DirectoryNode::Display(Node *node) {
     }
 
     ImGui::TableNextColumn();
-    ImGui::Text("%s", node->FileSize.c_str());
+    ImGui::Text(node->FileSize);
 
     ImGui::TableNextColumn();
-    ImGui::Text("%s", node->LastModified.c_str());
+    ImGui::Text(node->LastModified);
 
     ImGui::PopID();
 }
