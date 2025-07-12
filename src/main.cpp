@@ -161,8 +161,8 @@ int main(int argc, char *argv[]) {
                 RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
             }
         }
-    } catch (const fs::filesystem_error &e) {
-        Logger::error("Failed to start scripting! Error: %s", e.what());
+    } catch (const fs::filesystem_error &err) {
+        Logger::error("Failed to start scripting! Error: %s", err.what());
     }
 
     #ifdef linux

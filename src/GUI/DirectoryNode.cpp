@@ -249,9 +249,9 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         }
         SortChildrenAlphabetical(node);
         return true;
-    } catch (const fs::filesystem_error &e) {
-        printf("Error accessing directory: %s\n", e.what());
-        ui_error = UIError::CreateError(e.what(), "Error accessing directory!");
+    } catch (const fs::filesystem_error &err) {
+        printf("Error accessing directory: %s\n", err.what());
+        ui_error = UIError::CreateError(err.what(), "Error accessing directory!");
 
         return false;
     }

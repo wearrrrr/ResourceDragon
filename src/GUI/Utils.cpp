@@ -26,7 +26,7 @@ std::string Utils::GetLastModifiedTime(const std::string& path)
         if (std::strftime(buffer, sizeof(buffer), "%m/%d/%y at %I:%M %p", lt)) {
             return std::string(buffer);
         }
-    } catch (const fs::filesystem_error& e) {
+    } catch (const fs::filesystem_error& err) {
         return "N/A";
     }
     return "N/A";
@@ -57,8 +57,8 @@ std::string Utils::GetFileSize(const fs::path& path)
 
             return oss.str();
         }
-    } catch (const fs::filesystem_error& e) {
-        Logger::error("Error getting file size for %s: %s\n", path.string().c_str(), e.what());
+    } catch (const fs::filesystem_error& err) {
+        Logger::error("Error getting file size for %s: %s\n", path.string().c_str(), err.what());
     }
 
     return "--";
