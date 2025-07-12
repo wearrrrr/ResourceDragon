@@ -71,8 +71,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
         if (selectedItem) {
-            ImGui::TextWrapped("Are you sure you'd like to delete %s?",
-                selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
+            ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
             ImGui::Text("This cannot be undone!");
             if (ImGui::Button("Confirm", {100, 0})) {
                 fs::remove_all(selectedItem->FullPath);

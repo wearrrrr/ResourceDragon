@@ -29,7 +29,7 @@ void InfoDialog() {
             ImGui::TableSetupColumn("Tag", ImGuiTableColumnFlags_WidthStretch, 250.0f);
             ImGui::TableHeadersRow();
 
-            for (const auto& pair : extractor_manager.GetFormats()) {
+            for (const auto &pair : extractor_manager.GetFormats()) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text(pair.first);
@@ -50,12 +50,12 @@ void InfoDialog() {
 }
 
 Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
-    const std::string& fullPath = node->FullPath;
+    const std::string &fullPath = node->FullPath;
     for (const auto &entry : entries) {
-        const std::string& name = entry.second->name;
+        const std::string &name = entry.second->name;
 
         if (fullPath.size() >= name.size() && fullPath.compare(fullPath.size() - name.size(), name.size(), name) == 0) {
-            char lastChar = fullPath[fullPath.size() - name.size() - 1];
+            u8 lastChar = fullPath[fullPath.size() - name.size() - 1];
             if (fullPath.size() == name.size() || lastChar == '/' || lastChar == '\\') {
                 return entry.second;
             }
@@ -93,7 +93,7 @@ inline bool ValidateGlobals() {
     return true;
 }
 
-bool VirtualArc::ExtractEntry(fs::path basePath, Entry *entry, fs::path outputPath) {
+bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return false;
 
 #ifdef linux
@@ -139,9 +139,7 @@ void VirtualArc::ExtractEntry(std::string path) {
 }
 
 void DirectoryNode::UnloadSelectedFile() {
-    if (preview_state.contents.size > 0) {
-        preview_state.contents.data = nullptr;
-    }
+    if (preview_state.contents.size > 0) preview_state.contents.data = nullptr;
 
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
@@ -173,7 +171,7 @@ void DirectoryNode::Unload(Node *node) {
     node->Children.clear();
 }
 
-inline void SortChildren(DirectoryNode::Node *node) {
+inline void SortChildrenAlphabetical(DirectoryNode::Node *node) {
     std::sort(node->Children.begin(), node->Children.end(),
     [](const DirectoryNode::Node* a, const DirectoryNode::Node* b) {
         if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
@@ -192,6 +190,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
             auto entries = loaded_arc_base->GetEntries();
 
             for (const auto &entry : entries) {
+                // Still not entirely sure if this is necessary?
                 #ifdef linux
                 std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
                 #endif
@@ -248,7 +247,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                 node->Children.push_back(childNode);
             }
         }
-        SortChildren(node);
+        SortChildrenAlphabetical(node);
         return true;
     } catch (const fs::filesystem_error &e) {
         printf("Error accessing directory: %s\n", e.what());
@@ -554,7 +553,7 @@ void DirectoryNode::Setup(Node *node) {
                     return a->LastModifiedUnix < b->LastModifiedUnix;
                 });
             } else {
-                SortChildren(node);
+                SortChildrenAlphabetical(node);
             }
         }
         ImGui::PopID();
