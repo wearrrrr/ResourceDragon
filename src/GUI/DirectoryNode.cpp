@@ -320,6 +320,64 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval;
 }
 
+void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot) {
+    if (Image::IsImageExtension(ext)) {
+        Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
+        if (*preview_state.texture.size.x < 256) {
+            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
+        }
+        preview_state.content_type = IMAGE;
+        free(entry_buffer);
+    } else if (Image::IsGif(ext)) {
+        Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
+        preview_state.content_type = GIF;
+        preview_state.texture.frame = 0;
+        preview_state.texture.last_frame_time = SDL_GetTicks();
+    } else if (Audio::IsAudio(ext)) {
+        if (isVirtualRoot) {
+            preview_state.audio.buffer = entry_buffer;
+            SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
+            current_sound = Mix_LoadMUS_IO(snd_io, true);
+            if (!current_sound) {
+                Logger::error("Failed to load audio: %s", SDL_GetError());
+                preview_state.audio.buffer = nullptr;
+            }
+        } else {
+            current_sound = Mix_LoadMUS(node->FullPath.c_str());
+        }
+
+        if (current_sound) {
+            preview_state.content_type = AUDIO;
+            Mix_PlayMusic(current_sound, 1);
+            double duration = Mix_MusicDuration(current_sound);
+            preview_state.audio.music = current_sound;
+            preview_state.audio.playing = true;
+            preview_state.audio.time.total_time_min = duration / 60;
+            preview_state.audio.time.total_time_sec = fmod(duration, 60.0);
+            preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+        }
+    } else if (ElfFile::IsValid(entry_buffer)) {
+        auto *elfFile = new ElfFile(entry_buffer, size);
+        preview_state.contents.elfFile = elfFile;
+        preview_state.content_type = ELF;
+    } else {
+        auto text = std::string((char*)entry_buffer, size);
+        if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
+            std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
+            editor.SetText(TextConverter::UTF16ToUTF8(utf16));
+        } else {
+            editor.SetText(text);
+        }
+        editor.SetTextChanged(false);
+        editor.SetColorizerEnable(size <= 200000);
+        editor.SetShowWhitespaces(false);
+    }
+
+    free(entry_buffer);
+
+    return;
+}
+
 void DirectoryNode::HandleFileClick(Node *node) {
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
@@ -367,61 +425,8 @@ void DirectoryNode::HandleFileClick(Node *node) {
             .fileName = node->FileName
         };
 
-        if (Image::IsImageExtension(ext)) {
-            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
-            if (*preview_state.texture.size.x < 256) {
-                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
-            }
-            preview_state.content_type = IMAGE;
-            free(entry_buffer);
-        } else if (Image::IsGif(ext)) {
-            Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
-            preview_state.content_type = GIF;
-            preview_state.texture.frame = 0;
-            preview_state.texture.last_frame_time = SDL_GetTicks();
-            free(entry_buffer);
-        } else if (Audio::IsAudio(ext)) {
-            if (isVirtualRoot) {
-                preview_state.audio.buffer = entry_buffer;
-                SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
-                current_sound = Mix_LoadMUS_IO(snd_io, true);
-                if (!current_sound) {
-                    Logger::error("Failed to load audio: %s", SDL_GetError());
-                    free(entry_buffer);
-                    preview_state.audio.buffer = nullptr;
-                }
-            } else {
-                current_sound = Mix_LoadMUS(node->FullPath.c_str());
-                free(entry_buffer);
-            }
+        InitializePreview(node, entry_buffer, size, ext, isVirtualRoot);
 
-            if (current_sound) {
-                preview_state.content_type = AUDIO;
-                Mix_PlayMusic(current_sound, 1);
-                double duration = Mix_MusicDuration(current_sound);
-                preview_state.audio.music = current_sound;
-                preview_state.audio.playing = true;
-                preview_state.audio.time.total_time_min = duration / 60;
-                preview_state.audio.time.total_time_sec = fmod(duration, 60.0);
-                preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
-            }
-        } else if (ElfFile::IsValid(entry_buffer)) {
-            auto *elfFile = new ElfFile(entry_buffer, size);
-            preview_state.contents.elfFile = elfFile;
-            preview_state.content_type = ELF;
-        } else {
-            auto text = std::string((char*)entry_buffer, size);
-            if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
-                std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
-                editor.SetText(TextConverter::UTF16ToUTF8(utf16));
-            } else {
-                editor.SetText(text);
-            }
-            editor.SetTextChanged(false);
-            editor.SetColorizerEnable(size <= 200000);
-            editor.SetShowWhitespaces(false);
-            free(entry_buffer);
-        }
         return;
     }
 
