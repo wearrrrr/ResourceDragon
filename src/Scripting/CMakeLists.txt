@@ -7,3 +7,7 @@ target_include_directories(Scripting PUBLIC
 )
 
 target_link_libraries(Scripting PRIVATE lua util)
+
+install(TARGETS Scripting
+    LIBRARY DESTINATION lib
+)

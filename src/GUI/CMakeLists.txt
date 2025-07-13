@@ -16,3 +16,7 @@ target_include_directories(GUI PUBLIC
 )
 
 target_link_libraries(GUI PRIVATE SDL3_mixer::SDL3_mixer util)
+
+install(TARGETS GUI
+    LIBRARY DESTINATION lib
+)

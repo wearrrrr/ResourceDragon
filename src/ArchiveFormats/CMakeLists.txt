@@ -17,3 +17,7 @@ target_include_directories(ArchiveFormats PUBLIC
 )
 
 target_link_libraries(ArchiveFormats PRIVATE util)
+
+install(TARGETS ArchiveFormats
+    LIBRARY DESTINATION lib
+)

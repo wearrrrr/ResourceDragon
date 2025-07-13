@@ -66,3 +66,43 @@ endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
 target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip lua ${OPENGL})
+
+set_target_properties(ResourceDragon PROPERTIES
+    BUILD_RPATH "$ORIGIN/lib"
+    INSTALL_RPATH "$ORIGIN/lib"
+)
+
+install(TARGETS ResourceDragon
+    RUNTIME DESTINATION .
+)
+
+install(CODE "
+    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
+         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/libSDL3_mixer.so.0.0.0
+         RENAME libSDL3_mixer.so.0)
+")
+install(CODE "
+    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
+         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_image/libSDL3_image.so.0.3.0
+         RENAME libSDL3_image.so.0)
+")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts/
+        DESTINATION fonts
+        FILES_MATCHING PATTERN "*"
+)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/scripts/
+        DESTINATION scripts
+        FILES_MATCHING PATTERN "*"
+)
+
+set(CPACK_PACKAGE_NAME "ResourceDragon")
+set(CPACK_PACKAGE_VERSION "0.1")
+set(CPACK_GENERATOR "ZIP")
+set(CPACK_PACKAGE_CONTACT "you@example.com")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ResourceDragon asset viewer")
+# set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+# set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+
+include(CPack)
