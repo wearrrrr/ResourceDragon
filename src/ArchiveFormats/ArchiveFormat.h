@@ -4,8 +4,8 @@
 #include "Entry.h"
 #include <cstring>
 #include <unordered_map>
-#include <util/Logger.h>
 #include <util/int.h>
+#include <util/Logger.h>
 #include <util/Vector.h>
 #include "zero_templates.h"
 
@@ -20,11 +20,11 @@ class ArchiveBase {
 };
 
 class ArchiveFormat {
-    public:
+    private:
         std::string tag = "?????";
         std::string description = "????? Resource Archive";
+    public:
         u32 sig = 0x00000000;
-
         size_t buffer_position = 0;
 
         template<typename T>
