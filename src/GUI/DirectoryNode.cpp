@@ -324,7 +324,6 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
             Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
         }
         preview_state.content_type = IMAGE;
-        free(entry_buffer);
     } else if (Image::IsGif(ext)) {
         Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
         preview_state.content_type = GIF;
