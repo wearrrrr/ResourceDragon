@@ -12,6 +12,8 @@
 typedef std::unordered_map<std::string, Entry> EntryMap;
 typedef std::unordered_map<std::string, Entry*> EntryMapPtr;
 
+using namespace std::literals;
+
 class ArchiveBase {
     public:
         virtual u8* OpenStream(const Entry *entry, u8 *buffer) = 0;
@@ -20,9 +22,6 @@ class ArchiveBase {
 };
 
 class ArchiveFormat {
-    private:
-        std::string_view tag = "?????";
-        std::string_view description = "????? Resource Archive";
     public:
         u32 sig = 0x00000000;
         size_t buffer_position = 0;
@@ -101,9 +100,9 @@ class ArchiveFormat {
         virtual bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const = 0;
         virtual ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) = 0;
         virtual std::string_view GetTag() const {
-            return this->tag;
+            return "?????"sv;
         };
         virtual std::string_view GetDescription() const {
-            return this->description;
+            return "????? Resource Archive"sv;
         }
 };
