@@ -166,26 +166,16 @@ public:
 
   std::string GetElfType(ElfType e_type) const {
     switch (e_type) {
-      case ElfType::ET_NONE:
-        return "NONE";
-      case ElfType::ET_REL:
-        return "REL";
-      case ElfType::ET_EXEC:
-        return "EXEC";
-      case ElfType::ET_DYN:
-        return "DYN";
-      case ElfType::ET_CORE:
-        return "CORE";
-      case ElfType::ET_LOOS:
-        return "LOOS";
-      case ElfType::ET_HIOS:
-        return "HIOS";
-      case ElfType::ET_LOPROC:
-        return "LOPROC";
-      case ElfType::ET_HIPROC:
-        return "HIPROC";
-      default:
-        return "Unknown";
+      case ElfType::ET_NONE: return "NONE";
+      case ElfType::ET_REL: return "REL";
+      case ElfType::ET_EXEC: return "EXEC";
+      case ElfType::ET_DYN: return "DYN";
+      case ElfType::ET_CORE: return "CORE";
+      case ElfType::ET_LOOS: return "LOOS";
+      case ElfType::ET_HIOS: return "HIOS";
+      case ElfType::ET_LOPROC: return "LOPROC";
+      case ElfType::ET_HIPROC: return "HIPROC";
+      default: return "Unknown";
     };
   };
 
