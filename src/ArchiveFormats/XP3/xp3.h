@@ -12,8 +12,8 @@ enum XP3HeaderType {
 
 class XP3Format : public ArchiveFormat {
     public:
-        std::string tag = "XP3";
-        std::string description = "XP3 Archive Format";
+        std::string_view tag = "XP3";
+        std::string_view description = "XP3 Archive Format";
 
         u32 sig = 0x0d335058; // "XP3\0D"
 
@@ -29,10 +29,10 @@ class XP3Format : public ArchiveFormat {
             return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
         };
 
-        std::string GetTag() const override {
+        std::string_view GetTag() const override {
             return this->tag;
         };
-        std::string GetDescription() const override {
+        std::string_view GetDescription() const override {
             return this->description;
         }
 };

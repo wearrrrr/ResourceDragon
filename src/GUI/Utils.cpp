@@ -58,7 +58,7 @@ std::string Utils::GetFileSize(const fs::path& path)
             return oss.str();
         }
     } catch (const fs::filesystem_error& err) {
-        Logger::error("Error getting file size for %s: %s\n", path.string().c_str(), err.what());
+        Logger::error("Error getting file size for %s: %s", path.string().c_str(), err.what());
     }
 
     return "--";

@@ -16,8 +16,8 @@
 #include "icons.h"
 
 namespace ImGui {
-    void Text(const std::string &str) {
-        ImGui::Text("%s", str.c_str());
+    void Text(const std::string_view &str) {
+        ImGui::Text("%s", str.data());
     };
 }
 
@@ -104,7 +104,7 @@ bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path o
 
     std::error_code err;
     if (!CreateDirectoryRecursive(fullOutputPath.parent_path(), err)) {
-        Logger::error("Failed to create directory: %s", err.message().c_str());
+        Logger::error("Failed to create directory: %s", err.message().data());
         return false;
     }
 
@@ -129,7 +129,7 @@ void VirtualArc::ExtractAll() {
 
     for (auto &entry : entries) {
         if (!VirtualArc::ExtractEntry(basePath, entry.second)) {
-            Logger::error("Failed to extract: %s", entry.second->name.c_str());
+            Logger::error("Failed to extract: %s", entry.second->name.data());
         }
     }
 }
@@ -250,9 +250,6 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         SortChildrenAlphabetical(node);
         return true;
     } catch (const fs::filesystem_error &err) {
-        printf("Error accessing directory: %s\n", err.what());
-        ui_error = UIError::CreateError(err.what(), "Error accessing directory!");
-
         return false;
     }
 }
@@ -343,7 +340,7 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
                 preview_state.audio.buffer = nullptr;
             }
         } else {
-            current_sound = Mix_LoadMUS(node->FullPath.c_str());
+            current_sound = Mix_LoadMUS(node->FullPath.data());
         }
 
         if (current_sound) {
@@ -400,7 +397,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
             }
         }
     } else {
-        auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.c_str());
+        auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.data());
         size = fs_size;
         entry_buffer = malloc<u8>(size);
         memcpy(entry_buffer, fs_buffer, size);
@@ -432,7 +429,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
 
     auto arc = format->TryOpen(entry_buffer, size, node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.c_str(), format->GetTag().c_str());
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.data(), format->GetTag().data());
         free(entry_buffer);
         return;
     }
@@ -454,7 +451,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
 }
 
 bool CanReadDirectory(const std::string& path) {
-    return access(path.c_str(), R_OK | X_OK) == 0;
+    return access(path.data(), R_OK | X_OK) == 0;
 }
 
 void DirectoryNode::Display(Node *node) {
@@ -462,12 +459,12 @@ void DirectoryNode::Display(Node *node) {
     ImGui::PushID(node);
 
     ImGui::TableNextColumn();
-    ImGui::Selectable(node->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
+    ImGui::Selectable(node->FileName.data(), false, ImGuiSelectableFlags_AllowDoubleClick);
 
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
             if (!rootNode->IsVirtualRoot && !CanReadDirectory(node->FullPath)) {
-                Logger::error("Cannot access directory: %s", node->FullPath.c_str());
+                Logger::error("Cannot access directory: %s", node->FullPath.data());
                 ui_error = UIError::CreateError("You do not have permission to access this directory!", "Access Denied");
             } else {
                 if (rootNode->IsVirtualRoot) {
@@ -506,7 +503,7 @@ void DirectoryNode::Display(Node *node) {
 }
 
 void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nullptr) {
-    if (ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+    if (ImGui::Selectable(name.data(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
         if (callback) callback();
     };
 }
@@ -515,7 +512,7 @@ static char *file_path_buf = (char*)calloc(sizeof(char), 1024);
 
 void SetFilePath(const std::string& file_path) {
     std::string normalized = file_path.ends_with("/") ? file_path : (file_path + "/");
-    std::strncpy(file_path_buf, normalized.c_str(), 1024);
+    std::strncpy(file_path_buf, normalized.data(), 1024);
     file_path_buf[1023] = '\0';
 }
 

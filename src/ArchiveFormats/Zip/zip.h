@@ -7,8 +7,8 @@
 
 class ZipFormat : public ArchiveFormat {
     public:
-        std::string tag = "ZIP";
-        std::string description = "Zip Archive";
+        std::string_view tag = "ZIP";
+        std::string_view description = "Zip Archive";
 
         std::vector<std::string> extensions = {"zip", "zipx", "z01", "zx01"};
 
@@ -20,10 +20,10 @@ class ZipFormat : public ArchiveFormat {
 
         ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
 
-        std::string GetTag() const override {
+        std::string_view GetTag() const override {
             return this->tag;
         };
-        std::string GetDescription() const override {
+        std::string_view GetDescription() const override {
             return this->description;
         }
 };

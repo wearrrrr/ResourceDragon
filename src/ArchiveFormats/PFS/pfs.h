@@ -3,8 +3,8 @@
 #include <ArchiveFormat.h>
 
 class PFSFormat : public ArchiveFormat {
-    std::string tag = "PFS";
-    std::string description = "PFS Resource Archive";
+    std::string_view tag = "PFS";
+    std::string_view description = "PFS Resource Archive";
 
     std::vector<std::string> extensions = {"pfs", "000", "001", "002", "003", "004", "005", "010"};
 
@@ -12,10 +12,10 @@ class PFSFormat : public ArchiveFormat {
 
     ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;
-    std::string GetTag() const override {
+    std::string_view GetTag() const override {
         return this->tag;
     }
-    std::string GetDescription() const override {
+    std::string_view GetDescription() const override {
         return this->description;
     }
 };

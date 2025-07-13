@@ -71,7 +71,7 @@ public:
         return nullptr;
     };
 
-    std::string GetTag() const override {
+    std::string_view GetTag() const override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetTagRef);
 
         if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
@@ -82,7 +82,7 @@ public:
         return lua_tostring(m_state, -1);
     };
 
-    std::string GetDescription() const override {
+    std::string_view GetDescription() const override {
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetDescriptionRef);
 
         if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
