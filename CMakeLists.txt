@@ -20,11 +20,10 @@ project(ResourceDragon VERSION 0.1)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
-find_package(libzip)
 
+add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
-add_subdirectory(vendored/lua EXCLUDE_FROM_ALL)
 
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
@@ -43,6 +42,15 @@ include_directories(vendored/gles3/)
 include_directories(vendored/utfcpp/source/)
 include_directories(/usr/include/freetype2/)
 
+file(GLOB LUA_SRCS
+    vendored/lua/src/*.c
+    vendored/lua/src/*.h
+)
+
+add_library(lua_static STATIC ${LUA_SRCS})
+target_include_directories(lua_static PUBLIC vendored/lua)
+target_compile_definitions(lua_static PUBLIC LUA_USE_APICHECK)
+
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
@@ -52,6 +60,7 @@ add_subdirectory(src/Scripting)
 
 add_executable(ResourceDragon
     ${IMGUI_SRC}
+    ${LUA_SRCS}
     src/main.cpp
 )
 
@@ -65,11 +74,10 @@ if (WIN32)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip lua ${OPENGL})
+target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer lua_static zip ${OPENGL})
 
 set_target_properties(ResourceDragon PROPERTIES
-    BUILD_RPATH "$ORIGIN/lib"
-    INSTALL_RPATH "$ORIGIN/lib"
+    INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
 )
 
 install(TARGETS ResourceDragon
@@ -85,6 +93,11 @@ install(CODE "
     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
          FILES ${CMAKE_BINARY_DIR}/vendored/SDL_image/libSDL3_image.so.0.3.0
          RENAME libSDL3_image.so.0)
+")
+install(CODE "
+    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
+         FILES ${CMAKE_BINARY_DIR}/vendored/libzip/lib/libzip.so.5.5
+         RENAME libzip.so.5)
 ")
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts/
