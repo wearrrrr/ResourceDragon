@@ -44,6 +44,7 @@ void PreviewWindow::RenderImagePreview() {
     } else {
         ImGui::Text("Failed to load image!");
     }
+    ImGui::EndChild();
 }
 
 void PreviewWindow::RenderGifPreview() {
@@ -117,8 +118,6 @@ void SelectableCopyableText(const std::string& text) {
     if (copiedTimestamps.count(text) && ImGui::GetTime() - copiedTimestamps[text] >= feedbackDuration) {
         copiedTimestamps.erase(text);
     }
-
-    ImGui::PopID();
 }
 
 void PreviewWindow::RenderAudioPlayer() {

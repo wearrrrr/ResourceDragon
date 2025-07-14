@@ -353,13 +353,6 @@ int main(int argc, char *argv[]) {
 
         ImGui::NewFrame();
 
-        static bool cleared_font_input_data = false;
-        if (!cleared_font_input_data) {
-            io.Fonts->ClearInputData();
-            io.Fonts->ClearTexData();
-            cleared_font_input_data = true;
-        }
-
         ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_LIST_FLAGS)) {

@@ -20,8 +20,8 @@ project(ResourceDragon VERSION 0.1)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
+find_package(libzip REQUIRED)
 
-add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 
@@ -85,11 +85,11 @@ install(CODE "
          FILES ${CMAKE_BINARY_DIR}/vendored/SDL_image/libSDL3_image.so.0.3.0
          RENAME libSDL3_image.so.0)
 ")
-install(CODE "
-    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/libzip/lib/libzip.so.5.5
-         RENAME libzip.so.5)
-")
+# install(CODE "
+#     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
+#          FILES ${CMAKE_BINARY_DIR}/vendored/libzip/lib/libzip.so.5.5
+#          RENAME libzip.so.5)
+# ")
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts/
         DESTINATION fonts
