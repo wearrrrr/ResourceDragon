@@ -254,14 +254,9 @@ int main(int argc, char *argv[]) {
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
 
-    range.AddRanges(io.Fonts->GetGlyphRangesDefault());
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-    range.AddRanges(io.Fonts->GetGlyphRangesThai());
-    range.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
-    range.AddRanges(io.Fonts->GetGlyphRangesCyrillic());
-    range.AddRanges(io.Fonts->GetGlyphRangesGreek());
     // These characters aren't in any of the above glyph ranges, but are common in CJK text.
     range.AddChar(0x203B);
     range.AddChar(0x25A0);

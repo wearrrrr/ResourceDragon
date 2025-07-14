@@ -2,7 +2,7 @@
 #include "Entry.h"
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
-#include <lz4.h>
+// #include <lz4.h>
 #include <cstring>
 
 static XP3Crypt *ALG_DEFAULT = new NoCrypt();
