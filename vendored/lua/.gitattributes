@@ -1,5 +1,0 @@
-# Default for all text files
-* text=auto
-
-# Text files with explicit CRLF line endings
-*.bat text eof=crlf
