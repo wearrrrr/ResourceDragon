@@ -2,7 +2,6 @@
 #include "Entry.h"
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
-#include <jxl/decode.h>
 #include <lz4.h>
 #include <cstring>
 

@@ -13,6 +13,8 @@
 #include "state.h"
 #include "gl3.h"
 
+#include <unistd.h>
+
 #include "icons.h"
 
 namespace ImGui {
