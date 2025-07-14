@@ -2,17 +2,23 @@ NPROC=$(nproc --ignore=2)
 if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
 DEBUG=OFF
+UBUNTU=OFF
 
 for arg in "$@"; do
-    if [ "$arg" == "-debug" ]; then
+    if [ "$arg" = "-debug" ]; then
         printf "Building as debug...\n"
         DEBUG=ON
+        break
+    fi
+    if [ "$arg" = "-ubuntu" ]; then
+        printf "Building targeting Ubuntu 22.04...\n"
+        UBUNTU=ON
         break
     fi
 done
 
 rm build/ResourceDragon
-cmake -B build -G Ninja -DDEBUG=${DEBUG}
+cmake -B build -G Ninja -DUBUNTU=${UBUNTU} -DDEBUG=${DEBUG}
 cd build
 ninja -j$NPROC
 cd ..

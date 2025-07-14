@@ -12,7 +12,7 @@ struct MPKEntry : Entry {
 
 class MPKFormat : public ArchiveFormat {
     std::string_view tag = "NitroPlus.MPK";
-    std::string_view description = "Nitro+ Resource Archive";
+    std::string_view description = "Nitro+ MPK Resource Archive";
     u32 sig = 0x4B504D;
 
     ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;

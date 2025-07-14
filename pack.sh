@@ -1,1 +1,1 @@
-./build.sh && cd build && cpack
+./build.sh "$@" && cd build && cpack

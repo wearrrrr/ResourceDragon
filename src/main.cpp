@@ -4,6 +4,7 @@
 #include <GUI/Clipboard.h>
 #include <GUI/PreviewWindow.h>
 #include <GUI/UIError.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
 #include <Scripting/ScriptManager.h>
 #include <thread>
@@ -219,12 +220,11 @@ int main(int argc, char *argv[]) {
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
-        return -1;
     }
 
     Audio::InitAudioSystem();
 
-    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
@@ -267,6 +267,7 @@ int main(int argc, char *argv[]) {
     iconConfig.MergeMode = true;
     iconConfig.GlyphMinAdvanceX = 18.0f;
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
+
 
     auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
     auto icon_font_path = fs::path("fonts") / "icons.woff2";
