@@ -1,5 +1,6 @@
 #include <Image.h>
 #include <Utils.h>
+#include <string_view>
 #include <util/Logger.h>
 #include <GL/gl.h>
 
@@ -7,9 +8,9 @@
 #include "ResourceFormats/dds_formats.h"
 using dds::ReadResult;
 
-bool Image::LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation)
+bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_animation)
 {
-    SDL_IOStream* stream = SDL_IOFromConstMem(data, data_size);
+    SDL_IOStream* stream = SDL_IOFromMem(data, data_size);
     if (!stream) {
         Logger::error("Failed to create IOStream: %s", SDL_GetError());
         return false;
@@ -96,7 +97,7 @@ GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
     return image_texture;
 }
 
-bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode) {
+bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode) {
     dds::Image image;
     auto result = dds::readImage((u8*)data, data_size, &image);
     if (result == ReadResult::Success) {
@@ -115,7 +116,7 @@ bool Image::LoadImage(const void* data, size_t data_size, GLuint *out_texture, V
     int image_height = 0;
     u8 *image_data;
 
-    SDL_IOStream *stream = SDL_IOFromConstMem(data, data_size);
+    SDL_IOStream *stream = SDL_IOFromMem(data, data_size);
     if (!stream) {
         Logger::error("Failed to create IOStream: %s", SDL_GetError());
         return false;
@@ -159,7 +160,7 @@ bool Image::UnloadTexture(GLuint texture)
     return false;
 }
 
-bool Image::IsGif(const std::string &ext) {
+bool Image::IsGif(std::string_view ext) {
     return ext == "gif";
 }
 

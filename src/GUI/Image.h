@@ -18,11 +18,11 @@ struct GifAnimation {
 
 namespace Image {
     GLuint LoadTex(const u8* data, int width, int height, u32 mode = GL_LINEAR);
-    bool LoadImage(const void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode = GL_LINEAR);
-    bool LoadGifAnimation(const void* data, size_t data_size, GifAnimation* out_animation);
+    bool LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode = GL_LINEAR);
+    bool LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_animation);
     bool UnloadTexture(GLuint texture);
     void UnloadAnimation(GifAnimation* animation);
-    bool IsGif(const std::string &ext);
+    bool IsGif(std::string_view ext);
     GLuint GetGifFrame(const GifAnimation& animation, int *frame_index);
     bool IsImageExtension(const std::string& ext);
 };
