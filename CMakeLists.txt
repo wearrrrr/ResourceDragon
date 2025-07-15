@@ -46,7 +46,7 @@ include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(/usr/include/freetype2/)
-include_directories(/usr/include/lua5.4/)
+include_directories(vendored/lua/src/)
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
