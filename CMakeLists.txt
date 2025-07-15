@@ -23,9 +23,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(ResourceDragon VERSION 0.1)
 
-
 find_package(PkgConfig REQUIRED)
-
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
