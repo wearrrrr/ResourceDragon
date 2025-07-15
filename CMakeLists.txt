@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.50)
+cmake_minimum_required(VERSION 3.10)
 
 if (UBUNTU)
 set(CMAKE_C_COMPILER clang-19)
@@ -22,6 +22,9 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(ResourceDragon VERSION 0.1)
+
+
+find_package(PkgConfig REQUIRED)
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
@@ -47,7 +50,6 @@ include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(vendored/lua/src/)
 
-find_package(PkgConfig REQUIRED)
 pkg_check_modules(freetype2 REQUIRED freetype2)
 include_directories(${freetype2_INCLUDE_DIRS})
 
