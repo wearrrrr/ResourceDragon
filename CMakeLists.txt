@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.50)
 
 if (UBUNTU)
 set(CMAKE_C_COMPILER clang-19)
@@ -45,8 +45,11 @@ set(IMGUI_SRC
 include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
-include_directories(/usr/include/freetype2/)
 include_directories(vendored/lua/src/)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(freetype2 REQUIRED freetype2)
+include_directories(${freetype2_INCLUDE_DIRS})
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
