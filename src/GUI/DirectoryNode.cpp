@@ -152,9 +152,13 @@ void DirectoryNode::UnloadSelectedFile() {
 
     if (preview_state.audio.music) {
         Mix_FreeMusic(preview_state.audio.music);
-        preview_state.audio.music = {};
+        preview_state.audio.music = nullptr;
     }
-    preview_state.audio.buffer = {};
+    if (preview_state.audio.buffer) {
+        Logger::log("freeing audio buffer");
+        free(preview_state.audio.buffer);
+        preview_state.audio.buffer = nullptr;
+    };
     preview_state.audio.playing = false;
     preview_state.audio.time = {};
     preview_state.audio.scrubberDragging = false;
@@ -333,8 +337,9 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
         preview_state.texture.last_frame_time = SDL_GetTicks();
     } else if (Audio::IsAudio(ext)) {
         if (isVirtualRoot) {
-            preview_state.audio.buffer = entry_buffer;
-            SDL_IOStream *snd_io = SDL_IOFromConstMem(preview_state.audio.buffer, size);
+            preview_state.audio.buffer = (u8*)malloc(size);
+            memcpy(preview_state.audio.buffer, entry_buffer, size);
+            SDL_IOStream *snd_io = SDL_IOFromMem(preview_state.audio.buffer, size);
             current_sound = Mix_LoadMUS_IO(snd_io, true);
             if (!current_sound) {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
@@ -377,6 +382,8 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
 }
 
 void DirectoryNode::HandleFileClick(Node *node) {
+    UnloadSelectedFile();
+
     std::string filename = node->FileName;
     std::string ext = filename.substr(filename.find_last_of(".") + 1);
     bool isVirtualRoot = rootNode->IsVirtualRoot;
@@ -392,6 +399,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
                 size = selected_entry->size;
                 entry_buffer = malloc<u8>(size);
                 memcpy(entry_buffer, arc_read, size);
+                free(arc_read);
             } else {
                 Logger::error("current_buffer is not initialized!");
                 return;
