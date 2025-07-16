@@ -459,7 +459,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
     rootNode = CreateTreeFromPath(node->FullPath);
 }
 
-bool CanReadDirectory(const std::string& path) {
+inline bool CanReadDirectory(const std::string& path) {
     return access(path.data(), R_OK | X_OK) == 0;
 }
 
