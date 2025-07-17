@@ -7,16 +7,16 @@
 #include <typeinfo>
 #include <cxxabi.h>
 
+#define PREFIX "[ResourceDragon] "
+#define RESET  "\x1B[0;1m"
+
 #define LOG(format, ...) va_list args; va_start(args, format); vprintf(format, args); va_end(args);
 
 class Logger {
     public:
 
-    static constexpr const char* PREFIX = "[ResourceDragon] ";
-    static constexpr const char* RESET  = "\x1B[0;1m";
-
     static void log(const char *format, ...) {
-        printf("\x1b[1;34m%s%s", PREFIX, RESET);
+        printf("\x1b[1;34m%s", PREFIX RESET);
         LOG(format);
         puts(RESET);
     }
@@ -34,8 +34,11 @@ class Logger {
 
     template <typename T>
     static void log_struct(const T& obj) {
-        printf("\x1b[1;34m%s%s", PREFIX, RESET);
-        printf("Dumping struct %s\n", get_type_name(obj).data());
+        printf(
+          "\x1b[1;34m" PREFIX RESET
+          "Dumping struct %s\n",
+          get_type_name(obj).data()
+        );
         #if defined(__clang__) && __has_builtin(__builtin_dump_struct)
         __builtin_dump_struct(&obj, printf);
         #else
@@ -46,13 +49,13 @@ class Logger {
 
 
     static void warn(const char *format, ...) {
-        printf("\x1b[1;33m%s%s", PREFIX, RESET);
+        printf("\x1b[1;33m%s", PREFIX RESET);
         LOG(format);
         puts(RESET);
     }
 
     static void error(const char *format, ...) {
-        printf("\x1b[1;31m%s%s", PREFIX, RESET);
+        printf("\x1b[1;31m%s", PREFIX RESET);
         LOG(format);
         puts(RESET);
     }
