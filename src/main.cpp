@@ -49,6 +49,8 @@ void RenderFBContextMenu(ImGuiIO *io) {
                 if (!selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
                         if (rootNode->IsVirtualRoot) {
+                            // TODO: this sucks, sorry!
+                            // Eventually this should copy /tmp/rd/<file_name> instead of blindly calling it image.png.
                             VirtualArc::ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/image.png");
                             Clipboard::CopyFilePathToClipboard("/tmp/rd/image.png");
                         } else {

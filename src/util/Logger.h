@@ -24,12 +24,12 @@ class Logger {
     template <typename T>
     static std::string get_type_name(const T& obj) {
         const char* mangled = typeid(obj).name();
-        int status;
-        std::unique_ptr<char, void(*)(void*)> demangled(
+        int status = 0;
+        std::unique_ptr<char[], decltype(&std::free)> demangled(
             abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
-            std::free
+            &std::free
         );
-        return (status == 0) ? demangled.get() : mangled;
+        return (status == 0 && demangled) ? demangled.get() : mangled;
     }
 
     template <typename T>
@@ -39,11 +39,11 @@ class Logger {
           "Dumping struct %s\n",
           get_type_name(obj).data()
         );
-        #if defined(__clang__) && __has_builtin(__builtin_dump_struct)
+#if defined(__clang__) && __has_builtin(__builtin_dump_struct)
         __builtin_dump_struct(&obj, printf);
-        #else
+#else
         printf("__builtin_dump_struct is not supported with this compiler!");
-        #endif
+#endif
         puts(RESET);
     }
 
