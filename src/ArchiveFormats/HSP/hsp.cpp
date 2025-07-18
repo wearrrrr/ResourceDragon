@@ -111,7 +111,7 @@ u32 HSPArchive::FindExeKey(ExeFile* exe, u32 dpmx_offset)
     }
 
     if (key_pos == -1) {
-        printf("Failed to find key! Returning default key...\n");
+        Logger::log("Failed to find key! Returning default key...\n");
         return DefaultKey;
     };
 
