@@ -24,12 +24,14 @@ ArchiveBase *SAPakFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         std::vector<u8> entry_data;
         entry_data.resize(entries.find(names[i])->second.size);
         Read(entry_data.data(), buffer, entries[names[i]].size);
-        entries[names[i]].data = std::move(entry_data);
+        entries[names[i]].data = entry_data;
     }
 
     return new SAPakArchive(entries);
 };
 
 u8* SAPakArchive::OpenStream(const Entry *entry, u8 *buffer) {
-    return (u8*)entry->data.data();
-};
+    u8 *copy = (u8*)malloc(entry->data.size());
+    memcpy(copy, entry->data.data(), entry->data.size());
+    return copy;
+}

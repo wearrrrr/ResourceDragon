@@ -59,11 +59,8 @@ class ArchiveFormat {
             return *based_pointer<T>(buffer, 0);
         }
 
-        std::string ReadString(u8 *buffer, u64 offset) {
-            std::string constructed = "";
-            constructed.append(based_pointer<char>(buffer, offset));
-
-            return constructed;
+        const char* ReadString(u8 *buffer, u64 offset) {
+            return based_pointer<char>(buffer, offset);
         }
 
         std::string ReadStringAndAdvance(u8 *buffer, u64 offset) {

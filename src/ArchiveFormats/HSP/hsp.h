@@ -10,7 +10,7 @@ class HSPArchive : public ArchiveFormat {
 
         u32 DefaultKey = 0xAC52AE58;
 
-        std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
+        std::vector<std::string_view> extensions = {"exe", "dpm", "bin", "dat"};
 
         HSPArchive() {
             sig = PackUInt('D', 'P', 'M', 'X');

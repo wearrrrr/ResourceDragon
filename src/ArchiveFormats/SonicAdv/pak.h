@@ -33,6 +33,7 @@ class SAPakArchive : public ArchiveBase {
             return entries;
         }
         u8* OpenStream(const Entry *entry, u8 *buffer) override;
-
-
+        ~SAPakArchive() {
+            this->entries.clear();
+        }
 };

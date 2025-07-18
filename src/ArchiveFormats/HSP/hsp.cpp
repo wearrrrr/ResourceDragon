@@ -2,8 +2,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-i32 FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pattern, int step = 1)
-{
+i32 FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pattern, int step = 1) {
     if (step <= 0) return -1;
     if (!section_base || pattern.empty() || section_size < pattern.size()) return -1;
 
@@ -21,24 +20,20 @@ i32 FindString(u8 *section_base, size_t section_size, const std::vector<u8> &pat
 }
 
 
-ArchiveBase* HSPArchive::TryOpen(u8 *buffer, u64 size, std::string file_name)
-{
-
-    ExeFile *exe = nullptr;
-
+ArchiveBase* HSPArchive::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     u32 dpmx_offset = 0;
     u32 arc_key = 0;
-    bool is_pe = ExeFile::SigCheck(buffer);
 
-    // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.
-    // This needs more testing to see if I can get away with adding 0x90 to the sig, since that seems to be something different between them.
-    int iter = 0;
-    if (!is_pe) {
+    if (!ExeFile::SigCheck(buffer)) {
         Logger::warn("Extracting from non-exe targets is currently not supported!");
         return nullptr;
     }
 
-    exe = ConvertToExeFile(buffer);
+    ExeFile *exe = ConvertToExeFile(buffer);
+
+    // Jank because DPMX is mentioned as a string earlier in the binary, but not referencing the data archive.
+    // This needs more testing to see if I can get away with adding 0x90 to the sig, since that seems to be something different between them.
+    int iter = 0;
     for (size_t i = 0; i < size - sizeof(sig) + 1; ++i) {
         if (std::memcmp(&exe->buffer[i], &sig, sizeof(sig)) == 0) {
             if (iter > 0) {
@@ -66,7 +61,7 @@ ArchiveBase* HSPArchive::TryOpen(u8 *buffer, u64 size, std::string file_name)
     entries.reserve(file_count);
 
     for (u32 i = 0; i < file_count; i++) {
-        std::string file_name = ReadString(exe->buffer, index_offset);
+        const char *file_name = ReadString(exe->buffer, index_offset);
         index_offset += 0x14;
 
         Entry entry = {
