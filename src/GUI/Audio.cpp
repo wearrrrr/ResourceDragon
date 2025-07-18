@@ -1,10 +1,9 @@
 #include <Audio.h>
 #include <Utils.h>
 #include <DirectoryNode.h>
-#include "SDL3_mixer/SDL_mixer.h"
-#include "state.h"
+#include <SDL3_mixer/SDL_mixer.h>
 
-#include <alsa/asoundlib.h>
+#include "state.h"
 
 void Audio::MusicFinishedCallback() {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
@@ -15,10 +14,11 @@ void Audio::MusicFinishedCallback() {
 }
 
 void Audio::InitAudioSystem() {
-    SDL_AudioSpec spec;
-    spec.channels = MIX_DEFAULT_CHANNELS;
-    spec.format = MIX_DEFAULT_FORMAT;
-    spec.freq = MIX_DEFAULT_FREQUENCY;
+    SDL_AudioSpec spec = {
+        .format = MIX_DEFAULT_FORMAT,
+        .channels = MIX_DEFAULT_CHANNELS,
+        .freq = MIX_DEFAULT_FREQUENCY,
+    };
 
     if (!Mix_OpenAudio(0, &spec)) {
         Logger::error("Failed to initialize SDL_mixer: %s", SDL_GetError());
@@ -41,11 +41,8 @@ const std::string audio_exts[] = {
     "m4a", "wma"
 };
 
-bool Audio::IsAudio(const std::string &ext)
-{
-    std::string ext_lower = Utils::ToLower(ext);
-
-    return std::find(std::begin(audio_exts), std::end(audio_exts), ext_lower) != std::end(audio_exts);
+bool Audio::IsAudio(const std::string &ext) {
+    return std::find(std::begin(audio_exts), std::end(audio_exts), Utils::ToLower(ext)) != std::end(audio_exts);
 };
 
 bool Audio::PlaySound(const fs::path &path) {
