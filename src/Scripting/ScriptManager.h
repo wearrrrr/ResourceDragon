@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lua.hpp"
-#include <cstdlib>
 #include <lua.h>
 #include <string>
 
