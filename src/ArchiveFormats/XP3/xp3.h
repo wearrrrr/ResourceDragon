@@ -43,13 +43,6 @@ class XP3Archive : public ArchiveBase {
         XP3Archive(EntryMap entries) {
             this->entries = entries;
         };
-
-        // std::vector<Entry*> GetEntries() override {
-        //     std::vector<Entry*> basePtrs;
-        //     for (auto& entry : entries)
-        //         basePtrs.push_back(&entry);
-        //     return basePtrs;
-        // }
         EntryMapPtr GetEntries() override {
             EntryMapPtr entries;
             for (auto& entry : this->entries)
@@ -57,4 +50,5 @@ class XP3Archive : public ArchiveBase {
             return entries;
         }
         u8* OpenStream(const Entry *entry, u8 *buffer) override;
+        ~XP3Archive() = default;
 };

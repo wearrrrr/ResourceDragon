@@ -366,8 +366,8 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 				char buf[7];
 				auto d = UTF8CharLength(line[columnIndex].mChar);
 				int i = 0;
-				while (i < 6 && d-- > 0)
-					buf[i++] = line[columnIndex++].mChar;
+				while (i < 6 && d-- > 0 && columnIndex < line.size())
+                    buf[i++] = line[columnIndex++].mChar;
 				buf[i] = '\0';
 				columnWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
 				if (mTextStart + columnX + columnWidth * 0.5f > local.x)
@@ -676,8 +676,9 @@ std::string TextEditor::GetWordAt(const Coordinates & aCoords) const
 	auto istart = GetCharacterIndex(start);
 	auto iend = GetCharacterIndex(end);
 
-	for (auto it = istart; it < iend; ++it)
-		r.push_back(mLines[aCoords.mLine][it].mChar);
+	const auto& line = mLines[aCoords.mLine];
+    for (auto it = istart; it < iend && it < line.size(); ++it)
+        r.push_back(line[it].mChar);
 
 	return r;
 }
@@ -1181,8 +1182,8 @@ void TextEditor::Render()
 				else
 				{
 					auto l = UTF8CharLength(glyph.mChar);
-					while (l-- > 0)
-						mLineBuffer.push_back(line[i++].mChar);
+					while (l-- > 0 && i < line.size())
+                        mLineBuffer.push_back(line[i++].mChar);
 				}
 			}
 
