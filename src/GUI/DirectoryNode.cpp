@@ -141,13 +141,18 @@ void VirtualArc::ExtractEntry(std::string path) {
 }
 
 void DirectoryNode::UnloadSelectedFile() {
-    if (preview_state.contents.size > 0) preview_state.contents.data = nullptr;
+    if (preview_state.contents.size > 0) {
+        free(preview_state.contents.data);
+        preview_state.contents.data = nullptr;
+    };
+
+    preview_state.contents.encoding = UTF8;
 
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
 
     preview_state.texture.id = {};
-    preview_state.content_type = PContentType::UNKNOWN;
+    preview_state.contents.type = ContentType::UNKNOWN;
     preview_state.contents = {};
 
     if (preview_state.audio.music) {
@@ -323,16 +328,16 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval;
 }
 
-void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot) {
+void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot) {
     if (Image::IsImageExtension(ext)) {
         Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
         if (*preview_state.texture.size.x < 256) {
             Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
         }
-        preview_state.content_type = IMAGE;
+        preview_state.contents.type = IMAGE;
     } else if (Image::IsGif(ext)) {
         Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
-        preview_state.content_type = GIF;
+        preview_state.contents.type = GIF;
         preview_state.texture.frame = 0;
         preview_state.texture.last_frame_time = SDL_GetTicks();
     } else if (Audio::IsAudio(ext)) {
@@ -350,7 +355,7 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
         }
 
         if (current_sound) {
-            preview_state.content_type = AUDIO;
+            preview_state.contents.type = AUDIO;
             Mix_PlayMusic(current_sound, 1);
             double duration = Mix_MusicDuration(current_sound);
             preview_state.audio.music = current_sound;
@@ -362,21 +367,15 @@ void InitializePreview(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, co
     } else if (ElfFile::IsValid(entry_buffer)) {
         auto *elfFile = new ElfFile(entry_buffer, size);
         preview_state.contents.elfFile = elfFile;
-        preview_state.content_type = ELF;
+        preview_state.contents.type = ELF;
     } else {
         auto text = std::string((char*)entry_buffer, size);
-        if (text.size() >= 2 && text[0] == '\xFF' && text[1] == '\xFE') {
-            std::u16string utf16((char16_t*)text.data() + 1, (text.size() - 1) / 2);
-            editor.SetText(TextConverter::UTF16ToUTF8(utf16));
-        } else {
-            editor.SetText(text);
-        }
+        editor.SetText(text);
         editor.SetTextChanged(false);
-        editor.SetColorizerEnable(size <= 200000);
+        editor.SetColorizerEnable(false);
         editor.SetShowWhitespaces(false);
+        preview_state.contents.type = UNKNOWN;
     }
-
-    free(entry_buffer);
 
     return;
 }
@@ -421,17 +420,15 @@ void DirectoryNode::HandleFileClick(Node *node) {
     auto format = extractor_manager.getExtractorFor(entry_buffer, size, ext);
 
     if (format == nullptr) {
-        UnloadSelectedFile();
-
         preview_state.contents = {
-            .data = current_buffer,
+            .data = entry_buffer,
             .size = size,
             .path = node->FullPath,
             .ext = ext,
             .fileName = node->FileName
         };
 
-        InitializePreview(node, entry_buffer, size, ext, isVirtualRoot);
+        InitializePreviewData(node, entry_buffer, size, ext, isVirtualRoot);
 
         return;
     }
@@ -495,7 +492,7 @@ void DirectoryNode::Display(Node *node) {
 
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        selectedItem = node;
+        fb__selectedItem = node;
         if (loaded_arc_base) {
             selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
         }

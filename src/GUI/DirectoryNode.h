@@ -37,7 +37,7 @@ namespace DirectoryNode {
 void SetFilePath(const std::string& file_path);
 
 inline DirectoryNode::Node *rootNode;
-inline DirectoryNode::Node *selectedItem;
+inline DirectoryNode::Node *fb__selectedItem;
 
 
 

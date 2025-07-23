@@ -2,10 +2,9 @@
 #include "Entry.h"
 #include "XP3/Crypt/Crypt.h"
 #include "../../util/Text.h"
-// #include <lz4.h>
 #include <cstring>
 
-static XP3Crypt *ALG_DEFAULT = new NoCrypt();
+static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
 
 ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     int64_t base_offset = 0;
@@ -220,8 +219,8 @@ std::vector<u8> DecryptScript(int enc_type, const std::vector<u8>& input, u32 un
         } else {
             c = c ^ (((c & 0xFE) << 8) ^ 1);
         }
-        output.push_back(static_cast<u8>(c & 0xFF));
-        output.push_back(static_cast<u8>(c >> 8));
+        output.push_back((u8)c & 0xFF);
+        output.push_back((u8)c >> 8);
 
         if (output.size() >= unpacked_size)
             break;

@@ -84,10 +84,6 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
 
 bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
 {
-    // if (ext != "" && std::find(extensions.begin(), extensions.end(), ext) == extensions.end()) {
-    //     return false;
-    // }
-
     if (ReadMagic<u16>(buffer) == PackUInt16('p', 'f')) {
         return true;
     }

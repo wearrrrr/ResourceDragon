@@ -11,7 +11,7 @@ namespace PreviewWindow {
     void RenderElfPreview();
     void RenderTextViewer(ImGuiIO &io);
 
-    inline void RenderPreviewFor(PContentType content_type) {
+    inline void RenderPreviewFor(ContentType content_type) {
         switch (content_type) {
             case IMAGE:
                 RenderImagePreview();

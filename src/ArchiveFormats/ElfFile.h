@@ -183,7 +183,6 @@ public:
 
   static bool IsValid(u8 *buffer)
   {
-      // Check if the first 4 bytes match the ELF magic number
       u32 magic = *based_pointer<u32>(buffer, 0);
       return magic == PackUInt(0x7F, 'E', 'L', 'F');
   }

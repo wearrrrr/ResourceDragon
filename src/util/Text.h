@@ -2,11 +2,18 @@
 
 #include <string>
 #include <algorithm>
-#ifdef linux
+#include <vector>
+#include "Logger.h"
+
 #include "iconv.h"
-#endif
+#include <unicode/ucnv.h>
+#include <unicode/ucnv_cb.h>
+#include <unicode/utypes.h>
+#include <unicode/localpointer.h>
 
 #include <util/int.h>
+
+static std::string currentEncoding = "UTF-8";
 
 class TextConverter {
     public:
@@ -73,6 +80,34 @@ class TextConverter {
         static std::string UTF16LEToUTF8(const std::string& utf16le_str) {
             std::u16string utf16_str((char16_t*)utf16le_str.data(), utf16le_str.size() / sizeof(char16_t));
             return UTF16ToUTF8(utf16_str);
+        }
+
+        static void SetCurrentEncoding(std::string encoding) {
+            currentEncoding = encoding;
+        }
+
+        static std::string convert_to_utf8(const std::string& input) {
+            UErrorCode status = U_ZERO_ERROR;
+
+            u32 output_capacity = input.size() * 4;
+            std::vector<char> output(output_capacity);
+
+            u32 converted_length = ucnv_convert(
+                "UTF-8",
+                currentEncoding.c_str(),
+                output.data(),
+                output_capacity,
+                input.data(),
+                input.size(),
+                &status
+            );
+
+            if (U_FAILURE(status)) {
+                Logger::error("Conversion failed: %s", u_errorName(status));
+                return {};
+            }
+
+            return std::string(output.data(), converted_length);
         }
 };
 

@@ -267,15 +267,31 @@ void PreviewWindow::RenderElfPreview() {
     }
 }
 
+#define SIZEOF_ARRAY(arr) sizeof(arr)/sizeof(arr[0])
+
+const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
+
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
-    // TODO: handle different encodings
-    // maybe add a dropdown for the user to select the encoding?
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Content Encoding");
+    ImGui::SameLine();
+    int *encoding = (int*)&preview_state.contents.encoding;
+    ImGui::Combo("##EncodingCombo", encoding, encodings, SIZEOF_ARRAY(encodings));
+
+    if (currentEncoding != encodings[preview_state.contents.encoding]) {
+        TextConverter::SetCurrentEncoding(encodings[preview_state.contents.encoding]);
+        auto text = std::string((char*)preview_state.contents.data, preview_state.contents.size);
+        editor.SetText(TextConverter::convert_to_utf8(text));
+    }
+
     if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S) && text_editor__unsaved_changes) {
         std::string text = editor.GetText();
+        // This addresses some weird behavior where every save would add a \n, even if there was already one at the file
+        // this might be a linux-ism?
         if (!text.empty() && text.back() == '\n') {
             text.pop_back();
         }
-        std::ofstream file(preview_state.contents.path, std::ios::binary);
+        std::ofstream file(preview_state.contents.path, std::ios::trunc);
         file << text;
         file.close();
         ReloadRootNode(rootNode);

@@ -27,6 +27,7 @@ find_package(PkgConfig REQUIRED)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
+find_package(ICU REQUIRED COMPONENTS i18n uc data)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
@@ -73,7 +74,7 @@ if (WIN32)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype ZLIB::ZLIB SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer lua_static zip ${OPENGL})
+target_link_libraries(ResourceDragon PRIVATE freetype ICU::i18n ICU::uc ICU::data lua_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip ZLIB::ZLIB)
 
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"

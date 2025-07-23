@@ -64,12 +64,6 @@ class DPMArchive : public ArchiveBase {
             }
             return buffer;
         };
-        // std::vector<Entry*> GetEntries() override {
-        //     std::vector<Entry*> basePtrs;
-        //     for (auto& entry : entries)
-        //         basePtrs.push_back(&entry);
-        //     return basePtrs;
-        // }
         EntryMapPtr GetEntries() override {
             EntryMapPtr entriesMap;
             for (auto &entry : entries) {

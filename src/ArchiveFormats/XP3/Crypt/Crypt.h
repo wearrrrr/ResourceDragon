@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/Logger.h"
 #include <iomanip>
 #include <sstream>
 
@@ -83,12 +84,6 @@ class AkabeiCrypt : public XP3Crypt {
             m_seed = 0xE5BDEC8A;
         }
         AkabeiCrypt(u32 seed) : m_seed(seed) {}
-
-        std::string ToString() const {
-            std::ostringstream oss;
-            oss << "(0x" << std::uppercase << std::hex << std::setw(8) << std::setfill('0') << m_seed << ")";
-            return oss.str();
-        }
 
         std::vector<u8> Decrypt(const Entry *entry, u64 offset, std::vector<u8> buffer, int pos, int count) override {
             std::vector<u8> out = buffer;

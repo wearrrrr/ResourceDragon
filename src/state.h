@@ -45,9 +45,25 @@ struct PWinStateAudio {
   bool scrubberDragging;
 };
 
+enum ContentType {
+    IMAGE,
+    GIF,
+    AUDIO,
+    ELF,
+    UNKNOWN
+};
+
+enum ContentEncoding {
+    UTF8,
+    UTF16,
+    SHIFT_JIS
+};
+
 struct PWinStateContents {
     u8 *data;
     size_t size;
+    ContentType type;
+    ContentEncoding encoding;
     std::string path;
     std::string ext;
     std::string fileName;
@@ -58,16 +74,9 @@ struct PWinStateContents {
     ElfFile *elfFile;
 };
 
-enum PContentType {
-    IMAGE,
-    GIF,
-    AUDIO,
-    ELF,
-    UNKNOWN
-};
+
 
 struct PreviewWinState {
-  PContentType content_type;
   PWinStateContents contents;
   PWinStateAudio audio;
   PWinStateTexture texture;

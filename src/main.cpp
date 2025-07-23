@@ -40,21 +40,19 @@ void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
-                ImGui::SetClipboardText(selectedItem->FileName.c_str());
+                ImGui::SetClipboardText(fb__selectedItem->FileName.c_str());
             }
             if (ImGui::MenuItem("Location")) {
-                ImGui::SetClipboardText(selectedItem->FullPath.c_str());
+                ImGui::SetClipboardText(fb__selectedItem->FullPath.c_str());
             }
-            if (selectedItem) {
-                if (!selectedItem->IsDirectory) {
+            if (fb__selectedItem) {
+                if (!fb__selectedItem->IsDirectory) {
                     if (ImGui::MenuItem("File")) {
                         if (rootNode->IsVirtualRoot) {
-                            // TODO: this sucks, sorry!
-                            // Eventually this should copy /tmp/rd/<file_name> instead of blindly calling it image.png.
-                            VirtualArc::ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/image.png");
-                            Clipboard::CopyFilePathToClipboard("/tmp/rd/image.png");
+                            VirtualArc::ExtractEntry("/tmp/rd/", selected_entry, "/tmp/rd/" + selected_entry->name);
+                            Clipboard::CopyFilePathToClipboard("/tmp/rd/" + selected_entry->name);
                         } else {
-                            Clipboard::CopyFilePathToClipboard(selectedItem->FullPath);
+                            Clipboard::CopyFilePathToClipboard(fb__selectedItem->FullPath);
                         }
                     }
                 }
@@ -73,12 +71,12 @@ void RenderFBContextMenu(ImGuiIO *io) {
     ImGui::SetNextWindowSize({600, 175});
     ImGui::SetNextWindowPos({io->DisplaySize.x * 0.5f, io->DisplaySize.y * 0.5f}, ImGuiCond_None, {0.5f, 0.5f});
     if (ImGui::BeginPopupModal("Delete Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        if (selectedItem) {
-            ImGui::TextWrapped("Are you sure you'd like to delete %s?", selectedItem->FileName.size() > 0 ? selectedItem->FileName.c_str() : "<ITEM>");
+        if (fb__selectedItem) {
+            ImGui::TextWrapped("Are you sure you'd like to delete %s?", fb__selectedItem->FileName.size() > 0 ? fb__selectedItem->FileName.c_str() : "<ITEM>");
             ImGui::Text("This cannot be undone!");
             if (ImGui::Button("Confirm", {100, 0})) {
-                fs::remove_all(selectedItem->FullPath);
-                if (selectedItem->FullPath == preview_state.contents.path) {
+                fs::remove_all(fb__selectedItem->FullPath);
+                if (fb__selectedItem->FullPath == preview_state.contents.path) {
                     DirectoryNode::UnloadSelectedFile();
                 }
                 ReloadRootNode(rootNode);
@@ -97,7 +95,7 @@ void PreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
             if (preview_state.contents.size > 0) {
-                if (preview_state.content_type == PContentType::IMAGE) {
+                if (preview_state.contents.type == ContentType::IMAGE) {
                     Clipboard::CopyBufferToClipboard(preview_state.contents.data, preview_state.contents.size, preview_state.contents.fileName);
                 } else {
                     Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
@@ -263,6 +261,7 @@ int main(int argc, char *argv[]) {
     range.AddChar(0x203B);
     range.AddChar(0x25A0);
     range.AddChar(0x25CB);
+
     range.BuildRanges(&gr);
 
     ImFontConfig iconConfig;
@@ -271,7 +270,7 @@ int main(int argc, char *argv[]) {
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
 
-    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
+    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.otf";
     auto icon_font_path = fs::path("fonts") / "icons.woff2";
 
     auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
@@ -394,7 +393,7 @@ int main(int argc, char *argv[]) {
         if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
             PreviewContextMenu();
             if (preview_state.contents.size > 0) {
-                PreviewWindow::RenderPreviewFor(preview_state.content_type);
+                PreviewWindow::RenderPreviewFor(preview_state.contents.type);
 
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
