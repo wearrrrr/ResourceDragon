@@ -65,6 +65,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
         }
         if (ImGui::MenuItem("Reload")) ReloadRootNode(rootNode);
         if (ImGui::MenuItem("Delete")) openDelPopup = true;
+
         ImGui::EndPopup();
     }
 
@@ -376,8 +377,7 @@ int main(int argc, char *argv[]) {
         if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) resizing = true;
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) resizing = false;
 
-        if (resizing)
-        {
+        if (resizing) {
             left_pan_width += io.MouseDelta.x;
         }
 
@@ -412,8 +412,7 @@ int main(int argc, char *argv[]) {
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         ImGui::SetNextWindowBgAlpha(0.55f);
 
-        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS))
-        {
+        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) {
             ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
         }
         ImGui::End();
