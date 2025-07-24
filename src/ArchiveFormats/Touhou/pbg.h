@@ -1,36 +1,13 @@
 #include <ArchiveFormat.h>
+#include "../../vendored/thlib/include/thlib.h"
 
-struct BitReader {
-    const u8 *buffer;
-    size_t size;
-    size_t position;
-    u8 current_byte;
-    u8 bitmask;
-};
-
-#define ENTRY_NAME_LENGTH 256
-
-struct DatEntry {
-    unsigned unk[2];
-    unsigned checksum;
-    unsigned size;
-    unsigned data_offset;
-    char name[ENTRY_NAME_LENGTH];
-};
-
-struct DatFile {
-    BitReader reader;
-
-    DatEntry *entries;
-    unsigned entries_count;
-
-    unsigned file_table_offset;
-
-    u8 initialized;
-};
-
-int findPbg3Entry(DatFile *dat, const char *entry);
-void *decompressEntry(DatFile *dat, unsigned idx);
+static int findPbg3Entry(ThArchive *dat, const char *entry) {
+    for (unsigned idx = 0; idx < dat->entries_count; ++idx) {
+        if (strcmp(entry, dat->entries[idx].name) == 0)
+            return idx;
+    }
+    return -1;
+}
 
 class THDAT : public ArchiveFormat {
     std::string_view tag = "Touhou.DAT";
@@ -58,12 +35,10 @@ class THDAT : public ArchiveFormat {
 
 class THDATArchive : public ArchiveBase {
     public:
-    DatFile dat;
-    std::unordered_map<std::string, DatEntry> entries;
-    // Kinda forced my hand to use this because apparently at some point things get corrupted and things stop decoding properly aaaaaaghh
-    std::unordered_map<std::string, std::vector<u8>> decompressed_cache;
+    ThArchive dat;
+    std::unordered_map<std::string, ThEntry> entries;
 
-    THDATArchive(const DatFile &dat, std::unordered_map<std::string, DatEntry> entries) {
+    THDATArchive(const ThArchive &dat, std::unordered_map<std::string, ThEntry> entries) {
         this->dat = dat;
         this->entries = entries;
     }
@@ -75,20 +50,13 @@ class THDATArchive : public ArchiveBase {
             int index = findPbg3Entry(&dat, name.c_str());
             if (index == -1) continue;
 
-            void* raw = decompressEntry(&dat, index);
+            void* raw = thGetEntry(&dat, index);
             if (!raw) continue;
-
-            std::vector<u8> data(
-                reinterpret_cast<u8*>(raw),
-                reinterpret_cast<u8*>(raw) + datEntry.size
-            );
-            free(raw);
-
-            decompressed_cache.emplace(name, std::move(data));
 
             Entry* rdEntry = new Entry{
                 .name = name,
-                .size = datEntry.size
+                .size = datEntry.uncompressed_size,
+                .packedSize = datEntry.compressed_size
             };
             entry_map.emplace(name, rdEntry);
         }
@@ -97,8 +65,10 @@ class THDATArchive : public ArchiveBase {
     }
 
     u8* OpenStream(const Entry* entry, u8* buffer) override {
-        auto it = decompressed_cache.find(entry->name);
-        if (it == decompressed_cache.end()) return nullptr;
-        return it->second.data();
+        auto idx = findPbg3Entry(&dat, entry->name.c_str());
+
+        auto data = thGetEntry(&dat, idx);
+
+        return (u8*)data;
     }
 };

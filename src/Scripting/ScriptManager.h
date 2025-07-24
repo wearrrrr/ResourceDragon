@@ -28,11 +28,20 @@ public:
     }
 
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
+        const u64 MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100 MB, adjust as needed
+        if (!buffer || size > MAX_REASONABLE_SIZE) {
+            Logger::error("Invalid buffer passed to CanHandleFile");
+            return false;
+        }
         lua_rawgeti(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
+
+        lua_gc(m_state, LUA_GCSTOP, 0);
 
         lua_pushlstring(m_state, (const char*)buffer, size);
         lua_pushinteger(m_state, size);
         lua_pushstring(m_state, ext.c_str());
+
+        lua_gc(m_state, LUA_GCRESTART, 0);
 
         if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
             const char *err = lua_tostring(m_state, -1);

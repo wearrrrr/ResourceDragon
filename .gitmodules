@@ -4,3 +4,6 @@
 [submodule "vendored/libzip"]
 	path = vendored/libzip
 	url = https://github.com/nih-at/libzip.git
+[submodule "vendored/thlib"]
+	path = vendored/thlib
+	url = https://github.com/PieVieRo/thlib.git

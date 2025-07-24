@@ -142,7 +142,6 @@ void VirtualArc::ExtractEntry(std::string path) {
 
 void DirectoryNode::UnloadSelectedFile() {
     if (preview_state.contents.size > 0) {
-        free(preview_state.contents.data);
         preview_state.contents.data = nullptr;
     };
 

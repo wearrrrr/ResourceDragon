@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
 if (UBUNTU)
-set(CMAKE_C_COMPILER clang-19)
-set(CMAKE_CXX_COMPILER clang++-19)
+    set(CMAKE_C_COMPILER clang-19)
+    set(CMAKE_CXX_COMPILER clang++-19)
 else()
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+    set(CMAKE_C_COMPILER clang)
+    set(CMAKE_CXX_COMPILER clang++)
 endif()
 
 
@@ -15,8 +15,8 @@ if (DEBUG)
     set(CMAKE_CXX_FLAGS "-g")
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
-    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers -flto")
+    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -flto")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -33,6 +33,7 @@ add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/lua EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/thlib EXCLUDE_FROM_ALL)
 
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
@@ -74,7 +75,7 @@ if (WIN32)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype ICU::i18n ICU::uc ICU::data lua_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer zip ZLIB::ZLIB)
+target_link_libraries(ResourceDragon PRIVATE freetype ICU::i18n ICU::uc ICU::data lua_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
 
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"

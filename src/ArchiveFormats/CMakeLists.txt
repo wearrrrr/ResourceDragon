@@ -7,7 +7,7 @@ add_library(ArchiveFormats
     NitroPlus/mpk.cpp
     PFS/pfs.cpp
     SonicAdv/pak.cpp
-    Touhou/thdat.cpp
+    Touhou/pbg.cpp
     XP3/xp3.cpp
     Zip/zip.cpp
 )
@@ -15,6 +15,8 @@ add_library(ArchiveFormats
 target_include_directories(ArchiveFormats PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+include_directories(../../vendored/thlib/src/)
 
 target_link_libraries(ArchiveFormats PRIVATE util)
 
