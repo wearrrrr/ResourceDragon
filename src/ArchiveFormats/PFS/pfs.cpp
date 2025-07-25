@@ -1,11 +1,7 @@
 #include "pfs.h"
-#include "../../sha1.h"
+#include "hash.h"
 
-#include <unordered_map>
-
-
-ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
-{
+ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
 
     // - '0' converts to ascii representation
@@ -72,18 +68,14 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
     if (version != 8 && version != 9 && version != 4 && version != 5)
         return new PFSArchive(entries);
 
-    Chocobo1::SHA1 sha;
-
-    sha.addData(index_buf, index_size);
-    auto key = sha.finalize();
+    auto key = Hash::sha1(index_buf, index_size);
 
     free(index_buf);
 
-    return new PFSArchive(this, entries, key.toVector());
+    return new PFSArchive(this, entries, key);
 }
 
-bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const
-{
+bool PFSFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const {
     if (ReadMagic<u16>(buffer) == PackUInt16('p', 'f')) {
         return true;
     }

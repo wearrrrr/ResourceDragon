@@ -2,15 +2,9 @@
 
 #include <string>
 #include <algorithm>
-#include <vector>
-#include "Logger.h"
 
 #include "iconv.h"
-#include <unicode/ucnv.h>
-#include <unicode/ucnv_cb.h>
-#include <unicode/utypes.h>
-#include <unicode/localpointer.h>
-
+#include "util/Logger.h"
 #include <util/int.h>
 
 static std::string currentEncoding = "UTF-8";
@@ -82,32 +76,49 @@ class TextConverter {
             return UTF16ToUTF8(utf16_str);
         }
 
+        static std::string ShiftJISToUTF8(const std::string& sjis_str) {
+            #ifdef linux
+            iconv_t cd = iconv_open("UTF-8", "SHIFT-JIS");
+            if (cd == (iconv_t)-1) {
+                return "";
+            }
+
+            size_t in_bytes_left = sjis_str.size();
+            size_t out_bytes_left = in_bytes_left * 3;
+            char* in_buf = (char*)sjis_str.data();
+            char* out_buf = new char[out_bytes_left];
+            char* out_ptr = out_buf;
+
+            if (iconv(cd, &in_buf, &in_bytes_left, &out_ptr, &out_bytes_left) == (size_t)-1) {
+                delete[] out_buf;
+                iconv_close(cd);
+                return "";
+            }
+
+            std::string result(out_buf, out_ptr - out_buf);
+            Logger::log(result);
+            delete[] out_buf;
+            iconv_close(cd);
+            return result;
+            #else
+            return "";
+            #endif
+        }
+
         static void SetCurrentEncoding(std::string encoding) {
             currentEncoding = encoding;
         }
 
         static std::string convert_to_utf8(const std::string& input) {
-            UErrorCode status = U_ZERO_ERROR;
-
-            u32 output_capacity = input.size() * 4;
-            std::vector<char> output(output_capacity);
-
-            u32 converted_length = ucnv_convert(
-                "UTF-8",
-                currentEncoding.c_str(),
-                output.data(),
-                output_capacity,
-                input.data(),
-                input.size(),
-                &status
-            );
-
-            if (U_FAILURE(status)) {
-                Logger::error("Conversion failed: %s", u_errorName(status));
-                return {};
+            if (currentEncoding == "UTF-8") {
+                return input;
+            } else if (currentEncoding == "UTF-16LE") {
+                return UTF16LEToUTF8(input);
+            } else if (currentEncoding == "Shift-JIS") {
+                return ShiftJISToUTF8(input);
+            } else {
+                return input;
             }
-
-            return std::string(output.data(), converted_length);
         }
 };
 

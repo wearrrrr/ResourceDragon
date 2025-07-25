@@ -19,7 +19,7 @@ public:
     m_formats.erase(tag);
   }
 
-  FormatMap& GetFormats() {
+  const FormatMap& GetFormats() {
       return m_formats;
   }
 

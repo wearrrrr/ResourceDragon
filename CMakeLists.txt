@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(LTO OFF)
+
 if (UBUNTU)
     set(CMAKE_C_COMPILER clang-19)
     set(CMAKE_CXX_COMPILER clang++-19)
@@ -15,8 +17,12 @@ if (DEBUG)
     set(CMAKE_CXX_FLAGS "-g")
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers -flto")
-    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -flto")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
+    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+    if (LTO)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+    endif()
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -27,7 +33,7 @@ find_package(PkgConfig REQUIRED)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
-find_package(ICU REQUIRED COMPONENTS i18n uc data)
+find_package(OpenSSL REQUIRED)
 
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
@@ -63,6 +69,7 @@ add_subdirectory(src/Scripting)
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
+    src/hash.cpp
 )
 
 target_include_directories(ResourceDragon PRIVATE
@@ -75,7 +82,7 @@ if (WIN32)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype ICU::i18n ICU::uc ICU::data lua_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
+target_link_libraries(ResourceDragon PRIVATE freetype lua_static ${OPENGL} OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
 
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
@@ -114,9 +121,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/scripts/
 set(CPACK_PACKAGE_NAME "ResourceDragon")
 set(CPACK_PACKAGE_VERSION "0.1")
 set(CPACK_GENERATOR "ZIP")
-set(CPACK_PACKAGE_CONTACT "you@example.com")
+set(CPACK_PACKAGE_CONTACT "contact@wearr.dev")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ResourceDragon asset viewer")
-# set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-# set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 
 include(CPack)
