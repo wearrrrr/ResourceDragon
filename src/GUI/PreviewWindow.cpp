@@ -10,7 +10,7 @@
 
 void PreviewWindow::RenderImagePreview() {
     PWinStateTexture *texture = &preview_state.texture;
-    ImGui::Text("Zoom: %.2fx", img_preview__zoom);
+    ImGui::Text("Zoom: %.2fx", image_preview.zoom);
     ImVec2 region_size = ImGui::GetContentRegionAvail();
 
     ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
@@ -20,25 +20,25 @@ void PreviewWindow::RenderImagePreview() {
     // zooming
     if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
         const float wheel = ImGui::GetIO().MouseWheel;
-        const float prev_zoom = img_preview__zoom;
-        img_preview__zoom = std::clamp(img_preview__zoom + wheel * 0.1f, 0.1f, 5.0f);
+        const float prev_zoom = image_preview.zoom;
+        image_preview.zoom = std::clamp(image_preview.zoom + wheel * 0.1f, 0.1f, 5.0f);
 
         const ImVec2 mouse = ImGui::GetIO().MousePos;
         const ImVec2 cursor_screen = ImGui::GetCursorScreenPos();
-        const ImVec2 rel = mouse - cursor_screen - img_preview__pan;
-        img_preview__pan -= rel * (img_preview__zoom / prev_zoom - 1.0f);
+        const ImVec2 rel = mouse - cursor_screen - image_preview.pan;
+        image_preview.pan -= rel * (image_preview.zoom / prev_zoom - 1.0f);
     }
 
     // dragging
     if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
         ImVec2 delta = ImGui::GetIO().MouseDelta;
-        img_preview__pan += delta;
+        image_preview.pan += delta;
     }
 
     if (texture->id) {
-        ImVec2 image_size = ImVec2(*texture->size.x * img_preview__zoom, *texture->size.y * img_preview__zoom);
+        ImVec2 image_size = ImVec2(*texture->size.x * image_preview.zoom, *texture->size.y * image_preview.zoom);
         ImVec2 cursor = ImGui::GetCursorScreenPos();
-        ImVec2 draw_pos = Floor(cursor + img_preview__pan);
+        ImVec2 draw_pos = Floor(cursor + image_preview.pan);
         ImVec2 draw_end = draw_pos + Floor(image_size);
         ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
     } else {

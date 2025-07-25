@@ -2,6 +2,7 @@
 
 // #define DEBUG
 
+#include "imgui.h"
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <gl3.h>
@@ -74,7 +75,10 @@ struct PWinStateContents {
     ElfFile *elfFile;
 };
 
-
+struct PImageView {
+    float zoom;
+    ImVec2 pan;
+};
 
 struct PreviewWinState {
   PWinStateContents contents;
@@ -95,8 +99,10 @@ inline Entry *selected_entry = nullptr;
 
 inline TextEditor editor;
 
-inline float img_preview__zoom = 1.0f;
-inline ImVec2 img_preview__pan = {0.0f, 0.0f};
+inline PImageView image_preview = {
+    .zoom = 1.0f,
+    .pan = {0.0f, 0.0f}
+};
 
 inline bool text_editor__unsaved_changes = false;
 
