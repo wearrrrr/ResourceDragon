@@ -16,13 +16,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
 
-#include <ArchiveFormats/HSP/hsp.h>
-#include <ArchiveFormats/PFS/pfs.h>
-#include <ArchiveFormats/NitroPlus/nitroplus.h>
-#include <ArchiveFormats/SonicAdv/sonicadv.h>
-#include <ArchiveFormats/Touhou/pbg.h>
-#include <ArchiveFormats/XP3/xp3.h>
-#include <ArchiveFormats/Zip/zip.h>
+#include <ArchiveFormats/Formats.h>
 
 #ifdef DEBUG
 #include <cmath>
@@ -405,7 +399,7 @@ int main(int argc, char *argv[]) {
         ImGui::End();
 
         #ifdef DEBUG
-        const constexpr float DISTANCE = 8.0f;
+        #define DISTANCE = 8.0f;
         const ImVec2 window_pos = {DISTANCE, window_size.y - DISTANCE};
         const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
 
