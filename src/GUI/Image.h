@@ -4,8 +4,8 @@
 #include <vector>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include "gl3.h"
-#include "../vec2.h"
+#include <gl3.h>
+#include <vec2.h>
 #include <util/int.h>
 
 struct GifAnimation {

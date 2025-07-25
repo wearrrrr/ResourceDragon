@@ -3,8 +3,8 @@
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
 #include <fstream>
-#include "../util/Text.h"
-#include "imgui.h"
+#include <util/Text.h>
+#include <imgui.h>
 #include "state.h"
 #include "../icons.h"
 

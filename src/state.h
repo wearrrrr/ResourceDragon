@@ -4,7 +4,7 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
-#include "gl3.h"
+#include <gl3.h>
 #include <string>
 
 #ifdef linux
