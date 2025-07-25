@@ -112,7 +112,7 @@ class TextConverter {
         static std::string convert_to_utf8(const std::string& input) {
             if (currentEncoding == "UTF-8") {
                 return input;
-            } else if (currentEncoding == "UTF-16LE") {
+            } else if (currentEncoding == "UTF-16") {
                 return UTF16LEToUTF8(input);
             } else if (currentEncoding == "Shift-JIS") {
                 return ShiftJISToUTF8(input);

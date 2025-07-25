@@ -4,7 +4,7 @@
 #include "../../util/Text.h"
 #include <cstring>
 
-static XP3Crypt *ALG_DEFAULT = new AkabeiCrypt();
+static XP3Crypt *ALG_DEFAULT = new NoCrypt();
 
 ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     int64_t base_offset = 0;
@@ -257,37 +257,34 @@ std::vector<u8> EntryReadFilter(const Entry *entry, const std::vector<u8>& buffe
     return buffer;
 }
 
-static std::vector<u8> stream;
-static std::vector<u8> decrypted;
-static std::vector<u8> decompressed;
-
-u8* XP3Archive::OpenStream(const Entry *entry, u8 *buffer)
-{
-    stream.clear();
+u8* XP3Archive::OpenStream(const Entry *entry, u8 *buffer) {
     Segment segment = entry->segments.at(0);
-    stream.resize(entry->size);
+    std::vector<u8> stream(entry->size);
+
     if (entry->segments.size() == 1 && !entry->isEncrypted) {
         if (segment.IsCompressed) {
             uLongf decompressed_size = entry->size;
             uLongf compressed_size = entry->packedSize;
             if (uncompress(stream.data(), &decompressed_size, buffer + entry->offset, compressed_size) != Z_OK) {
                 Logger::error("XP3: Failed to decompress entry!");
+                return {};
             }
         } else {
             memcpy(stream.data(), buffer + entry->offset, entry->size);
         }
 
-        stream = EntryReadFilter(entry, stream);
+        auto filter = EntryReadFilter(entry, stream);
+        u8 *buf = (u8*)malloc(entry->size);
+        memcpy(buf, filter.data(), entry->size);
 
-        return stream.data();
-    }
-    else {
-        // Encrypted entries
+        return buf;
+    } else {
         memcpy(stream.data(), buffer + entry->offset, entry->size);
-        decrypted = EntryReadFilter(entry, entry->crypt->Decrypt(entry, 0, stream, 0, entry->size));
+        std::vector<u8> decrypted = entry->crypt->Decrypt(entry, 0, stream, 0, entry->size);
+        auto filter = EntryReadFilter(entry, decrypted);
+        u8 *buf = (u8*)malloc(entry->size);
+        memcpy(buf, filter.data(), entry->size);
 
-        return decrypted.data();
+        return buf;
     }
-
-    return nullptr;
 }

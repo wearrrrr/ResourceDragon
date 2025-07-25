@@ -5,6 +5,7 @@
 #include <memory>
 
 typedef std::map<std::string_view, std::unique_ptr<ArchiveFormat>> FormatMap;
+typedef std::vector<ArchiveFormat*> FormatList;
 
 class ExtractorManager {
 private:
@@ -23,18 +24,13 @@ public:
       return m_formats;
   }
 
-  ArchiveFormat *getExtractorFor(u8 *buffer, u64 size, const std::string &ext) {
-    for (const auto &format : m_formats) {
-      /* TODO:
-        this is bad! we should not be returning the first one that happens to
-        meet the criteria we should instead return a vector or something and
-        try to extract each one or, we can make absolutely certain that
-        ArchiveFormat::CanHandleFile ONLY returns the one we need
-      */
-      if (format.second->CanHandleFile(buffer, size, ext)) {
-        return format.second.get();
+  FormatList GetExtractorCandidates(u8 *buffer, u64 size, const std::string &ext) {
+    auto format_list = FormatList();
+    for (const auto &[name, format] : m_formats) {
+      if (format->CanHandleFile(buffer, size, ext)) {
+          format_list.push_back(format.get());
       }
     }
-    return nullptr;
+    return format_list;
   }
 };

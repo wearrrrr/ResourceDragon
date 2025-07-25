@@ -394,6 +394,10 @@ void DirectoryNode::HandleFileClick(Node *node) {
         if (selected_entry) {
             if (current_buffer) {
                 auto arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
+                if (arc_read == nullptr) {
+                    Logger::error("Received nullptr from OpenStream! Cannot show entry.");
+                    return;
+                }
                 size = selected_entry->size;
                 entry_buffer = malloc<u8>(size);
                 memcpy(entry_buffer, arc_read, size);
@@ -416,9 +420,9 @@ void DirectoryNode::HandleFileClick(Node *node) {
         return;
     }
 
-    auto format = extractor_manager.getExtractorFor(entry_buffer, size, ext);
+    auto format_list = extractor_manager.GetExtractorCandidates(entry_buffer, size, ext);
 
-    if (format == nullptr) {
+    if (format_list.size() <= 0) {
         preview_state.contents = {
             .data = entry_buffer,
             .size = size,
@@ -431,6 +435,8 @@ void DirectoryNode::HandleFileClick(Node *node) {
 
         return;
     }
+    // TODO: Show a UI to ask the user what format they meant to select if there's somehow a collision
+    auto format = format_list[0];
 
     auto arc = format->TryOpen(entry_buffer, size, node->FileName);
     if (arc == nullptr) {
