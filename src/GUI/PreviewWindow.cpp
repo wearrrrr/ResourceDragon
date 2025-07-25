@@ -8,62 +8,10 @@
 #include "state.h"
 #include "icons.h"
 
-void PreviewWindow::RenderImagePreview() {
-    PWinStateTexture *texture = &preview_state.texture;
-    ImGui::Text("Zoom: %.2fx", image_preview.zoom);
-    ImVec2 region_size = ImGui::GetContentRegionAvail();
-
-    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
-
-    if (ImGui::IsWindowHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-
-    // zooming
-    if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
-        const float wheel = ImGui::GetIO().MouseWheel;
-        const float prev_zoom = image_preview.zoom;
-        image_preview.zoom = std::clamp(image_preview.zoom + wheel * 0.1f, 0.1f, 5.0f);
-
-        const ImVec2 mouse = ImGui::GetIO().MousePos;
-        const ImVec2 cursor_screen = ImGui::GetCursorScreenPos();
-        const ImVec2 rel = mouse - cursor_screen - image_preview.pan;
-        image_preview.pan -= rel * (image_preview.zoom / prev_zoom - 1.0f);
-    }
-
-    // dragging
-    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        ImVec2 delta = ImGui::GetIO().MouseDelta;
-        image_preview.pan += delta;
-    }
-
-    if (texture->id) {
-        ImVec2 image_size = ImVec2(*texture->size.x * image_preview.zoom, *texture->size.y * image_preview.zoom);
-        ImVec2 cursor = ImGui::GetCursorScreenPos();
-        ImVec2 draw_pos = Floor(cursor + image_preview.pan);
-        ImVec2 draw_end = draw_pos + Floor(image_size);
-        ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
-    } else {
-        ImGui::Text("Failed to load image!");
-    }
-    ImGui::EndChild();
-}
-
-void PreviewWindow::RenderGifPreview() {
-    PWinStateTexture *texture = &preview_state.texture;
-    GifAnimation &anim = texture->anim;
-    ImVec2 image_size = ImVec2(anim.width, anim.height);
-    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
-    ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
-
-    u32 now = SDL_GetTicks();
-    u32 frame_delay = (u32)anim.delays[texture->frame];
-    if (now - texture->last_frame_time >= frame_delay) {
-        texture->frame = (texture->frame + 1) % anim.frame_count;
-        texture->last_frame_time = now;
-    }
-}
-
-bool PlaybackScrubber(const char *id, float *progress, float width, float height = 16.0f) {
+bool PlaybackScrubber(const char *id, float *progress, float width, bool interactive = true) {
     ImGui::PushID(id);
+
+    auto height = 16.0f;
 
     const ImVec2 cursorPos = ImGui::GetCursorScreenPos();
     const ImVec2 size = {width, height};
@@ -72,7 +20,7 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
     const bool hovered = ImGui::IsItemHovered();
     const bool active = ImGui::IsItemActive();
 
-    if (hovered && ImGui::IsMouseDown(0)) {
+    if (hovered && ImGui::IsMouseDown(0) && interactive) {
         float mouseX = ImGui::GetIO().MousePos.x;
         *progress = std::clamp((mouseX - cursorPos.x) / width, 0.0f, 1.0f);
     }
@@ -94,6 +42,80 @@ bool PlaybackScrubber(const char *id, float *progress, float width, float height
     ImGui::PopID();
     return active;
 }
+
+void PreviewWindow::RenderImagePreview() {
+    PWinStateTexture *texture = &preview_state.texture;
+    ImGui::Text("Zoom: %.2fx", image_preview.zoom);
+    ImVec2 region_size = ImGui::GetContentRegionAvail();
+    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+
+    ImGui::BeginChild("ImageRegion", region_size, false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBackground);
+
+    if (ImGui::IsWindowHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+
+    // zooming
+    if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
+        const float wheel = ImGui::GetIO().MouseWheel;
+        const float prev_zoom = image_preview.zoom;
+        image_preview.zoom = std::clamp(image_preview.zoom + wheel * 0.1f, 0.1f, 5.0f);
+
+        const ImVec2 mouse = ImGui::GetIO().MousePos;
+        const ImVec2 rel = mouse - cursor_pos - image_preview.pan;
+        image_preview.pan -= rel * (image_preview.zoom / prev_zoom - 1.0f);
+    }
+
+    // dragging
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 delta = ImGui::GetIO().MouseDelta;
+        image_preview.pan += delta;
+    }
+
+    if (texture->id) {
+        ImVec2 image_size = ImVec2(*texture->size.x * image_preview.zoom, *texture->size.y * image_preview.zoom);
+        ImVec2 draw_pos = Floor(cursor_pos + image_preview.pan);
+        ImVec2 draw_end = draw_pos + Floor(image_size);
+        ImGui::GetWindowDrawList()->AddImage(texture->id, draw_pos, draw_end);
+    } else {
+        ImGui::Text("Failed to load image!");
+    }
+    ImGui::EndChild();
+}
+
+void PreviewWindow::RenderGifPreview() {
+    PWinStateTexture *texture = &preview_state.texture;
+    GifAnimation &anim = texture->anim;
+    ImVec2 image_size = ImVec2(anim.width, anim.height);
+    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
+    ImGui::Image(Image::GetGifFrame(anim, &texture->frame), image_size);
+
+    u32 now = SDL_GetTicks();
+    u32 frame_delay = anim.delays[texture->frame];
+    if (now - texture->last_frame_time >= frame_delay) {
+        texture->frame = (texture->frame + 1) % anim.frame_count;
+        texture->last_frame_time = now;
+    }
+
+    u32 elapsed = 0;
+    for (int i = 0; i < texture->frame; ++i)
+        elapsed += anim.delays[i];
+
+    elapsed += (now - texture->last_frame_time);
+
+    float progress = static_cast<float>(elapsed) / anim.total_duration_ms;
+
+    float total_duration_ms = anim.total_duration_ms;
+    float time_elapsed_ms = progress * total_duration_ms;
+    int minutes = time_elapsed_ms / 60000.0f;
+    float seconds = fmod(time_elapsed_ms / 1000.0f, 60.0f);
+
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x) * 0.5f * 0.5f);
+    ImGui::Text("Time %02d:%05.2f", minutes, seconds);
+    ImGui::SameLine();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
+    PlaybackScrubber("GifScrubber", &progress, 200.0f, false);
+}
+
+
 
 void SelectableCopyableText(const std::string& text) {
     static std::unordered_map<std::string, double> copiedTimestamps;

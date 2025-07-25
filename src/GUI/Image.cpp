@@ -26,7 +26,13 @@ bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_ani
     out_animation->width = animation->w;
     out_animation->height = animation->h;
 
-    out_animation->delays = (int*)SDL_calloc(out_animation->frame_count, sizeof(int));
+    out_animation->delays = (u32*)SDL_calloc(out_animation->frame_count, sizeof(u32));
+    out_animation->total_duration_ms = 0;
+
+    for (int i = 0; i < out_animation->frame_count; i++) {
+        out_animation->delays[i] = animation->delays[i];
+        out_animation->total_duration_ms += animation->delays[i];
+    }
 
     for (int i = 0; i < out_animation->frame_count; i++) {
         out_animation->delays[i] = animation->delays[i];

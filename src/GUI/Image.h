@@ -13,7 +13,8 @@ struct GifAnimation {
     int frame_count = 0;
     int width;
     int height;
-    int *delays;
+    u32 *delays;
+    u32 total_duration_ms = 0;
 };
 
 namespace Image {
