@@ -2,11 +2,11 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
-#include <fstream>
+#include <cstdio>
 #include <util/Text.h>
 #include <imgui.h>
 #include "state.h"
-#include "../icons.h"
+#include "icons.h"
 
 void PreviewWindow::RenderImagePreview() {
     PWinStateTexture *texture = &preview_state.texture;
@@ -267,8 +267,6 @@ void PreviewWindow::RenderElfPreview() {
     }
 }
 
-#define SIZEOF_ARRAY(arr) sizeof(arr)/sizeof(arr[0])
-
 const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
 
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
@@ -291,9 +289,9 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
         if (!text.empty() && text.back() == '\n') {
             text.pop_back();
         }
-        std::ofstream file(preview_state.contents.path, std::ios::trunc);
-        file << text;
-        file.close();
+        FILE *file = fopen(preview_state.contents.path.c_str(), "w");
+        fwrite(text.c_str(), text.size(), sizeof(u8), file);
+        fclose(file);
         ReloadRootNode(rootNode);
         text_editor__unsaved_changes = false;
     }

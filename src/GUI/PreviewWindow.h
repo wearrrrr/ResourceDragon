@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include "state.h"
 
+#define SIZEOF_ARRAY(arr) sizeof(arr) / sizeof(arr[0])
+
 namespace PreviewWindow {
     inline float timeToSetOnRelease = 0.0f;
     void RenderImagePreview();
