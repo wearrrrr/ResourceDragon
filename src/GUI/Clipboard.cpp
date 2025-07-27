@@ -1,7 +1,5 @@
 #include <Clipboard.h>
-#include <fstream>
 #include <filesystem>
-
 namespace fs = std::filesystem;
 
 const void* ClipboardCopy(void *userdata, const char *mime_type, size_t *size) {
@@ -29,9 +27,9 @@ void Clipboard::CopyBufferToClipboard(u8 *buffer, size_t size, std::string file_
     std::string filename = tempPath + file_name;
 
     fs::create_directories(tempPath);
-    std::ofstream outFile(filename, std::ios::binary);
-    outFile.write((const char*)buffer, size);
-    outFile.close();
+    FILE *file = fopen(filename.c_str(), "wb");
+    fwrite(buffer, size, sizeof(u8), file);
+    fclose(file);
 
     CopyFilePathToClipboard(filename);
 
