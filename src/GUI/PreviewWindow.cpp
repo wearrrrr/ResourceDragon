@@ -108,11 +108,11 @@ void PreviewWindow::RenderGifPreview() {
     int minutes = time_elapsed_ms / 60000.0f;
     float seconds = fmod(time_elapsed_ms / 1000.0f, 60.0f);
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x) * 0.5f * 0.5f);
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - image_size.x) * 0.5f);
     ImGui::Text("Time %02d:%05.2f", minutes, seconds);
     ImGui::SameLine();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
-    PlaybackScrubber("GifScrubber", &progress, 200.0f, false);
+    PlaybackScrubber("GifScrubber", &progress, 300.0f, false);
 }
 
 
