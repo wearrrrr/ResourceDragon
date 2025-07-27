@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include "iconv.h"
-#include "util/Logger.h"
 #include <util/int.h>
 
 static std::string currentEncoding = "UTF-8";
@@ -96,7 +95,6 @@ class TextConverter {
             }
 
             std::string result(out_buf, out_ptr - out_buf);
-            Logger::log(result);
             delete[] out_buf;
             iconv_close(cd);
             return result;

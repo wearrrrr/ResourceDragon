@@ -158,8 +158,6 @@ void PreviewWindow::RenderAudioPlayer() {
             }
         }
         ImGui::SameLine();
-        // Time info breaks if the audio file is a midi file, pretty sure this is unfixable?
-        // Actually.. This is fixable, but the solution involves ditching SDL3_mixer for midi.
         ImGui::BeginGroup();
         if (ImGui::Button(RW_ICON, {40, 0})) {
             double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
@@ -289,7 +287,7 @@ void PreviewWindow::RenderElfPreview() {
     }
 }
 
-const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
+static const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
 
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
     ImGui::AlignTextToFramePadding();
