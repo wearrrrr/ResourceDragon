@@ -38,7 +38,7 @@ find_package(OpenSSL REQUIRED)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
-add_subdirectory(vendored/lua EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/squirrel EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/thlib EXCLUDE_FROM_ALL)
 
 set(IMGUI_SRC
@@ -54,7 +54,7 @@ set(IMGUI_SRC
 include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
-include_directories(vendored/lua/src/)
+include_directories(vendored/squirrel/include/)
 
 pkg_check_modules(freetype2 REQUIRED freetype2)
 include_directories(${freetype2_INCLUDE_DIRS})
@@ -82,7 +82,7 @@ if (WIN32)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype lua_static ${OPENGL} OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
+target_link_libraries(ResourceDragon PRIVATE freetype squirrel sqstdlib ${OPENGL} OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
 
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"

@@ -152,9 +152,11 @@ int main(int argc, char *argv[]) {
     try {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
             const fs::path entry_path = entry.path();
-            if (entry_path.extension() == ".lua") {
+            if (entry_path.extension() == ".nut") {
                 scriptManager->LoadFile(entry_path.string());
-                RegisterFormat<LuaArchiveFormat>(scriptManager->Register());
+                auto fmt = scriptManager->Register();
+                if (fmt) RegisterFormat<SquirrelArchiveFormat>(fmt);
+                else Logger::error("Failed to load '%s'!", entry_path.c_str());
             }
         }
     } catch (const fs::filesystem_error &err) {

@@ -1,128 +1,132 @@
 #pragma once
 
-#include "lua.hpp"
-#include <lua.h>
-#include <string>
+#include "squirrel.h"
+#include "squirrel_all.h"
+#include "SQUtils.hpp"
 
-#include "LuaUtils.h"
 #include <ArchiveFormats/ArchiveFormat.h>
 #include <util/Logger.h>
 
-class LuaArchiveFormat : public ArchiveFormat {
-    lua_State *m_state;
-    int lCanHandleRef;
-    int lTryOpenRef;
-    int lGetTagRef;
-    int lGetDescriptionRef;
+static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...) {
+    char buffer[1024];
+    va_list args;
+    va_start(args, s);
+    vsnprintf(buffer, sizeof(buffer), s, args);
+    va_end(args);
+
+    Logger::log("[Squirrel] %s", buffer);
+}
+
+class SquirrelArchiveFormat : public ArchiveFormat {
+    HSQUIRRELVM vm;
+    HSQOBJECT table_ref;
 
 public:
-    LuaArchiveFormat(lua_State *state, u32 signature, const char *canHandleFile = "RD__CanHandleFile", const char *tryOpen = "RD__TryOpen", const char *getTag = "RD__GetTag",  const char *getDescription = "RD__GetDescription") : m_state(state) {
-        if (!LuaUtils::Lua_GetFunction(m_state, canHandleFile)) return;
-        lCanHandleRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
-        if (!LuaUtils::Lua_GetFunction(m_state, tryOpen)) return;
-        lTryOpenRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
-        if (!LuaUtils::Lua_GetFunction(m_state, getTag)) return;
-        lGetTagRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
-        if (!LuaUtils::Lua_GetFunction(m_state, getDescription)) return;
-        lGetDescriptionRef = luaL_ref(m_state, LUA_REGISTRYINDEX);
+    SquirrelArchiveFormat(HSQUIRRELVM vm, const HSQOBJECT& table) : vm(vm) {
+        sq_resetobject(&table_ref);
+        table_ref = table;
+    }
+
+    ~SquirrelArchiveFormat() {
+        sq_release(vm, &table_ref);
+    }
+
+    std::string_view GetTag() const override {
+        return GetStringField("tag", "GETTAG_FAIL");
+    }
+
+    std::string_view GetDescription() const override {
+        return GetStringField("description", "GETDESC_FAIL");
     }
 
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
-        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
-
-        lua_gc(m_state, LUA_GCSTOP, 0);
-
-        lua_pushlstring(m_state, (const char*)buffer, size);
-        lua_pushinteger(m_state, size);
-        lua_pushstring(m_state, ext.c_str());
-
-        lua_gc(m_state, LUA_GCRESTART, 0);
-
-        if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
-            const char *err = lua_tostring(m_state, -1);
-            lua_pop(m_state, 1);
-            lua_gc(m_state, LUA_GCCOLLECT, 0);
-            Logger::error(std::string("Lua error: ") + err);
-            return false;
-        }
-
-        bool result = lua_toboolean(m_state, -1);
-        lua_pop(m_state, 1);
-        lua_gc(m_state, LUA_GCCOLLECT, 0);
-        return result;
+        return CallBoolFunction("canHandleFile", buffer, size, ext.c_str());
     }
 
     ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override {
-        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
-
-        lua_pushlstring(m_state, (const char*)buffer, size);
-        lua_pushinteger(m_state, size);
-        lua_pushstring(m_state, file_name.c_str());
-
-        if (lua_pcall(m_state, 3, 1, 0) != LUA_OK) {
-            const char *err = lua_tostring(m_state, -1);
-            lua_pop(m_state, 1);
-            lua_gc(m_state, LUA_GCCOLLECT, 0);
-            Logger::error(std::string("Lua error: ") + err);
-            return nullptr;
-        }
-        // TODO: Later on, this will return a table when successful, which we can use to construct a proper C++ class.
-        lua_toboolean(m_state, -1);
-        lua_pop(m_state, 1);
-
-        lua_gc(m_state, LUA_GCCOLLECT, 0);
+        CallFunction("tryOpen", buffer, size, file_name.c_str());
         return nullptr;
-    };
-
-    std::string_view GetTag() const override {
-        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetTagRef);
-
-        if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
-            Logger::error("Failed to call GetTag in lua code! This is a bug.");
-            return "GETTAG_FAIL";
-        }
-
-        return lua_tostring(m_state, -1);
-    };
-
-    std::string_view GetDescription() const override {
-        lua_rawgeti(m_state, LUA_REGISTRYINDEX, lGetDescriptionRef);
-
-        if (lua_pcall(m_state, 0, 1, 0) != LUA_OK) {
-            Logger::error("Failed to call GetDescription in lua code! This is a bug.");
-            return "GETDESC_FAIL";
-        }
-
-        return lua_tostring(m_state, -1);
     }
 
-    ~LuaArchiveFormat() {
-        luaL_unref(m_state, LUA_REGISTRYINDEX, lCanHandleRef);
-        luaL_unref(m_state, LUA_REGISTRYINDEX, lTryOpenRef);
-        luaL_unref(m_state, LUA_REGISTRYINDEX, lGetTagRef);
+private:
+    std::string_view GetStringField(const char* key, const char* fallback) const {
+        sq_pushobject(vm, table_ref);
+        sq_pushstring(vm, _SC(key), -1);
+        if (SQ_SUCCESS(sq_get(vm, -2))) {
+            const SQChar* val;
+            if (SQ_SUCCESS(sq_getstring(vm, -1, &val))) {
+                sq_pop(vm, 2);
+                return val;
+            }
+        }
+        sq_pop(vm, 1);
+        return fallback;
+    }
+
+    bool CallBoolFunction(const char* funcName, u8* buffer, u64 size, const char* ext) const {
+        sq_pushobject(vm, table_ref);
+        sq_pushstring(vm, SC(funcName), -1);
+        if (SQ_SUCCESS(sq_get(vm, -2))) {
+            sq_pushobject(vm, table_ref);
+            SQUtils::push_buffer_as_array(vm, buffer, size);
+            sq_pushinteger(vm, size);
+            sq_pushstring(vm, ext, -1);
+
+            if (SQ_SUCCESS(sq_call(vm, 4, SQTrue, SQTrue))) {
+                SQBool result;
+                sq_getbool(vm, -1, &result);
+                sq_pop(vm, 2);
+                return result;
+            }
+        }
+        sq_pop(vm, 1);
+        return false;
+    }
+
+    void CallFunction(const char* funcName, u8* buffer, u64 size, const char* file_name) const {
+        sq_pushobject(vm, table_ref);
+        sq_pushstring(vm, _SC(funcName), -1);
+        if (SQ_SUCCESS(sq_get(vm, -2))) {
+            sq_pushobject(vm, table_ref);
+            SQUtils::push_buffer_as_array(vm, buffer, size);
+            sq_pushinteger(vm, size);
+            sq_pushstring(vm, file_name, -1);
+
+            if (SQ_FAILED(sq_call(vm, 4, SQFalse, SQTrue))) {
+                sqstd_printcallstack(vm);
+            }
+        }
+        sq_pop(vm, 1);
     }
 };
 
 class ScriptManager {
-    lua_State *m_state;
+    HSQUIRRELVM vm;
     public:
         ScriptManager() {
-            m_state = luaL_newstate();
-            if (m_state == nullptr) {
-                Logger::error("Failed to create Lua state!");
+            vm = sq_open(1024);
+            if (!vm) {
+                Logger::error("Failed to create Squirrel VM!");
                 return;
             }
+            sqstd_seterrorhandlers(vm);
+            sq_pushroottable(vm);
 
-            luaL_openlibs(m_state);
+            sqstd_register_iolib(vm);
+            sqstd_register_mathlib(vm);
+            sqstd_register_stringlib(vm);
+            sqstd_register_bloblib(vm);
+            sqstd_register_systemlib(vm);
+
+            sq_setprintfunc(vm, squirrel_print, nullptr);
+
+            sq_pop(vm, 1);
         }
         ~ScriptManager() {
-            Logger::log("Closing lua...");
-            lua_close(m_state);
+            Logger::log("Closing Squirrel...");
+            sq_close(vm);
         }
 
-        template <typename T>
-        inline T CallLuaMethod(const std::string &name, int argc, int retc, int kfunc = 0);
-
         void LoadFile(std::string path);
-        LuaArchiveFormat *Register();
+        SquirrelArchiveFormat *Register();
 };

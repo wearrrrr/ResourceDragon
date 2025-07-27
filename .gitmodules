@@ -7,3 +7,6 @@
 [submodule "vendored/thlib"]
 	path = vendored/thlib
 	url = https://github.com/PieVieRo/thlib.git
+[submodule "vendored/squirrel"]
+	path = vendored/squirrel
+	url = https://github.com/albertodemichelis/squirrel.git
