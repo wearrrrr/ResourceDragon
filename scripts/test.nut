@@ -3,7 +3,7 @@ archive_format <- {
     tag = "SqTestFormat",
     description = "Squirrel Test format -- Does nothing!",
 
-    canHandleFile = function(buffer, size, ext) {
+    function canHandleFile(buffer, size, ext) {
         if (size < 4) return false;
 
         local magic = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
@@ -12,7 +12,7 @@ archive_format <- {
         return magic == sig;
     }
 
-    tryOpen = function(buffer, size, name) {
+    function tryOpen(buffer, size, name) {
         return null;
     }
 }

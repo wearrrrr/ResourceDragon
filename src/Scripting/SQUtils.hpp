@@ -14,11 +14,11 @@ namespace SQUtils {
             sq_pushroottable(vm);
 
             if (SQ_FAILED(sq_call(vm, 1, SQFalse, SQTrue))) {
-                Logger::error("Failed to call module_main()!");
+                Logger::error("Failed to call %s()!", name);
                 sqstd_printcallstack(vm);
             }
         } else {
-            Logger::error("Function 'module_main' not found.");
+            Logger::error("Function '%s' not found.", name);
         }
     }
     static inline SQInteger push_buffer_as_array(HSQUIRRELVM vm, const uint8_t* data, size_t size) {
