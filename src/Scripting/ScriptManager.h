@@ -68,7 +68,7 @@ private:
         sq_pushstring(vm, SC(funcName), -1);
         if (SQ_SUCCESS(sq_get(vm, -2))) {
             sq_pushobject(vm, table_ref);
-            SQUtils::push_buffer_as_array(vm, buffer, size);
+            sq_pushuserpointer(vm, buffer);
             sq_pushinteger(vm, size);
             sq_pushstring(vm, ext, -1);
 
@@ -88,7 +88,7 @@ private:
         sq_pushstring(vm, _SC(funcName), -1);
         if (SQ_SUCCESS(sq_get(vm, -2))) {
             sq_pushobject(vm, table_ref);
-            SQUtils::push_buffer_as_array(vm, buffer, size);
+            sq_pushuserpointer(vm, buffer);
             sq_pushinteger(vm, size);
             sq_pushstring(vm, file_name, -1);
 
@@ -109,16 +109,19 @@ class ScriptManager {
                 Logger::error("Failed to create Squirrel VM!");
                 return;
             }
+            sq_setprintfunc(vm, squirrel_print, nullptr);
             sqstd_seterrorhandlers(vm);
             sq_pushroottable(vm);
+
+            sq_pushstring(vm, _SC("read_bytes"), -1);
+            sq_newclosure(vm, SQUtils::read_bytes, 0);
+            sq_newslot(vm, -3, SQFalse);
 
             sqstd_register_iolib(vm);
             sqstd_register_mathlib(vm);
             sqstd_register_stringlib(vm);
             sqstd_register_bloblib(vm);
             sqstd_register_systemlib(vm);
-
-            sq_setprintfunc(vm, squirrel_print, nullptr);
 
             sq_pop(vm, 1);
         }

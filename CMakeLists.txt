@@ -41,6 +41,9 @@ add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/squirrel EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/thlib EXCLUDE_FROM_ALL)
 
+# silence squirrel compiler warnings, not my code, not my problem :)
+target_compile_options(squirrel BEFORE PRIVATE -w)
+
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
         vendored/imgui/backends/imgui_impl_opengl3.cpp

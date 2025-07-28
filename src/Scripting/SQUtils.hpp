@@ -1,7 +1,8 @@
 #pragma once
 
 #include "squirrel_all.h"
-#include "util/Logger.h"
+#include <util/int.h>
+#include <util/Logger.h>
 
 // idk what this macro stands for, but probably SQChar
 #define SC _SC
@@ -21,10 +22,18 @@ namespace SQUtils {
             Logger::error("Function '%s' not found.", name);
         }
     }
-    static inline SQInteger push_buffer_as_array(HSQUIRRELVM vm, const uint8_t* data, size_t size) {
+    inline SQInteger read_bytes(HSQUIRRELVM vm) {
+        SQUserPointer ptr;
+        SQInteger offset, length;
+
+        if (SQ_FAILED(sq_getuserpointer(vm, 2, &ptr))) return sq_throwerror(vm, "Expected userpointer as first argument");
+        sq_getinteger(vm, 3, &offset);
+        sq_getinteger(vm, 4, &length);
+
+        u8* data = (u8*)ptr;
         sq_newarray(vm, 0);
-        for (size_t i = 0; i < size; ++i) {
-            sq_pushinteger(vm, data[i]);
+        for (SQInteger i = 0; i < length; ++i) {
+            sq_pushinteger(vm, data[offset + i]);
             sq_arrayappend(vm, -2);
         }
         return 1;

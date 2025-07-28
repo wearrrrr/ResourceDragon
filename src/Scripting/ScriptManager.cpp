@@ -7,7 +7,7 @@ void ScriptManager::LoadFile(std::string path) {
     sq_pushroottable(vm);
 
     if (SQ_FAILED(sqstd_dofile(vm, path.c_str(), SQFalse, SQTrue))) {
-        Logger::error("[Squirrel] Failed to load+run script: %s", path.c_str());
+        Logger::error("[Squirrel] Failed to load script: %s", path.c_str());
         sqstd_printcallstack(vm);
     }
 
@@ -19,13 +19,13 @@ SquirrelArchiveFormat* ScriptManager::Register() {
 
     sq_pushstring(vm, _SC("archive_format"), -1);
     if (SQ_FAILED(sq_get(vm, -2))) {
-        Logger::error("[Squirrel] 'archive_format' not found in script.");
+        Logger::error("[Squirrel] 'archive_format' table not found in script!");
         sq_pop(vm, 1);
         return nullptr;
     }
 
     if (sq_gettype(vm, -1) != OT_TABLE) {
-        Logger::error("[Squirrel] 'archive_format' is not a table.");
+        Logger::error("[Squirrel] 'archive_format' exists but is not a table!");
         sq_pop(vm, 2);
         return nullptr;
     }

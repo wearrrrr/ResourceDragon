@@ -4,12 +4,14 @@ archive_format <- {
     description = "Squirrel Test format -- Does nothing!",
 
     function canHandleFile(buffer, size, ext) {
-        if (size < 4) return false;
-
-        local magic = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
-        // print(format("0x%x", magic));
-
-        return magic == sig;
+        try {
+            local bytes = read_bytes(buffer, 0, 4);
+            local magic = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+            return magic == sig;
+        } catch(e) {
+            print("Error in read_bytes: " + e);
+            return false;
+        }
     }
 
     function tryOpen(buffer, size, name) {
