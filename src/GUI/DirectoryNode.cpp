@@ -451,6 +451,9 @@ void DirectoryNode::HandleFileClick(Node *node) {
     auto arc = format->TryOpen(entry_buffer, size, node->FileName);
     if (arc == nullptr) {
         Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.data(), format->GetTag().data());
+        char message_buffer[256];
+        snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", node->FileName.data(), format->GetTag().data());
+        ui_error = UIError::CreateError(message_buffer, "Failed to open archive!");
         free(entry_buffer);
         return;
     }
