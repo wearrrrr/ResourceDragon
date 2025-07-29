@@ -7,6 +7,8 @@
 #include <ArchiveFormats/ArchiveFormat.h>
 #include <util/Logger.h>
 
+#include <regex>
+
 static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...) {
     char buffer[1024];
     va_list args;
@@ -15,6 +17,23 @@ static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...) {
     va_end(args);
 
     Logger::log("[Squirrel] %s", buffer);
+}
+
+static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
+    if (sq_gettop(vm) > 0) {
+        const SQChar *error_msg;
+        if (SQ_SUCCEEDED(sq_getstring(vm, 2, &error_msg))) {
+            Logger::error("Squirrel runtime exception: \"%s\" ", error_msg);
+            SQStackInfos sqstack;
+            for (SQInteger i = 1; SQ_SUCCEEDED(sq_stackinfos(vm, i, &sqstack)); ++i) {
+                printf(
+                    *sqstack.source ? "\t at %s (%s:%lld)\n" : "\t at %s (unknown)\n",
+                    sqstack.funcname ? sqstack.funcname : "Anonymous function", sqstack.source, sqstack.line
+                );
+            }
+        }
+    }
+    return 0;
 }
 
 class SquirrelArchiveFormat : public ArchiveFormat {
@@ -109,11 +128,18 @@ class ScriptManager {
                 Logger::error("Failed to create Squirrel VM!");
                 return;
             }
+            sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar* desc, const SQChar* src, SQInteger line, SQInteger col) {
+                Logger::error(
+                    "Squirrel compiler exception: %s:%lld:%lld \"%s\"\n",
+                    src, line, col, desc
+                );
+            });
+            sq_newclosure(vm, squirrel_runtime_error, 0);
+            sq_seterrorhandler(vm);
             sq_setprintfunc(vm, squirrel_print, nullptr);
-            sqstd_seterrorhandlers(vm);
             sq_pushroottable(vm);
 
-            sq_pushstring(vm, _SC("read_bytes"), -1);
+            sq_pushstring(vm, SC("read_bytes"), -1);
             sq_newclosure(vm, SQUtils::read_bytes, 0);
             sq_newslot(vm, -3, SQFalse);
 
