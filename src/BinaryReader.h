@@ -6,9 +6,10 @@
 #include <vector>
 
 class BinaryReader {
+private:
+  const std::vector<u8> &data;
 
 public:
-  const std::vector<u8> &data;
   size_t position;
   explicit BinaryReader(const std::vector<u8> &buffer)
       : data(buffer), position(0) {}
