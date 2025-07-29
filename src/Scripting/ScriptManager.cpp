@@ -1,17 +1,19 @@
 
 #include "ScriptManager.h"
 
-void ScriptManager::LoadFile(std::string path) {
-    Logger::log("[Squirrel] Loading %s...", path.c_str());
+bool ScriptManager::LoadFile(std::string path) {
+    Logger::log("Loading %s...", path.c_str());
 
     sq_pushroottable(vm);
 
     if (SQ_FAILED(sqstd_dofile(vm, path.c_str(), SQFalse, SQTrue))) {
-        Logger::error("[Squirrel] Failed to load script: %s", path.c_str());
+        Logger::error("Failed to load script: %s", path.c_str());
         sqstd_printcallstack(vm);
+        return false;
     }
 
     sq_pop(vm, 1);
+    return true;
 }
 
 SquirrelArchiveFormat* ScriptManager::Register() {

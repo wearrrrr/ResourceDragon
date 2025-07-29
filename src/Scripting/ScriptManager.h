@@ -7,8 +7,6 @@
 #include <ArchiveFormats/ArchiveFormat.h>
 #include <util/Logger.h>
 
-#include <regex>
-
 static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...) {
     char buffer[1024];
     va_list args;
@@ -129,10 +127,9 @@ class ScriptManager {
                 return;
             }
             sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar* desc, const SQChar* src, SQInteger line, SQInteger col) {
-                Logger::error(
-                    "Squirrel compiler exception: %s:%lld:%lld \"%s\"\n",
-                    src, line, col, desc
-                );
+                puts("");
+                Logger::error("Squirrel Compiler Exception!");
+                printf("\t at %s:%lld:%lld: %s\n\n", src, line, col, desc);
             });
             sq_newclosure(vm, squirrel_runtime_error, 0);
             sq_seterrorhandler(vm);
@@ -156,6 +153,6 @@ class ScriptManager {
             sq_close(vm);
         }
 
-        void LoadFile(std::string path);
+        bool LoadFile(std::string path);
         SquirrelArchiveFormat *Register();
 };

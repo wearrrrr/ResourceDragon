@@ -151,10 +151,10 @@ int main(int argc, char *argv[]) {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
             const fs::path entry_path = entry.path();
             if (entry_path.extension() == ".nut") {
-                scriptManager->LoadFile(entry_path.string());
-                auto fmt = scriptManager->Register();
-                if (fmt) RegisterFormat<SquirrelArchiveFormat>(fmt);
-                else Logger::error("Failed to load '%s'!", entry_path.c_str());
+                if (scriptManager->LoadFile(entry_path.string())) {
+                    auto fmt = scriptManager->Register();
+                    if (fmt) RegisterFormat<SquirrelArchiveFormat>(fmt);
+                }
             }
         }
     } catch (const fs::filesystem_error &err) {
