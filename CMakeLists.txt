@@ -97,13 +97,18 @@ install(TARGETS ResourceDragon
 
 install(CODE "
     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/libSDL3_mixer.so.0.0.0
+         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/libSDL3_mixer.so.0.1.0
          RENAME libSDL3_mixer.so.0)
 ")
 install(CODE "
     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
          FILES ${CMAKE_BINARY_DIR}/vendored/SDL_image/libSDL3_image.so.0.3.0
          RENAME libSDL3_image.so.0)
+")
+install(CODE "
+    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
+         FILES ${CMAKE_BINARY_DIR}/vendored/SDL/libSDL3.so.0.3.0
+         RENAME libSDL3.so.0)
 ")
 install(CODE "
     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
