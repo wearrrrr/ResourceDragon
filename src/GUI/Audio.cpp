@@ -17,7 +17,7 @@ void Audio::InitAudioSystem() {
     SDL_AudioSpec spec = {
         .format = SDL_AUDIO_S16,
         .channels = 2,
-        .freq = 44100,
+        .freq = 48000,
     };
 
     MIX_Init();

@@ -320,10 +320,11 @@ void DirectoryNode::ReloadRootNode(Node *node) {
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     if (preview_state.audio.music) {
-        double current_time = MIX_GetTrackPlaybackPosition(preview_state.audio.track) / 1000.0;
+        double current_time = MIX_GetTrackPlaybackPosition(preview_state.audio.track);
+        double current_time_sec = MIX_FramesToMS(preview_state.audio.spec.freq, current_time) / 1000.0f;
         if (!preview_state.audio.scrubberDragging) {
-            preview_state.audio.time.current_time_min = current_time / 60;
-            preview_state.audio.time.current_time_sec = fmod(current_time, 60);
+            preview_state.audio.time.current_time_min = current_time_sec / 60;
+            preview_state.audio.time.current_time_sec = fmod(current_time_sec, 60);
         }
     }
     return interval;
@@ -365,8 +366,8 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
             } else {
                 Logger::log("Loaded audio sample rate: %d Hz", preview_state.audio.spec.freq);
             }
-            double duration_ms = MIX_GetAudioDuration(preview_state.audio.music);
-            double duration_sec = duration_ms / 1000.0;
+            double duration_frames = MIX_GetAudioDuration(preview_state.audio.music);
+            double duration_sec = MIX_FramesToMS(preview_state.audio.spec.freq, duration_frames) / 1000.0;
             preview_state.audio.playing = true;
             preview_state.audio.time.total_time_min = duration_sec / 60;
             preview_state.audio.time.total_time_sec = fmod(duration_sec, 60.0);

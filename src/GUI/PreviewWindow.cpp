@@ -10,6 +10,7 @@
 #include "SDL3_mixer/SDL_mixer.h"
 #include "state.h"
 #include "icons.h"
+#include "util/Logger.h"
 
 bool PlaybackScrubber(const char *id, float *progress, float width, bool interactive = true) {
     ImGui::PushID(id);
@@ -162,12 +163,16 @@ void PreviewWindow::RenderAudioPlayer() {
         }
         ImGui::SameLine();
         ImGui::BeginGroup();
-        // if (ImGui::Button(RW_ICON, {40, 0})) {
-        //     double new_pos = MIX_GetTrackPlaybackPosition(preview_state.audio.track) - 5.0;
-        //     new_pos > 0
-        //         ? MIX_SetTrackPlaybackPosition(preview_state.audio.track, new_pos)
-        //         : MIX_SetTrackPlaybackPosition(preview_state.audio.track, 0);
-        // }
+        if (ImGui::Button(RW_ICON, {40, 0})) {
+            auto track = preview_state.audio.track;
+            Sint64 curr_pos = MIX_GetTrackPlaybackPosition(track);
+            if (MIX_TrackFramesToMS(track, curr_pos) < 5000) {
+                MIX_SetTrackPlaybackPosition(track, 0);
+            } else {
+                curr_pos -= MIX_TrackMSToFrames(track, 5000);
+                MIX_SetTrackPlaybackPosition(track, curr_pos);
+            }
+        }
         ImGui::SameLine();
         ImGui::Text("%02d:%02d / %02d:%02d",
             time.current_time_min,
@@ -176,15 +181,15 @@ void PreviewWindow::RenderAudioPlayer() {
             time.total_time_sec
         );
         ImGui::SameLine();
-        const double current_pos = MIX_GetTrackPlaybackPosition(preview_state.audio.track) / 1000.0f;
-        int total_time = MIX_GetAudioDuration(preview_state.audio.music);
+        const double current_pos = MIX_FramesToMS(preview_state.audio.spec.freq, MIX_GetTrackPlaybackPosition(preview_state.audio.track));
+        int total_time = MIX_FramesToMS(preview_state.audio.spec.freq, MIX_GetAudioDuration(preview_state.audio.music));
         if (total_time > 0.0) {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
 
             const double visual_pos = std::max(current_pos, 0.0);
             float scrubberProgress = visual_pos / total_time;
-            scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f) * 1000.0f;
+            scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
 
             bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
 
@@ -195,7 +200,7 @@ void PreviewWindow::RenderAudioPlayer() {
                 int new_pos_ms = scrubberProgress * total_time;
                 timeToSetOnRelease = new_pos_ms;
 
-                int new_pos_sec = new_pos_ms / 1000;
+                int new_pos_sec = new_pos_ms / 1000.0f;
                 preview_state.audio.time.current_time_min = new_pos_sec / 60;
                 preview_state.audio.time.current_time_sec = new_pos_sec % 60;
 
@@ -203,16 +208,18 @@ void PreviewWindow::RenderAudioPlayer() {
             }
 
             if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                MIX_SetTrackPlaybackPosition(preview_state.audio.track, timeToSetOnRelease);
+                MIX_SetTrackPlaybackPosition(preview_state.audio.track, MIX_MSToFrames(preview_state.audio.spec.freq, timeToSetOnRelease));
                 MIX_ResumeTrack(preview_state.audio.track);
                 preview_state.audio.scrubberDragging = false;
             }
         }
         ImGui::SameLine(0.0f, 16.0f);
-        // if (ImGui::Button(FF_ICON, {40, 0})) {
-        //     double new_pos = Mix_GetMusicPosition(preview_state.audio.music) + 5.0;
-        //     Mix_SetMusicPosition(new_pos);
-        // }
+        if (ImGui::Button(FF_ICON, {40, 0})) {
+            auto track = preview_state.audio.track;
+            Sint64 curr_pos = MIX_GetTrackPlaybackPosition(track);
+            curr_pos += MIX_TrackMSToFrames(track, 5000);
+            MIX_SetTrackPlaybackPosition(track, curr_pos);
+        }
         ImGui::EndGroup();
 
         ImGui::SameLine();
