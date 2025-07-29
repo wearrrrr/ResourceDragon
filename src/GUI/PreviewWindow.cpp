@@ -2,9 +2,12 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
+#include <SDL3/SDL_audio.h>
 #include <cstdio>
 #include <util/Text.h>
 #include <imgui.h>
+#include "SDL3/SDL_properties.h"
+#include "SDL3_mixer/SDL_mixer.h"
 #include "state.h"
 #include "icons.h"
 
@@ -143,28 +146,28 @@ void SelectableCopyableText(const std::string& text) {
 }
 
 void PreviewWindow::RenderAudioPlayer() {
-    if (current_sound) {
+    if (preview_state.audio.music) {
         ImGui::Text("Playing: %s", preview_state.contents.path.c_str());
         TimeInfo time = preview_state.audio.time;
         if (preview_state.audio.playing) {
             if (ImGui::Button(PAUSE_ICON, {40, 0})) {
-                Mix_PauseMusic();
+                MIX_PauseTrack(preview_state.audio.track);
                 preview_state.audio.playing = false;
             }
         } else {
             if (ImGui::Button(PLAY_ICON, {40, 0})) {
-                Mix_ResumeMusic();
+                MIX_ResumeTrack(preview_state.audio.track);
                 preview_state.audio.playing = true;
             }
         }
         ImGui::SameLine();
         ImGui::BeginGroup();
-        if (ImGui::Button(RW_ICON, {40, 0})) {
-            double new_pos = Mix_GetMusicPosition(current_sound) - 5.0;
-            new_pos > 0
-                ? Mix_SetMusicPosition(new_pos)
-                : Mix_SetMusicPosition(0);
-        }
+        // if (ImGui::Button(RW_ICON, {40, 0})) {
+        //     double new_pos = MIX_GetTrackPlaybackPosition(preview_state.audio.track) - 5.0;
+        //     new_pos > 0
+        //         ? MIX_SetTrackPlaybackPosition(preview_state.audio.track, new_pos)
+        //         : MIX_SetTrackPlaybackPosition(preview_state.audio.track, 0);
+        // }
         ImGui::SameLine();
         ImGui::Text("%02d:%02d / %02d:%02d",
             time.current_time_min,
@@ -173,38 +176,43 @@ void PreviewWindow::RenderAudioPlayer() {
             time.total_time_sec
         );
         ImGui::SameLine();
-        const double current_pos = Mix_GetMusicPosition(current_sound);
-        const double total_time = time.total_time_min * 60 + time.total_time_sec;
+        const double current_pos = MIX_GetTrackPlaybackPosition(preview_state.audio.track) / 1000.0f;
+        int total_time = MIX_GetAudioDuration(preview_state.audio.music);
         if (total_time > 0.0) {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
 
-            const float visual_pos = std::max(current_pos - 0.3, 0.0);
+            const double visual_pos = std::max(current_pos, 0.0);
             float scrubberProgress = visual_pos / total_time;
-            scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f);
+            scrubberProgress = std::clamp(scrubberProgress, 0.0f, 1.0f) * 1000.0f;
+
             bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
 
             if (isDragging) {
-                if (!preview_state.audio.scrubberDragging) Mix_PauseMusic();
+                if (!preview_state.audio.scrubberDragging)
+                    MIX_PauseTrack(preview_state.audio.track);
 
-                int new_pos = (int)(scrubberProgress * total_time);
-                timeToSetOnRelease = new_pos;
-                preview_state.audio.time.current_time_min = new_pos / 60;
-                preview_state.audio.time.current_time_sec = new_pos % 60;
+                int new_pos_ms = scrubberProgress * total_time;
+                timeToSetOnRelease = new_pos_ms;
+
+                int new_pos_sec = new_pos_ms / 1000;
+                preview_state.audio.time.current_time_min = new_pos_sec / 60;
+                preview_state.audio.time.current_time_sec = new_pos_sec % 60;
+
                 preview_state.audio.scrubberDragging = true;
             }
 
             if (preview_state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                Mix_SetMusicPosition(timeToSetOnRelease);
-                Mix_ResumeMusic();
+                MIX_SetTrackPlaybackPosition(preview_state.audio.track, timeToSetOnRelease);
+                MIX_ResumeTrack(preview_state.audio.track);
                 preview_state.audio.scrubberDragging = false;
             }
         }
         ImGui::SameLine(0.0f, 16.0f);
-        if (ImGui::Button(FF_ICON, {40, 0})) {
-            double new_pos = Mix_GetMusicPosition(current_sound) + 5.0;
-            Mix_SetMusicPosition(new_pos);
-        }
+        // if (ImGui::Button(FF_ICON, {40, 0})) {
+        //     double new_pos = Mix_GetMusicPosition(preview_state.audio.music) + 5.0;
+        //     Mix_SetMusicPosition(new_pos);
+        // }
         ImGui::EndGroup();
 
         ImGui::SameLine();
@@ -218,7 +226,7 @@ void PreviewWindow::RenderAudioPlayer() {
 
         ImGui::SameLine();
         if (ImGui::Button(STOP_ICON, {40, 0})) {
-            Mix_HaltMusic();
+            MIX_DestroyTrack(preview_state.audio.track);
             DirectoryNode::UnloadSelectedFile();
             preview_state.audio.playing = false;
             SDL_RemoveTimer(preview_state.audio.update_timer);
@@ -232,35 +240,38 @@ void PreviewWindow::RenderAudioPlayer() {
         }
 
         if (ImGui::SliderInt("Music Volume", &preview_state.audio.volumePercent, 0, 100, "%d%%")) {
-            // Convert from percent (0–100) to SDL volume (0–128)
-            int sdlVolume = (int)((preview_state.audio.volumePercent / 100.0f) * MIX_MAX_VOLUME);
-            Mix_VolumeMusic(sdlVolume);
+            float sdlVolume = preview_state.audio.volumePercent / 100.0f;
+            MIX_SetTrackGain(preview_state.audio.track, sdlVolume);
         }
 
-        std::string titleTag = std::string(Mix_GetMusicTitleTag(current_sound));
+        auto properties = MIX_GetAudioProperties(preview_state.audio.music);
+
+        std::string titleTag = std::string(SDL_GetStringProperty(properties, MIX_PROP_METADATA_TITLE_STRING, "Unknown"));
         if (!Text::trim(titleTag).empty())
             SelectableCopyableText("Title: " + titleTag);
 
-        std::string authorTag = std::string(Mix_GetMusicArtistTag(current_sound));
+        std::string authorTag = std::string(SDL_GetStringProperty(properties, MIX_PROP_METADATA_ARTIST_STRING, "Unknown"));
         if (!Text::trim(authorTag).empty())
             SelectableCopyableText("Artist: " + authorTag);
 
-        std::string albumTag = std::string(Mix_GetMusicAlbumTag(current_sound));
+        std::string albumTag = std::string(SDL_GetStringProperty(properties, MIX_PROP_METADATA_ALBUM_STRING, "Unknown"));
         if (!Text::trim(albumTag).empty())
             SelectableCopyableText("Album: " + albumTag);
 
-        std::string copyrightTag = std::string(Mix_GetMusicCopyrightTag(current_sound));
+        std::string copyrightTag = std::string(SDL_GetStringProperty(properties, MIX_PROP_METADATA_COPYRIGHT_STRING, "Unknown"));
         if (!Text::trim(copyrightTag).empty())
             SelectableCopyableText("Copyright: " + copyrightTag);
 
-
-        int freq, channels;
-        SDL_AudioFormat format;
-        if (Mix_QuerySpec(&freq, &format, &channels)) {
-            ImGui::Text("Sample Rate: %d kHz", freq / 1000);
+        SDL_AudioSpec spec = {
+            .format = SDL_AUDIO_S16,
+            .channels = 2,
+            .freq = 44100,
+        };
+        if (MIX_GetAudioFormat(preview_state.audio.music, &spec)) {
+            ImGui::Text("Sample Rate: %d kHz", spec.freq / 1000);
             // If there are more than 2 channels, this will report as stereo
             // eventually i'll do something about this but im lazy :)
-            ImGui::Text("%s", channels >= 2 ? "Stereo Audio" : "Mono Audio");
+            ImGui::Text("%s", spec.channels >= 2 ? "Stereo Audio" : "Mono Audio");
         }
     }
 }

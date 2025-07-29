@@ -8,6 +8,7 @@
 #include <util/int.h>
 #include <Utils.h>
 
+#include "SDL3_mixer/SDL_mixer.h"
 #include "UIError.h"
 #include <imgui.h>
 #include <gl3.h>
@@ -156,7 +157,7 @@ void DirectoryNode::UnloadSelectedFile() {
     preview_state.contents = {};
 
     if (preview_state.audio.music) {
-        Mix_FreeMusic(preview_state.audio.music);
+        MIX_DestroyAudio(preview_state.audio.music);
         preview_state.audio.music = nullptr;
     }
     if (preview_state.audio.buffer) {
@@ -171,7 +172,7 @@ void DirectoryNode::UnloadSelectedFile() {
         SDL_RemoveTimer(preview_state.audio.update_timer);
         preview_state.audio.update_timer = 0;
     }
-    current_sound = nullptr;
+    preview_state.audio.music = nullptr;
 }
 
 void DirectoryNode::Unload(Node *node) {
@@ -318,8 +319,8 @@ void DirectoryNode::ReloadRootNode(Node *node) {
 }
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
-    if (current_sound) {
-        double current_time = Mix_GetMusicPosition(current_sound);
+    if (preview_state.audio.music) {
+        double current_time = MIX_GetTrackPlaybackPosition(preview_state.audio.track) / 1000.0;
         if (!preview_state.audio.scrubberDragging) {
             preview_state.audio.time.current_time_min = current_time / 60;
             preview_state.audio.time.current_time_sec = fmod(current_time, 60);
@@ -345,23 +346,30 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
             preview_state.audio.buffer = (u8*)malloc(size);
             memcpy(preview_state.audio.buffer, entry_buffer, size);
             SDL_IOStream *snd_io = SDL_IOFromMem(preview_state.audio.buffer, size);
-            current_sound = Mix_LoadMUS_IO(snd_io, true);
-            if (!current_sound) {
+            preview_state.audio.music = MIX_LoadAudio_IO(preview_state.audio.mixer, snd_io, true, true);
+            if (!preview_state.audio.music) {
                 Logger::error("Failed to load audio: %s", SDL_GetError());
                 preview_state.audio.buffer = nullptr;
             }
         } else {
-            current_sound = Mix_LoadMUS(node->FullPath.data());
+            preview_state.audio.music = MIX_LoadAudio(preview_state.audio.mixer, node->FullPath.data(), true);
         }
 
-        if (current_sound) {
+        if (preview_state.audio.music) {
             preview_state.contents.type = AUDIO;
-            Mix_PlayMusic(current_sound, 1);
-            double duration = Mix_MusicDuration(current_sound);
-            preview_state.audio.music = current_sound;
+            MIX_SetTrackAudio(preview_state.audio.track, preview_state.audio.music);
+            MIX_PlayTrack(preview_state.audio.track, 1);
+            if (!MIX_GetAudioFormat(preview_state.audio.music, &preview_state.audio.spec)) {
+                Logger::error("Failed to get audio format: %s", SDL_GetError());
+                MIX_DestroyAudio(preview_state.audio.music);
+            } else {
+                Logger::log("Loaded audio sample rate: %d Hz", preview_state.audio.spec.freq);
+            }
+            double duration_ms = MIX_GetAudioDuration(preview_state.audio.music);
+            double duration_sec = duration_ms / 1000.0;
             preview_state.audio.playing = true;
-            preview_state.audio.time.total_time_min = duration / 60;
-            preview_state.audio.time.total_time_sec = fmod(duration, 60.0);
+            preview_state.audio.time.total_time_min = duration_sec / 60;
+            preview_state.audio.time.total_time_sec = fmod(duration_sec, 60.0);
             preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
         }
     } else if (ElfFile::IsValid(entry_buffer)) {

@@ -10,3 +10,6 @@
 [submodule "vendored/squirrel"]
 	path = vendored/squirrel
 	url = https://github.com/albertodemichelis/squirrel.git
+[submodule "vendored/SDL"]
+	path = vendored/SDL
+	url = https://github.com/libsdl-org/SDL.git

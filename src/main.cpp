@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
 
-    Mix_CloseAudio();
+    MIX_DestroyAudio(preview_state.audio.music);
 
     SDL_DestroyWindow(window);
     SDL_RemoveTimer(preview_state.audio.update_timer);

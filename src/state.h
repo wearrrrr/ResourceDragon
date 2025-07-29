@@ -4,6 +4,7 @@
 
 #include "imgui.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <gl3.h>
 #include <string>
@@ -36,7 +37,10 @@ struct TimeInfo {
 };
 
 struct PWinStateAudio {
-  Mix_Music *music;
+  MIX_Mixer *mixer;
+  MIX_Audio *music;
+  MIX_Track *track;
+  SDL_AudioSpec spec;
   bool playing;
   u8 *buffer;
   int volumePercent;

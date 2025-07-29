@@ -5,9 +5,9 @@
 
 #include "state.h"
 
-void Audio::MusicFinishedCallback() {
+void Audio::MusicFinishedCallback(void* userdata, MIX_Track *track) {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
-        Mix_PlayMusic(preview_state.audio.music, 0);
+        MIX_PlayTrack(preview_state.audio.track, 0);
     } else {
         DirectoryNode::UnloadSelectedFile();
     }
@@ -15,24 +15,33 @@ void Audio::MusicFinishedCallback() {
 
 void Audio::InitAudioSystem() {
     SDL_AudioSpec spec = {
-        .format = MIX_DEFAULT_FORMAT,
-        .channels = MIX_DEFAULT_CHANNELS,
-        .freq = MIX_DEFAULT_FREQUENCY,
+        .format = SDL_AUDIO_S16,
+        .channels = 2,
+        .freq = 44100,
     };
 
-    if (!Mix_OpenAudio(0, &spec)) {
+    MIX_Init();
+
+    preview_state.audio.mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec);
+    if (!preview_state.audio.mixer) {
         Logger::error("Failed to initialize SDL_mixer: %s", SDL_GetError());
         return;
     }
 
-    Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
+    MIX_GetMixerFormat(preview_state.audio.mixer, &spec);
     if (spec.freq == 0 || spec.format == 0 || spec.channels == 0) {
         Logger::error("Failed to query audio spec: %s", SDL_GetError());
-        Mix_CloseAudio();
+        MIX_DestroyAudio(preview_state.audio.music);
         return;
     }
 
-    Mix_HookMusicFinished(MusicFinishedCallback);
+    preview_state.audio.track = MIX_CreateTrack(preview_state.audio.mixer);
+    if (!preview_state.audio.track) {
+        Logger::error("Failed to reserve track: %s", SDL_GetError());
+        return;
+    }
+
+    MIX_SetTrackStoppedCallback(preview_state.audio.track, MusicFinishedCallback, nullptr);
     return;
 }
 
@@ -43,22 +52,4 @@ const std::string audio_exts[] = {
 
 bool Audio::IsAudio(const std::string &ext) {
     return std::find(std::begin(audio_exts), std::end(audio_exts), Utils::ToLower(ext)) != std::end(audio_exts);
-};
-
-bool Audio::PlaySound(const fs::path &path) {
-    current_sound = Mix_LoadMUS(path.string().c_str());
-    if (!current_sound) {
-        Logger::error("Failed to load Audio: %s", SDL_GetError());
-        // Setting to nullptr just in case
-        // This just makes sure that if the music fails to load, it won't try to play anyways.
-        current_sound = nullptr;
-        return false;
-    }
-    if (!Mix_PlayMusic(current_sound, 0)) {
-        Logger::error("Failed to play music: %s", SDL_GetError());
-        Mix_FreeMusic(current_sound);
-        current_sound = nullptr;
-        return false;
-    }
-    return true;
 };

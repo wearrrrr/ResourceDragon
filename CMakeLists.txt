@@ -30,11 +30,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(ResourceDragon VERSION 0.1)
 
 find_package(PkgConfig REQUIRED)
-find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
 find_package(OpenSSL REQUIRED)
 
+add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
