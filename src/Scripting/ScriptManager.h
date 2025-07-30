@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <util/Logger.h>
 
-static void squirrel_print(HSQUIRRELVM vm, const SQChar* str, ...) {
+static void squirrel_print(HSQUIRRELVM vm, const SQChar *str, ...) {
   va_list va;
   va_start(va, str);
   Logger::log([&]() {
@@ -25,8 +25,7 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
       Logger::error("Squirrel runtime exception: \"%s\" ", error_msg);
       SQStackInfos sqstack;
       for (SQInteger i = 1; SQ_SUCCEEDED(sq_stackinfos(vm, i, &sqstack)); ++i) {
-        printf(*sqstack.source ? "\t at %s (%s:%lld)\n"
-                               : "\t at %s (unknown)\n",
+        printf(sqstack.source ? "\t at %s (%s:%lld)\n" : "\t at %s\n",
                sqstack.funcname ? sqstack.funcname : "Anonymous function",
                sqstack.source, sqstack.line);
       }
