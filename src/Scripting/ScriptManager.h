@@ -7,14 +7,11 @@
 #include <ArchiveFormats/ArchiveFormat.h>
 #include <util/Logger.h>
 
-static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...) {
-  char buffer[1024];
-  va_list args;
-  va_start(args, s);
-  vsnprintf(buffer, sizeof(buffer), s, args);
-  va_end(args);
-
-  Logger::log("[Squirrel] %s", buffer);
+static void squirrel_print(HSQUIRRELVM vm, const SQChar* s, ...) {
+  va_list va;
+  va_start(va, s);
+  Logger::log(s, va);
+  va_end(va);
 }
 
 static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
