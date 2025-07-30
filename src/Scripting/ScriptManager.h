@@ -61,7 +61,9 @@ public:
     }
 
     ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override {
-        CallFunction("tryOpen", buffer, size, file_name.c_str());
+        auto table = CallTableFunction("tryOpen", buffer, size, file_name.c_str());
+        SQUtils::DumpSquirrelTable(vm, table);
+        sq_release(vm, &table);
         return nullptr;
     }
 
@@ -79,6 +81,33 @@ private:
         sq_pop(vm, 1);
         return fallback;
     }
+
+    HSQOBJECT CallTableFunction(const char* funcName, u8* buffer, u64 size, const char* file_name) const {
+        HSQOBJECT result;
+        result._type = OT_NULL;
+
+        sq_pushobject(vm, table_ref);
+        sq_pushstring(vm, _SC(funcName), -1);
+        if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+            sq_pushobject(vm, table_ref);
+            sq_pushuserpointer(vm, buffer);
+            sq_pushinteger(vm, (SQInteger)size);
+            sq_pushstring(vm, file_name, -1);
+
+            if (SQ_SUCCEEDED(sq_call(vm, 4, SQTrue, SQTrue))) {
+                if (sq_gettype(vm, -1) == OT_TABLE) {
+                    sq_getstackobj(vm, -1, &result);
+                    sq_addref(vm, &result);
+                }
+                sq_pop(vm, 2);
+                return result;
+            }
+        }
+
+        sq_pop(vm, 1);
+        return result;
+    }
+
 
     bool CallBoolFunction(const char* funcName, u8* buffer, u64 size, const char* ext) const {
         sq_pushobject(vm, table_ref);

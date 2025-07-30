@@ -11,6 +11,20 @@ archive_format <- {
     }
 
     function tryOpen(buffer, size, name) {
-        return null;
+        return {
+            entries = [
+                {
+                    name = "test"
+                },
+                {
+                    name = "test2"
+                }
+            ],
+            entries2 = [
+                {
+                    name = "test3"
+                }
+            ]
+        };
     }
 }

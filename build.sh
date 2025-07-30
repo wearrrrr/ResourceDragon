@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NPROC=$(nproc --ignore=2)
+NPROC=$(nproc)
 if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
 DEBUG=OFF

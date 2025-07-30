@@ -19,7 +19,7 @@ bool ScriptManager::LoadFile(std::string path) {
 SquirrelArchiveFormat* ScriptManager::Register() {
     sq_pushroottable(vm);
 
-    sq_pushstring(vm, _SC("archive_format"), -1);
+    sq_pushstring(vm, SC("archive_format"), -1);
     if (SQ_FAILED(sq_get(vm, -2))) {
         Logger::error("[Squirrel] 'archive_format' table not found in script!");
         sq_pop(vm, 1);
