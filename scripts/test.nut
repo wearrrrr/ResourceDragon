@@ -14,15 +14,12 @@ archive_format <- {
         return {
             entries = [
                 {
-                    name = "test"
+                    name = "test",
+                    size = 0x04
                 },
                 {
                     name = "test2"
-                }
-            ],
-            entries2 = [
-                {
-                    name = "test3"
+                    size = 0x0B
                 }
             ]
         };
