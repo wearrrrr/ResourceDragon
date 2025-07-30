@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     bool inotify_running = true;
-    std::thread inotify_thread([&]() {
+    std::thread inotify_thread([=]() {
         char buffer[1024];
         while (inotify_running) {
             int length = read(inotify_fd, buffer, sizeof(buffer));

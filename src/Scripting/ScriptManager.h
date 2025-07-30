@@ -5,12 +5,16 @@
 #include "squirrel_all.h"
 
 #include <ArchiveFormats/ArchiveFormat.h>
+#include <cstdio>
 #include <util/Logger.h>
 
-static void squirrel_print(HSQUIRRELVM vm, const SQChar* s, ...) {
+static void squirrel_print(HSQUIRRELVM vm, const SQChar* str, ...) {
   va_list va;
-  va_start(va, s);
-  Logger::log(s, va);
+  va_start(va, str);
+  Logger::log([&]() {
+    printf("[Squirrel] ");
+    vprintf(str, va);
+  });
   va_end(va);
 }
 
