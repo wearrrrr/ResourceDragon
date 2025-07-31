@@ -1,4 +1,5 @@
 #include "SquirrelArc.h"
+#include "squirrel.h"
 
 bool SquirrelArchiveFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const {
     const char *funcName = "CanHandleFile";
@@ -69,18 +70,63 @@ ArchiveBase* SquirrelArchiveFormat::TryOpen(u8* buffer, u64 size, std::string fi
 
     sq_pop(vm, 2); // pop entries array and result table
 
-    Logger::log("Entry 1 name: %s", entries.begin()->second.name.c_str());
-    Logger::log("Entry 1 size: %d", entries.begin()->second.size);
-    Logger::log("Entry 1 offset: %d", entries.begin()->second.offset);
-
     return new SquirrelArchiveBase(vm, archive_format_table, entries);
 }
 
-u8* SquirrelArchiveBase::OpenStream(const Entry *entry, u8 *buffer) {
-    u8 *entryData = (u8*)malloc(entry->size);
-    memcpy(entryData, buffer + entry->offset, entry->size);
-    // TODO: Convert entry back into something squirrel can work with so that we can actually pass relevant information to this function
-    // Also, we need to return the return value of this function, obviously.
-    SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "OpenStream", nullptr, buffer);
-    return entryData;
-};
+u8* SquirrelArchiveBase::OpenStream(const Entry* entry, u8* buffer) {
+    sq_newtable(vm);
+    sq_pushstring(vm, "name", -1);
+    sq_pushstring(vm, entry->name.data(), entry->name.size());
+    sq_rawset(vm, -3);
+
+    sq_pushstring(vm, "size", -1);
+    sq_pushinteger(vm, entry->size);
+    sq_rawset(vm, -3);
+
+    sq_pushstring(vm, "offset", -1);
+    sq_pushinteger(vm, entry->offset);
+    sq_rawset(vm, -3);
+
+    HSQOBJECT entry_obj;
+    sq_getstackobj(vm, -1, &entry_obj);
+    sq_addref(vm, &entry_obj);
+
+    sq_pop(vm, 1);
+
+    if (SQ_SUCCESS(SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "OpenStream", entry_obj, buffer))) {
+        HSQOBJECT result;
+        sq_getstackobj(vm, -1, &result);
+        sq_addref(vm, &result);
+        sq_pop(vm, 1);
+
+        if (result._type == OT_ARRAY) {
+            sq_pushobject(vm, result);
+            SQInteger len = sq_getsize(vm, -1);
+
+            std::vector<u8> entry_buf;
+            entry_buf.reserve(len);
+
+            for (SQInteger i = 0; i < len; ++i) {
+                sq_pushinteger(vm, i);
+                if (SQ_SUCCEEDED(sq_rawget(vm, -2))) {
+                    SQInteger val;
+                    if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &val))) {
+                        entry_buf.push_back(static_cast<u8>(val));
+                    }
+                    sq_pop(vm, 1);
+                }
+            }
+
+            sq_pop(vm, 1); // pop array
+
+            sq_release(vm, &entry_obj);
+            sq_release(vm, &result);
+
+            u8* entryData = (u8*)malloc(entry_buf.size());
+            memcpy(entryData, entry_buf.data(), entry_buf.size());
+            return entryData;
+        }
+    }
+
+    return nullptr;
+}

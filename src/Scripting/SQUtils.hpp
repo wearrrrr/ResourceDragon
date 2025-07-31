@@ -69,6 +69,8 @@ struct SQUtils {
             sq_pushuserpointer(vm, val);
         } else if constexpr (std::is_same_v<U, std::nullptr_t>) {
             sq_pushnull(vm);
+        } else if constexpr (std::is_same_v<U, HSQOBJECT>) {
+                sq_pushobject(vm, val);
         } else if constexpr (std::is_pointer_v<U>) {
             static_assert(sizeof(U) == 0, "push_value: unsupported pointer type");
         } else {

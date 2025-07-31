@@ -22,7 +22,6 @@ archive_format <- {
     }
 
     function OpenStream(entry, buffer) {
-        //print(entry);
-        //print(buffer);
+        return read_bytes(buffer, entry.offset, entry.size);
     }
 }
