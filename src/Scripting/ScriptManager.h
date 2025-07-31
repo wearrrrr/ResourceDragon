@@ -54,14 +54,12 @@ public:
     return GetStringField("description", "GETDESC_FAIL");
   }
 
-  bool CanHandleFile(u8 *buffer, u64 size,
-                     const std::string &ext) const override {
+  bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
     return CallBoolFunction("canHandleFile", buffer, size, ext.c_str());
   }
 
   ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override {
-    HSQOBJECT table =
-        CallTableFunction("tryOpen", buffer, size, file_name.c_str());
+    HSQOBJECT table = CallTableFunction("tryOpen", buffer, size, file_name.c_str());
     SQUtils::DumpSquirrelTable(vm, table);
 
     sq_pushobject(vm, table);
