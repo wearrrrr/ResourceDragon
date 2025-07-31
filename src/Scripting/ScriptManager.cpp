@@ -1,5 +1,7 @@
 
 #include "ScriptManager.h"
+#include "SQUtils.hpp"
+#include "squirrel.h"
 
 bool ScriptManager::LoadFile(std::string path) {
     Logger::log("Loading %s...", path.c_str());
@@ -14,6 +16,13 @@ bool ScriptManager::LoadFile(std::string path) {
 
     sq_pop(vm, 1);
     return true;
+}
+
+void DumpRootTable(HSQUIRRELVM vm) {
+    HSQOBJECT rootTable;
+    sq_pushroottable(vm);
+    sq_getstackobj(vm, -1, &rootTable);
+    SQUtils::DumpSquirrelTable(vm, rootTable);
 }
 
 SquirrelArchiveFormat* ScriptManager::Register() {

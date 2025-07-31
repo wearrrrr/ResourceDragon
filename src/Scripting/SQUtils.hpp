@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <vector>
 #include <memory.h>
 #include <utility>
@@ -43,6 +44,95 @@ namespace SQUtils {
             sq_arrayappend(vm, -2);
         }
         return 1;
+    }
+
+    template <typename...>
+    inline constexpr bool dependent_false = false;
+
+    inline void push_all(HSQUIRRELVM) {
+        // No arguments.
+    }
+
+    template <typename T>
+    void push_value(HSQUIRRELVM vm, T&& val) {
+        using U = std::remove_cvref_t<T>;
+
+        if constexpr (std::numeric_limits<U>::is_integer && !std::is_same_v<U, bool>) {
+            sq_pushinteger(vm, static_cast<SQInteger>(val));
+        } else if constexpr (std::is_same_v<U, bool>) {
+            sq_pushbool(vm, val);
+        } else if constexpr (std::is_floating_point_v<U>) {
+            sq_pushfloat(vm, static_cast<SQFloat>(val));
+        } else if constexpr (std::is_same_v<U, std::string>) {
+            sq_pushstring(vm, val.c_str(), -1);
+        } else if constexpr (std::is_same_v<U, const char*> || std::is_same_v<U, char*>) {
+            sq_pushstring(vm, val, -1);
+        } else if constexpr (std::is_same_v<U, unsigned char*>) {
+            sq_pushuserpointer(vm, val);
+        } else if constexpr (std::is_pointer_v<U>) {
+            static_assert(sizeof(U) == 0, "push_value: unsupported pointer type");
+        } else {
+            static_assert(sizeof(U) == 0, "push_value: unsupported type passed to Squirrel");
+        }
+    }
+
+    template <typename T, typename... Rest>
+    void push_all(HSQUIRRELVM vm, T&& arg, Rest&&... rest) {
+        push_value(vm, std::forward<T>(arg));
+        push_all(vm, std::forward<Rest>(rest)...);
+    }
+
+    template <typename... Args>
+    bool call_squirrel_function_in_table(HSQUIRRELVM vm, HSQOBJECT table, const char* func_name, Args&&... args) {
+        constexpr int arg_count = sizeof...(Args);
+
+        // [table]
+        sq_pushobject(vm, table);
+
+        // [table][func_name]
+        sq_pushstring(vm, func_name, -1);
+
+        if (SQ_FAILED(sq_get(vm, -2))) {
+            sq_pop(vm, 1); // pop table
+            Logger::error("[Squirrel] Squirrel function not found: '%s'", func_name);
+            return false;
+        }
+        // push this
+        sq_pushobject(vm, table);
+
+        // push function args
+        push_all(vm, std::forward<Args>(args)...); // [table][function][this](...)
+        if (SQ_FAILED(sq_call(vm, 1 + arg_count, SQTrue, SQTrue))) {
+            sq_pop(vm, 1);
+            return false;
+        }
+
+        sq_remove(vm, -2);
+        return true;
+    }
+
+    static const SQChar* GetStringFromStack(HSQUIRRELVM vm, const char *strToRetrieve) {
+        sq_pushstring(vm, strToRetrieve, -1);
+        if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+          const SQChar *str;
+          if (SQ_SUCCEEDED(sq_getstring(vm, -1, &str))) {
+              sq_pop(vm, 1);
+              return str;
+          }
+        }
+        return "";
+    }
+
+    static SQInteger GetIntFromStack(HSQUIRRELVM vm, const char *strToRetrieve) {
+        sq_pushstring(vm, strToRetrieve, -1);
+        if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+          SQInteger num;
+          if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &num))) {
+              sq_pop(vm, 1);
+              return num;
+          }
+        }
+        return 0;
     }
 
     static void print_stack_top_value(std::vector<SQObjectValue>& recursion_vec, HSQUIRRELVM v, int depth) {
@@ -149,7 +239,7 @@ namespace SQUtils {
                     while (SQ_SUCCEEDED(sq_next(v, -2))) {
                         //Key|value
                         // -2|-1
-                        SQObjectType key_type = sq_gettype(v, -2);
+                        // SQObjectType key_type = sq_gettype(v, -2);
                         printf("%*s", depth, "");
 
                         if (val_type != _RT_ARRAY) {

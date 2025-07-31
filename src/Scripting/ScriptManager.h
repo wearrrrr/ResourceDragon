@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SQUtils.hpp"
-#include "squirrel.h"
 #include "squirrel_all.h"
 
 #include <ArchiveFormats/ArchiveFormat.h>
@@ -37,15 +36,20 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
 
 class SquirrelArchiveBase : public ArchiveBase {
   public:
+    HSQUIRRELVM vm;
+    HSQOBJECT archive_format_table;
     EntryMap entries;
 
-    SquirrelArchiveBase(EntryMap entries) {
+    SquirrelArchiveBase(HSQUIRRELVM vm, HSQOBJECT table, EntryMap entries) {
+        this->vm = vm;
         this->entries = entries;
+        this->archive_format_table = table;
     }
 
     u8* OpenStream(const Entry *entry, u8 *buffer) override {
         u8 *entryData = (u8*)malloc(entry->size);
         memcpy(entryData, buffer + entry->offset, entry->size);
+        // SQUtils::CallTableFunction(vm, archive_format_table, "OpenStream", buffer, 0, nullptr);
         return entryData;
     };
     EntryMapPtr GetEntries() override {
@@ -58,15 +62,17 @@ class SquirrelArchiveBase : public ArchiveBase {
 
 class SquirrelArchiveFormat : public ArchiveFormat {
   HSQUIRRELVM vm;
-  HSQOBJECT table_ref;
+  HSQOBJECT archive_format_table;
 
 public:
   SquirrelArchiveFormat(HSQUIRRELVM vm, const HSQOBJECT &table) : vm(vm) {
-    sq_resetobject(&table_ref);
-    table_ref = table;
+    sq_resetobject(&archive_format_table);
+    archive_format_table = table;
   }
 
-  ~SquirrelArchiveFormat() { sq_release(vm, &table_ref); }
+  ~SquirrelArchiveFormat() {
+      sq_release(vm, &archive_format_table);
+  }
 
   std::string_view GetTag() const override {
     return GetStringField("tag", "GETTAG_FAIL");
@@ -77,78 +83,84 @@ public:
   }
 
   bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
-    return CallBoolFunction("canHandleFile", buffer, size, ext.c_str());
-  }
+      const char *funcName = "CanHandleFile";
+      SQBool result;
 
-  const SQChar* GetStringFromStack(const char *strToRetrieve) {
-      sq_pushstring(vm, strToRetrieve, -1);
-      if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-        const SQChar *str;
-        if (SQ_SUCCEEDED(sq_getstring(vm, -1, &str))) {
-            sq_pop(vm, 1);
-            return str;
-        }
+      if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, funcName, buffer, size, ext)) {
+          return false;
       }
-      return "";
-  }
 
-  SQInteger GetIntFromStack(const char *strToRetrieve) {
-      sq_pushstring(vm, strToRetrieve, -1);
-      if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-        SQInteger num;
-        if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &num))) {
-            sq_pop(vm, 1);
-            return num;
-        }
+      if (SQ_FAILED(sq_getbool(vm, -1, &result))) {
+          sq_pop(vm, 1);
+          return false;
       }
-      return 0;
+
+      sq_pop(vm, 1);
+      return result;
   }
 
-  ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override {
-    HSQOBJECT table = CallTableFunction("tryOpen", buffer, size, file_name.c_str());
-    SQUtils::DumpSquirrelTable(vm, table);
+  ArchiveBase* TryOpen(u8* buffer, u64 size, std::string file_name) override {
+      const char *funcName = "TryOpen";
+      HSQOBJECT result;
 
-    sq_pushobject(vm, table);
-    sq_pushstring(vm, "entries", -1);
+      sq_pushobject(vm, archive_format_table);
 
-    EntryMap entries;
+      if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, funcName, buffer, size, file_name)) {
+          sq_pop(vm, 1);
+          return nullptr;
+      }
+      if (sq_gettype(vm, -1) == OT_TABLE) {
+          sq_getstackobj(vm, -1, &result);
+          sq_addref(vm, &result);
+      } else {
+          sq_pop(vm, 1);
+          sq_pop(vm, 1);
+          return nullptr;
+      }
+      sq_pop(vm, 1);
 
-    if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+      SQUtils::DumpSquirrelTable(vm, result);
+
+      sq_pushobject(vm, result);
+      sq_pushstring(vm, "entries", -1);
+
+      if (SQ_FAILED(sq_get(vm, -2))) {
+          sq_pop(vm, 2);
+          sq_pop(vm, 1);
+          return nullptr;
+      }
+
+      EntryMap entries;
+
       if (sq_gettype(vm, -1) == OT_ARRAY) {
-        // For each element in entries[]...
-        for (SQInteger i = 0; i < sq_getsize(vm, -1); ++i) {
-          sq_pushinteger(vm, i);
-          if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-
-            if (sq_gettype(vm, -1) == OT_TABLE) {
-              Entry entry;
-
-              entry.name = GetStringFromStack("name");
-              entry.size = GetIntFromStack("size");
-              entry.offset = GetIntFromStack("offset");
-
-              entries.insert({entry.name, entry});
-            }
-
-            sq_pop(vm, 1);
+          SQInteger size = sq_getsize(vm, -1);
+          for (SQInteger i = 0; i < size; ++i) {
+              sq_pushinteger(vm, i);
+              if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+                  if (sq_gettype(vm, -1) == OT_TABLE) {
+                      Entry entry;
+                      entry.name = SQUtils::GetStringFromStack(vm, "name");
+                      entry.size = SQUtils::GetIntFromStack(vm, "size");
+                      entry.offset = SQUtils::GetIntFromStack(vm, "offset");
+                      entries.insert({entry.name, entry});
+                  }
+                  sq_pop(vm, 1);
+              }
           }
-        }
       }
-      sq_pop(vm, 1); // entries table
-    };
 
-    sq_pop(vm, 1); // table from tryOpen
+      sq_pop(vm, 2); // pop entries array and result table
 
-    Logger::log("Entry 1 name: %s", entries.begin()->second.name.c_str());
-    Logger::log("Entry 1 size: %d", entries.begin()->second.size);
-    Logger::log("Entry 1 offset: %d", entries.begin()->second.offset);
+      Logger::log("Entry 1 name: %s", entries.begin()->second.name.c_str());
+      Logger::log("Entry 1 size: %d", entries.begin()->second.size);
+      Logger::log("Entry 1 offset: %d", entries.begin()->second.offset);
 
-    return new SquirrelArchiveBase(entries);
+      return new SquirrelArchiveBase(vm, archive_format_table, entries);
   }
 
 private:
   std::string_view GetStringField(const char *key, const char *fallback) const {
-    sq_pushobject(vm, table_ref);
+    sq_pushobject(vm, archive_format_table);
     sq_pushstring(vm, _SC(key), -1);
     if (SQ_SUCCESS(sq_get(vm, -2))) {
       const SQChar *val;
@@ -159,71 +171,6 @@ private:
     }
     sq_pop(vm, 1);
     return fallback;
-  }
-
-  HSQOBJECT CallTableFunction(const char *funcName, u8 *buffer, u64 size,
-                              const char *file_name) const {
-    HSQOBJECT result;
-    result._type = OT_NULL;
-
-    sq_pushobject(vm, table_ref);
-    sq_pushstring(vm, _SC(funcName), -1);
-    if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-      sq_pushobject(vm, table_ref);
-      sq_pushuserpointer(vm, buffer);
-      sq_pushinteger(vm, (SQInteger)size);
-      sq_pushstring(vm, file_name, -1);
-
-      if (SQ_SUCCEEDED(sq_call(vm, 4, SQTrue, SQTrue))) {
-        if (sq_gettype(vm, -1) == OT_TABLE) {
-          sq_getstackobj(vm, -1, &result);
-          sq_addref(vm, &result);
-        }
-        sq_pop(vm, 2);
-        return result;
-      }
-    }
-
-    sq_pop(vm, 1);
-    return result;
-  }
-
-  bool CallBoolFunction(const char *funcName, u8 *buffer, u64 size,
-                        const char *ext) const {
-    sq_pushobject(vm, table_ref);
-    sq_pushstring(vm, SC(funcName), -1);
-    if (SQ_SUCCESS(sq_get(vm, -2))) {
-      sq_pushobject(vm, table_ref);
-      sq_pushuserpointer(vm, buffer);
-      sq_pushinteger(vm, size);
-      sq_pushstring(vm, ext, -1);
-
-      if (SQ_SUCCESS(sq_call(vm, 4, SQTrue, SQTrue))) {
-        SQBool result;
-        sq_getbool(vm, -1, &result);
-        sq_pop(vm, 2);
-        return result;
-      }
-    }
-    sq_pop(vm, 1);
-    return false;
-  }
-
-  void CallFunction(const char *funcName, u8 *buffer, u64 size,
-                    const char *file_name) const {
-    sq_pushobject(vm, table_ref);
-    sq_pushstring(vm, _SC(funcName), -1);
-    if (SQ_SUCCESS(sq_get(vm, -2))) {
-      sq_pushobject(vm, table_ref);
-      sq_pushuserpointer(vm, buffer);
-      sq_pushinteger(vm, size);
-      sq_pushstring(vm, file_name, -1);
-
-      if (SQ_FAILED(sq_call(vm, 4, SQFalse, SQTrue))) {
-        sqstd_printcallstack(vm);
-      }
-    }
-    sq_pop(vm, 1);
   }
 };
 
@@ -237,11 +184,8 @@ public:
       Logger::error("Failed to create Squirrel VM!");
       return;
     }
-    sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar *desc,
-                                      const SQChar *src, SQInteger line,
-                                      SQInteger col) {
-      puts("");
-      Logger::error("Squirrel Compiler Exception!");
+    sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar *desc, const SQChar *src, SQInteger line, SQInteger col) {
+      Logger::error("\nSquirrel Compiler Exception!");
       printf("\t at %s:%lld:%lld: %s\n\n", src, line, col, desc);
     });
     sq_newclosure(vm, squirrel_runtime_error, 0);

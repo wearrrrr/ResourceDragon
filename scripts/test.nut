@@ -3,14 +3,16 @@ archive_format <- {
     tag = "SqTestFormat",
     description = "Squirrel Test format -- Does nothing!",
 
-    function canHandleFile(buffer, size, ext) {
-
+    function CanHandleFile(buffer, size, ext) {
         local bytes = read_bytes(buffer, 0, 4);
         local magic = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
         return magic == sig;
     }
 
-    function tryOpen(buffer, size, name) {
+    function TryOpen(buffer, size, name) {
+        print(buffer);
+        print(size);
+        print(name);
         return {
             entries = [
                 {
@@ -20,5 +22,9 @@ archive_format <- {
                 }
             ]
         };
+    }
+
+    function OpenStream(entry, buffer) {
+
     }
 }
