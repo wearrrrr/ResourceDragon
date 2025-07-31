@@ -13,14 +13,7 @@ class SquirrelArchiveBase : public ArchiveBase {
         this->archive_format_table = table;
     }
 
-    u8* OpenStream(const Entry *entry, u8 *buffer) override {
-        u8 *entryData = (u8*)malloc(entry->size);
-        memcpy(entryData, buffer + entry->offset, entry->size);
-        // TODO: Convert entry back into something squirrel can work with so that we can actually pass relevant information to this function
-        // Also, we need to return the return value of this function, obviously.
-        SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "OpenStream", nullptr, buffer);
-        return entryData;
-    };
+    u8* OpenStream(const Entry *entry, u8 *buffer) override;
     EntryMapPtr GetEntries() override {
         EntryMapPtr entries;
         for (auto& entry : this->entries)

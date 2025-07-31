@@ -75,3 +75,12 @@ ArchiveBase* SquirrelArchiveFormat::TryOpen(u8* buffer, u64 size, std::string fi
 
     return new SquirrelArchiveBase(vm, archive_format_table, entries);
 }
+
+u8* SquirrelArchiveBase::OpenStream(const Entry *entry, u8 *buffer) {
+    u8 *entryData = (u8*)malloc(entry->size);
+    memcpy(entryData, buffer + entry->offset, entry->size);
+    // TODO: Convert entry back into something squirrel can work with so that we can actually pass relevant information to this function
+    // Also, we need to return the return value of this function, obviously.
+    SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "OpenStream", nullptr, buffer);
+    return entryData;
+};
