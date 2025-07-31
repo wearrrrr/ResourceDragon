@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <limits>
 #include <vector>
 #include <memory.h>
@@ -15,7 +16,7 @@
 #define SC _SC
 #define SQ_SUCCESS SQ_SUCCEEDED
 
-namespace SQUtils {
+struct SQUtils {
     static inline void CallFunction(HSQUIRRELVM vm, const char *name) {
         sq_pushstring(vm, SC(name), -1);
         if (SQ_SUCCESS(sq_get(vm, -2))) {
@@ -29,7 +30,7 @@ namespace SQUtils {
             Logger::error("Function '%s' not found.", name);
         }
     }
-    inline SQInteger read_bytes(HSQUIRRELVM vm) {
+    static inline SQInteger read_bytes(HSQUIRRELVM vm) {
         SQUserPointer ptr;
         SQInteger offset, length;
 
@@ -46,15 +47,12 @@ namespace SQUtils {
         return 1;
     }
 
-    template <typename...>
-    inline constexpr bool dependent_false = false;
-
-    inline void push_all(HSQUIRRELVM) {
+    static inline void push_all(HSQUIRRELVM) {
         // No arguments.
     }
 
     template <typename T>
-    void push_value(HSQUIRRELVM vm, T&& val) {
+    static void push_value(HSQUIRRELVM vm, T&& val) {
         using U = std::remove_cvref_t<T>;
 
         if constexpr (std::numeric_limits<U>::is_integer && !std::is_same_v<U, bool>) {
@@ -69,6 +67,8 @@ namespace SQUtils {
             sq_pushstring(vm, val, -1);
         } else if constexpr (std::is_same_v<U, unsigned char*>) {
             sq_pushuserpointer(vm, val);
+        } else if constexpr (std::is_same_v<U, std::nullptr_t>) {
+            sq_pushnull(vm);
         } else if constexpr (std::is_pointer_v<U>) {
             static_assert(sizeof(U) == 0, "push_value: unsupported pointer type");
         } else {
@@ -77,13 +77,13 @@ namespace SQUtils {
     }
 
     template <typename T, typename... Rest>
-    void push_all(HSQUIRRELVM vm, T&& arg, Rest&&... rest) {
+    static void push_all(HSQUIRRELVM vm, T&& arg, Rest&&... rest) {
         push_value(vm, std::forward<T>(arg));
         push_all(vm, std::forward<Rest>(rest)...);
     }
 
     template <typename... Args>
-    bool call_squirrel_function_in_table(HSQUIRRELVM vm, HSQOBJECT table, const char* func_name, Args&&... args) {
+    static bool call_squirrel_function_in_table(HSQUIRRELVM vm, HSQOBJECT table, const char* func_name, Args&&... args) {
         constexpr int arg_count = sizeof...(Args);
 
         // [table]
@@ -288,4 +288,4 @@ namespace SQUtils {
         printf("\n");
         sq_pop(vm, 1);
     }
-}
+};

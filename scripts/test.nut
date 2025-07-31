@@ -10,9 +10,6 @@ archive_format <- {
     }
 
     function TryOpen(buffer, size, name) {
-        print(buffer);
-        print(size);
-        print(name);
         return {
             entries = [
                 {
@@ -25,6 +22,7 @@ archive_format <- {
     }
 
     function OpenStream(entry, buffer) {
-
+        //print(entry);
+        //print(buffer);
     }
 }

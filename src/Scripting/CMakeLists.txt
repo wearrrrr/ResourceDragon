@@ -1,5 +1,6 @@
 add_library(Scripting
     ScriptManager.cpp
+    SquirrelArc.cpp
 )
 
 target_include_directories(Scripting PUBLIC
