@@ -58,6 +58,30 @@ public:
     return CallBoolFunction("canHandleFile", buffer, size, ext.c_str());
   }
 
+  const SQChar* GetStringFromStack(const char *strToRetrieve) {
+      sq_pushstring(vm, strToRetrieve, -1);
+      if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+        const SQChar *str;
+        if (SQ_SUCCEEDED(sq_getstring(vm, -1, &str))) {
+            sq_pop(vm, 1);
+            return str;
+        }
+      }
+      return "";
+  }
+
+  SQInteger GetIntFromStack(const char *strToRetrieve) {
+      sq_pushstring(vm, strToRetrieve, -1);
+      if (SQ_SUCCEEDED(sq_get(vm, -2))) {
+        SQInteger num;
+        if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &num))) {
+            sq_pop(vm, 1);
+            return num;
+        }
+      }
+      return 0;
+  }
+
   ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override {
     HSQOBJECT table = CallTableFunction("tryOpen", buffer, size, file_name.c_str());
     SQUtils::DumpSquirrelTable(vm, table);
@@ -77,23 +101,9 @@ public:
             if (sq_gettype(vm, -1) == OT_TABLE) {
               Entry entry;
 
-              sq_pushstring(vm, "name", -1);
-              if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-                const SQChar *str;
-                if (SQ_SUCCEEDED(sq_getstring(vm, -1, &str))) {
-                  entry.name = str;
-                }
-                sq_pop(vm, 1);
-              }
-
-              sq_pushstring(vm, "size", -1);
-              if (SQ_SUCCEEDED(sq_get(vm, -2))) {
-                SQInteger size;
-                if (SQ_SUCCEEDED(sq_getinteger(vm, -1, &size))) {
-                  entry.size = size;
-                }
-                sq_pop(vm, 1);
-              }
+              entry.name = GetStringFromStack("name");
+              entry.size = GetIntFromStack("size");
+              entry.offset = GetIntFromStack("offset");
 
               entries.insert({entry.name, entry});
             }
@@ -109,6 +119,7 @@ public:
 
     Logger::log("Entry 1 name: %s", entries.begin()->second.name.c_str());
     Logger::log("Entry 1 size: %d", entries.begin()->second.size);
+    Logger::log("Entry 1 offset: %d", entries.begin()->second.offset);
 
     return nullptr;
   }

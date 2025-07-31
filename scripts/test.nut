@@ -14,12 +14,9 @@ archive_format <- {
         return {
             entries = [
                 {
-                    name = "test",
-                    size = 0x04
-                },
-                {
-                    name = "test2"
+                    name = "text"
                     size = 0x0B
+                    offset = 0x6
                 }
             ]
         };
