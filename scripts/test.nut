@@ -16,7 +16,7 @@ archive_format <- {
                 {
                     name = "text"
                     size = 0x0B
-                    offset = 0x6
+                    offset = 0x5
                 }
             ]
         };

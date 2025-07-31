@@ -293,23 +293,28 @@ std::filesystem::path LinuxExpandUserPath(const std::string& path) {
 }
 
 DirectoryNode::Node *DirectoryNode::CreateTreeFromPath(const std::string& rootPath, Node *parent) {
-    bool is_dir = fs::is_directory(rootPath);
-    Node *newRootNode = new Node {
-        .FullPath = rootPath,
-        .FileName = rootPath,
-        .FileSize = Utils::GetFileSize(rootPath),
-        .FileSizeBytes = is_dir ? 0 : fs::file_size(rootPath),
-        .LastModified = Utils::GetLastModifiedTime(rootPath),
-        .LastModifiedUnix = (u64)fs::last_write_time(rootPath).time_since_epoch().count(),
-        .Parent = parent,
-        .Children = {},
-        .IsDirectory = is_dir,
-        .IsVirtualRoot = !is_dir,
-    };
+    try {
+        bool is_dir = fs::is_directory(rootPath);
+        Node *newRootNode = new Node {
+            .FullPath = rootPath,
+            .FileName = rootPath,
+            .FileSize = Utils::GetFileSize(rootPath),
+            .FileSizeBytes = is_dir ? 0 : fs::file_size(rootPath),
+            .LastModified = Utils::GetLastModifiedTime(rootPath),
+            .LastModifiedUnix = (u64)fs::last_write_time(rootPath).time_since_epoch().count(),
+            .Parent = parent,
+            .Children = {},
+            .IsDirectory = is_dir,
+            .IsVirtualRoot = !is_dir,
+        };
 
-    AddNodes(newRootNode, rootPath);
+        AddNodes(newRootNode, rootPath);
 
-    return newRootNode;
+        return newRootNode;
+    } catch (fs::filesystem_error err) {
+        return rootNode;
+    }
+
 }
 
 void DirectoryNode::ReloadRootNode(Node *node) {

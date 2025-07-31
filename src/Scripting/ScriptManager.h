@@ -6,6 +6,7 @@
 
 #include <ArchiveFormats/ArchiveFormat.h>
 #include <cstdio>
+#include <cstring>
 #include <util/Logger.h>
 
 static void squirrel_print(HSQUIRRELVM vm, const SQChar *str, ...) {
@@ -33,6 +34,27 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
   }
   return 0;
 }
+
+class SquirrelArchiveBase : public ArchiveBase {
+  public:
+    EntryMap entries;
+
+    SquirrelArchiveBase(EntryMap entries) {
+        this->entries = entries;
+    }
+
+    u8* OpenStream(const Entry *entry, u8 *buffer) override {
+        u8 *entryData = (u8*)malloc(entry->size);
+        memcpy(entryData, buffer + entry->offset, entry->size);
+        return entryData;
+    };
+    EntryMapPtr GetEntries() override {
+        EntryMapPtr entries;
+        for (auto& entry : this->entries)
+            entries[entry.first] = &entry.second;
+        return entries;
+    }
+};
 
 class SquirrelArchiveFormat : public ArchiveFormat {
   HSQUIRRELVM vm;
@@ -121,7 +143,7 @@ public:
     Logger::log("Entry 1 size: %d", entries.begin()->second.size);
     Logger::log("Entry 1 offset: %d", entries.begin()->second.offset);
 
-    return nullptr;
+    return new SquirrelArchiveBase(entries);
   }
 
 private:
