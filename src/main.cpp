@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
 
-    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.otf";
+    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
     auto icon_font_path = fs::path("fonts") / "icons.woff2";
 
     auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
