@@ -2,10 +2,9 @@
 #include "squirrel.h"
 
 bool SquirrelArchiveFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const {
-    const char *funcName = "CanHandleFile";
     SQBool result;
 
-    if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, funcName, buffer, size, ext)) {
+    if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "CanHandleFile", buffer, size, ext)) {
         return false;
     }
 
@@ -19,12 +18,11 @@ bool SquirrelArchiveFormat::CanHandleFile(u8 *buffer, u64 size, const std::strin
 }
 
 ArchiveBase* SquirrelArchiveFormat::TryOpen(u8* buffer, u64 size, std::string file_name) {
-    const char *funcName = "TryOpen";
     HSQOBJECT result;
 
     sq_pushobject(vm, archive_format_table);
 
-    if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, funcName, buffer, size, file_name)) {
+    if (!SQUtils::call_squirrel_function_in_table(vm, archive_format_table, "TryOpen", buffer, size, file_name)) {
         sq_pop(vm, 1);
         return nullptr;
     }
