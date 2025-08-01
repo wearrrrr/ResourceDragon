@@ -11,7 +11,7 @@ static std::string currentEncoding = "UTF-8";
 class TextConverter {
     public:
         static std::string UTF16ToUTF8(const std::u16string& utf16_str) {
-            #ifdef linux
+#if defined(linux) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-8", "UTF-16LE");
             if (cd == (iconv_t)-1) {
                 return "";
@@ -33,11 +33,11 @@ class TextConverter {
             delete[] out_buf;
             iconv_close(cd);
             return result;
-            #endif
+#endif
             return "";
         }
         static std::u16string UTF8ToUTF16(const std::string& utf8_str) {
-            #ifdef linux
+            #if defined(linux) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-16", "UTF-8");
             if (cd == (iconv_t)-1) {
                 return u"";
@@ -59,7 +59,7 @@ class TextConverter {
             delete[] out_buf;
             iconv_close(cd);
             return result;
-            #endif
+#endif
             return u"";
         }
         static std::string UTF8ToUTF16LE(const std::string& utf8_str) {
@@ -72,7 +72,7 @@ class TextConverter {
         }
 
         static std::string ShiftJISToUTF8(const std::string& sjis_str) {
-            #ifdef linux
+#if defined(linux) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-8", "SHIFT-JIS");
             if (cd == (iconv_t)-1) {
                 return "";
@@ -94,9 +94,8 @@ class TextConverter {
             delete[] out_buf;
             iconv_close(cd);
             return result;
-            #else
+#endif
             return "";
-            #endif
         }
 
         static void SetCurrentEncoding(std::string encoding) {

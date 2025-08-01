@@ -203,9 +203,9 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
             for (const auto &entry : entries) {
                 // Still not entirely sure if this is necessary?
-                #ifdef linux
+#ifdef linux
                 std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
-                #endif
+#endif
 
                 fs::path entryPath(entry.second->name);
                 Node *current = node;

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 set(LTO OFF)
 
-
 if (UBUNTU)
     set(CMAKE_C_COMPILER clang-19)
     set(CMAKE_CXX_COMPILER clang++-19)
@@ -22,7 +21,8 @@ else()
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
     if (EMSCRIPTEN)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sASSERTIONS -sALLOW_MEMORY_GROWTH -sUSE_SDL=3 -sUSE_WEBGL2=1 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -g --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+        # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
     endif()
     if (LTO)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")

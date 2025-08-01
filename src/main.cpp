@@ -14,6 +14,7 @@
 #include <thread>
 #include <filesystem>
 
+#include "SDL3/SDL_video.h"
 #include "state.h"
 
 #ifdef DEBUG
@@ -263,9 +264,14 @@ int main(int argc, char *argv[]) {
     iconConfig.GlyphMinAdvanceX = 18.0f;
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
+#ifdef EMSCRIPTEN
+        auto font_path = fs::path("/fonts") / "NotoSansCJKjp-Medium.otf";
+        auto icon_font_path = fs::path("/fonts") / "icons.ttf";
+#else
+        auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.otf";
+        auto icon_font_path = fs::path("fonts") / "icons.ttf";
+#endif
 
-    auto font_path = fs::path("/fonts") / "NotoSansCJKjp-Medium.otf";
-    auto icon_font_path = fs::path("/fonts") / "icons.woff2";
 
     auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
     auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), 18, &iconConfig, icon_ranges);
@@ -277,6 +283,7 @@ int main(int argc, char *argv[]) {
     }
 
     ThemeManager::SetTheme(Theme::BessDark);
+
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);

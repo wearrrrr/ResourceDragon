@@ -14,6 +14,10 @@
 #define SC _SC
 #define SQ_SUCCESS SQ_SUCCEEDED
 
+#ifdef EMSCRIPTEN
+#define _PRINT_INT_PREC _SC("d")
+#endif
+
 struct SQUtils {
     static inline void CallFunction(HSQUIRRELVM vm, const char *name) {
         sq_pushstring(vm, SC(name), -1);
@@ -135,8 +139,6 @@ struct SQUtils {
         return 0;
     }
 
-    #define _PRINT_INT_PREC _SC("d")
-
     static void print_stack_top_value(std::vector<SQObjectValue>& recursion_vec, HSQUIRRELVM v, int depth) {
         union {
             SQInteger val_int;
@@ -251,7 +253,12 @@ struct SQUtils {
                         } else {
                             SQInteger idx;
                             sq_getinteger(v, -2, &idx);
-                            printf("[%lld]: ", idx);
+                            #ifdef EMSCRIPTEN
+                            #define SQUT_PRINT_INT "[%d]: "
+                            #else
+                            #define SQUT_PRINT_INT "[%lld]: "
+                            #endif
+                            printf(SQUT_PRINT_INT, idx);
                         }
 
                         print_stack_top_value(recursion_vec, v, depth + 1);

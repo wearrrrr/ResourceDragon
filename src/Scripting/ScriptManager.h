@@ -17,6 +17,12 @@ static void squirrel_print(HSQUIRRELVM vm, const SQChar *str, ...) {
   va_end(va);
 }
 
+#ifdef EMSCRIPTEN
+#define SQ_RUNTIME_EXCEPTION_FORMAT "\t at %s (%s:%d)\n"
+#else
+#define SQ_RUNTIME_EXCEPTION_FORMAT "\t at %s (%s:%lld)\n"
+#endif
+
 static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
   if (sq_gettop(vm) > 0) {
     const SQChar *error_msg;
@@ -24,7 +30,7 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
       Logger::error("Squirrel runtime exception: \"%s\" ", error_msg);
       SQStackInfos sqstack;
       for (SQInteger i = 1; SQ_SUCCEEDED(sq_stackinfos(vm, i, &sqstack)); ++i) {
-        printf(sqstack.source ? "\t at %s (%s:%lld)\n" : "\t at %s\n",
+        printf(sqstack.source ? SQ_RUNTIME_EXCEPTION_FORMAT : "\t at %s\n",
                sqstack.funcname ? sqstack.funcname : "Anonymous function",
                sqstack.source, sqstack.line);
       }
@@ -32,6 +38,12 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
   }
   return 0;
 }
+
+#ifdef EMSCRIPTEN
+#define SQ_COMPILER_EXCEPTION_FORMAT "\t at %s:%d:%d: %s\n\n"
+#else
+#define SQ_COMPILER_EXCEPTION_FORMAT "\t at %s:%lld:%lld: %s\n\n"
+#endif
 
 class ScriptManager {
   HSQUIRRELVM vm;
@@ -43,9 +55,10 @@ public:
       Logger::error("Failed to create Squirrel VM!");
       return;
     }
+
     sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar *desc, const SQChar *src, SQInteger line, SQInteger col) {
       Logger::error("\nSquirrel Compiler Exception!");
-      printf("\t at %s:%d:%d: %s\n\n", src, line, col, desc);
+      printf(SQ_COMPILER_EXCEPTION_FORMAT, src, line, col, desc);
     });
     sq_newclosure(vm, squirrel_runtime_error, 0);
     sq_seterrorhandler(vm);
