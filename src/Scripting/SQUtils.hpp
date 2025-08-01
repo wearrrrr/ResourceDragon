@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <limits>
 #include <vector>
 #include <memory.h>
@@ -155,7 +154,7 @@ struct SQUtils {
             HSQUIRRELVM val_thread;
         };
 
-        switch (uint32_t val_type = _RAW_TYPE(sq_gettype(v, -1))) {
+        switch (u32 val_type = _RAW_TYPE(sq_gettype(v, -1))) {
             case _RT_NULL:
                 printf("null");
                 break;
