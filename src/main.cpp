@@ -143,7 +143,6 @@ int main(int argc, char *argv[]) {
     RegisterFormat<SonicAdv::PAK>();
     RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
-    RegisterFormat<ZipFormat>();
 
     ScriptManager *scriptManager = new ScriptManager();
 
@@ -265,8 +264,8 @@ int main(int argc, char *argv[]) {
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
 
-    auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.woff2";
-    auto icon_font_path = fs::path("fonts") / "icons.woff2";
+    auto font_path = fs::path("/fonts") / "NotoSansCJKjp-Medium.otf";
+    auto icon_font_path = fs::path("/fonts") / "icons.woff2";
 
     auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
     auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), 18, &iconConfig, icon_ranges);
@@ -399,8 +398,11 @@ int main(int argc, char *argv[]) {
         ImGui::End();
 
         #ifdef DEBUG
-        #define DISTANCE = 8.0f;
-        const ImVec2 window_pos = {DISTANCE, window_size.y - DISTANCE};
+        constexpr float DISTANCE = 8.0f;
+        const ImVec2 window_pos = {
+            DISTANCE,
+            window_size.y - DISTANCE
+        };
         const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
 
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);

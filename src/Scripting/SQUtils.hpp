@@ -5,7 +5,6 @@
 #include <memory.h>
 #include <utility>
 
-#include "squirrel.h"
 #include "squirrel_all.h"
 #include <util/int.h>
 #include <util/Logger.h>
@@ -135,6 +134,8 @@ struct SQUtils {
         }
         return 0;
     }
+
+    #define _PRINT_INT_PREC _SC("d")
 
     static void print_stack_top_value(std::vector<SQObjectValue>& recursion_vec, HSQUIRRELVM v, int depth) {
         union {
@@ -278,7 +279,9 @@ struct SQUtils {
                 printf("Outer");
                 break;
             default:
-                std::unreachable();
+                // std::unreachable();
+                printf("This should be unreachable!");
+                break;
         }
     }
 

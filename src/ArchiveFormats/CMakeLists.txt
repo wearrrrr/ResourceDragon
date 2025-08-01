@@ -9,7 +9,6 @@ add_library(ArchiveFormats
     SonicAdv/pak.cpp
     Touhou/pbg.cpp
     XP3/xp3.cpp
-    Zip/zip.cpp
 )
 
 target_include_directories(ArchiveFormats PUBLIC

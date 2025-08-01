@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(LTO OFF)
 
+
 if (UBUNTU)
     set(CMAKE_C_COMPILER clang-19)
     set(CMAKE_CXX_COMPILER clang++-19)
@@ -19,6 +20,10 @@ if (DEBUG)
 else()
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+    if (EMSCRIPTEN)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sASSERTIONS -sALLOW_MEMORY_GROWTH -sUSE_SDL=3 -sUSE_WEBGL2=1 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -g --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+    endif()
     if (LTO)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
@@ -29,20 +34,26 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(ResourceDragon VERSION 0.1)
 
+if (NOT EMSCRIPTEN)
 find_package(PkgConfig REQUIRED)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
-find_package(OpenSSL REQUIRED)
+endif()
+
+
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
-add_subdirectory(vendored/libzip EXCLUDE_FROM_ALL)
+
+set(DISABLE_DYNAMIC ON)
 add_subdirectory(vendored/squirrel EXCLUDE_FROM_ALL)
+set(DISABLE_DYNAMIC)
+
 add_subdirectory(vendored/thlib EXCLUDE_FROM_ALL)
 
 # silence squirrel compiler warnings, not my code, not my problem :)
-target_compile_options(squirrel BEFORE PRIVATE -w)
+target_compile_options(squirrel_static BEFORE PRIVATE -w)
 
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
@@ -58,9 +69,11 @@ include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(vendored/squirrel/include/)
-
+if (NOT EMSCRIPTEN)
 pkg_check_modules(freetype2 REQUIRED freetype2)
 include_directories(${freetype2_INCLUDE_DIRS})
+endif()
+
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -72,7 +85,7 @@ add_subdirectory(src/Scripting)
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
-    src/hash.cpp
+    src/sha1.c
 )
 
 target_include_directories(ResourceDragon PRIVATE
@@ -84,12 +97,17 @@ if (WIN32)
     set(OPENGL opengl32)
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI Scripting util)
-target_link_libraries(ResourceDragon PRIVATE freetype squirrel sqstdlib ${OPENGL} OpenSSL::SSL OpenSSL::Crypto SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib zip ZLIB::ZLIB)
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting)
+target_link_libraries(ResourceDragon PRIVATE freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib z)
 
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
 )
+
+
+if (EMSCRIPTEN)
+    set_target_properties(ResourceDragon PROPERTIES SUFFIX ".html")
+endif()
 
 install(TARGETS ResourceDragon
     RUNTIME DESTINATION .

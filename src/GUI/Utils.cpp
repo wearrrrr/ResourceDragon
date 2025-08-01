@@ -39,23 +39,23 @@ std::string Utils::GetFileSize(const fs::path& path)
         if (fs::exists(path) && fs::is_regular_file(path)) {
             uintmax_t size = fs::file_size(path);
 
-            static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+            static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
             int unitIndex = 0;
-            double decimal_size = (double)(size);
+            double decimal_size = static_cast<double>(size);
 
             while (decimal_size >= 1024.0 && unitIndex < 4) {
                 decimal_size /= 1024.0;
                 unitIndex++;
             }
 
-            std::ostringstream oss;
+            char buffer[64];
             if (unitIndex == 0) {
-                oss << size << " " << units[unitIndex];
+                std::snprintf(buffer, sizeof(buffer), "%ju %s", static_cast<uintmax_t>(size), units[unitIndex]);
             } else {
-                oss << std::fixed << std::setprecision(2) << decimal_size << " " << units[unitIndex];
+                std::snprintf(buffer, sizeof(buffer), "%.2f %s", decimal_size, units[unitIndex]);
             }
 
-            return oss.str();
+            return std::string(buffer);
         }
     } catch (const fs::filesystem_error& err) {
         Logger::error("Error getting file size for %s: %s", path.string().c_str(), err.what());
@@ -65,23 +65,21 @@ std::string Utils::GetFileSize(const fs::path& path)
 }
 
 std::string Utils::GetFileSize(u64 size) {
-    static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+    static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
     int unitIndex = 0;
-    double decimal_size = (double)(size);
+    double decimal_size = static_cast<double>(size);
 
     while (decimal_size >= 1024.0 && unitIndex < 4) {
         decimal_size /= 1024.0;
         unitIndex++;
     }
 
-    std::ostringstream oss;
+    char buffer[64];
     if (unitIndex == 0) {
-        oss << size << " " << units[unitIndex];
+        std::snprintf(buffer, sizeof(buffer), "%llu %s", static_cast<unsigned long long>(size), units[unitIndex]);
     } else {
-        oss << std::fixed << std::setprecision(2) << decimal_size << " " << units[unitIndex];
+        std::snprintf(buffer, sizeof(buffer), "%.2f %s", decimal_size, units[unitIndex]);
     }
 
-    std::string str = oss.str();
-    oss.clear();
-    return str;
+    return std::string(buffer);
 }

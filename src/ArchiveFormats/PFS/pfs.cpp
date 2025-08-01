@@ -1,5 +1,6 @@
 #include "pfs.h"
-#include "hash.h"
+#include "sha1.h"
+#include <sha1.h>
 
 ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     if (!CanHandleFile(buffer, size, "")) return nullptr;
@@ -68,9 +69,16 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
     if (version != 8 && version != 9 && version != 4 && version != 5)
         return new PFSArchive(entries);
 
-    auto key = Hash::sha1(index_buf, index_size);
+    // auto key = Hash::sha1(index_buf, index_size);
+    SHA1_CTX sha_ctx;
+    u8 key_arr[20];
+    SHA1Init(&sha_ctx);
+    SHA1Update(&sha_ctx, index_buf, index_size);
+    SHA1Final(key_arr, &sha_ctx);
 
     free(index_buf);
+
+    std::vector<u8> key(key_arr, key_arr + 20);
 
     return new PFSArchive(this, entries, key);
 }

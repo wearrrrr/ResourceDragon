@@ -45,7 +45,7 @@ public:
     }
     sq_setcompilererrorhandler(vm, [](HSQUIRRELVM vm, const SQChar *desc, const SQChar *src, SQInteger line, SQInteger col) {
       Logger::error("\nSquirrel Compiler Exception!");
-      printf("\t at %s:%lld:%lld: %s\n\n", src, line, col, desc);
+      printf("\t at %s:%d:%d: %s\n\n", src, line, col, desc);
     });
     sq_newclosure(vm, squirrel_runtime_error, 0);
     sq_seterrorhandler(vm);

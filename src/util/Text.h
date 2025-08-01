@@ -34,9 +34,7 @@ class TextConverter {
             iconv_close(cd);
             return result;
             #endif
-            #ifdef _WIN32
             return "";
-            #endif
         }
         static std::u16string UTF8ToUTF16(const std::string& utf8_str) {
             #ifdef linux
@@ -62,9 +60,7 @@ class TextConverter {
             iconv_close(cd);
             return result;
             #endif
-            #ifdef _WIN32
             return u"";
-            #endif
         }
         static std::string UTF8ToUTF16LE(const std::string& utf8_str) {
             std::u16string utf16_str = UTF8ToUTF16(utf8_str);

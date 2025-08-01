@@ -1,6 +1,6 @@
 #pragma once
 
-// #define DEBUG
+#define DEBUG
 
 #include "imgui.h"
 #include <SDL3/SDL.h>

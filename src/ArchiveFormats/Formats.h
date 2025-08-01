@@ -4,4 +4,3 @@
 #include <ArchiveFormats/SonicAdv/sonicadv.h>
 #include <ArchiveFormats/Touhou/pbg.h>
 #include <ArchiveFormats/XP3/xp3.h>
-#include <ArchiveFormats/Zip/zip.h>

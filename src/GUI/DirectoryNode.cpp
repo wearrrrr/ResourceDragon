@@ -531,9 +531,34 @@ void DirectoryNode::Display(Node *node) {
     ImGui::PopID();
 }
 
-void AddDirectoryNodeChild(std::string name, std::function<void()> callback = nullptr) {
+using DNodeCallback = void(*)(void*);
+struct Callback {
+    void* context = nullptr;
+    DNodeCallback call = nullptr;
+
+    void operator()() const {
+        if (call) call(context);
+    }
+};
+template<typename Lambda>
+Callback MakeCallback(Lambda&& lambda) {
+    using LambdaType = std::decay_t<Lambda>;
+
+    // Allocate on heap (or make this a shared_ptr if needed)
+    LambdaType* stored = new LambdaType(std::forward<Lambda>(lambda));
+
+    return {
+        stored,
+        [](void* ptr) {
+            (*static_cast<LambdaType*>(ptr))();
+        }
+    };
+}
+
+
+void AddDirectoryNodeChild(std::string name, Callback cb = {}) {
     if (ImGui::Selectable(name.data(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
-        if (callback) callback();
+        cb();
     };
 }
 
@@ -592,7 +617,7 @@ void DirectoryNode::Setup(Node *node) {
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    AddDirectoryNodeChild("..", [&node](){
+    AddDirectoryNodeChild("..", MakeCallback([&node](){
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             if (node->Parent) {
                 rootNode = node->Parent;
@@ -611,7 +636,7 @@ void DirectoryNode::Setup(Node *node) {
             }
             SetFilePath(rootNode->FullPath);
         }
-    });
+    }));
     ImGui::TableNextColumn();
 
     for (auto childNode : node->Children) {
