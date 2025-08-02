@@ -59,9 +59,9 @@ void PreviewWindow::RenderImagePreview() {
 
     // zooming
     if (ImGui::IsWindowHovered() && ImGui::GetIO().MouseWheel != 0.0f) {
-        const float wheel = ImGui::GetIO().MouseWheel;
         const float prev_zoom = image_preview.zoom;
-        image_preview.zoom = std::clamp(image_preview.zoom + wheel * 0.1f, 0.1f, 5.0f);
+        int scroll_steps = (int)std::round(ImGui::GetIO().MouseWheel);
+        image_preview.zoom = std::clamp(image_preview.zoom + scroll_steps * 0.1f, 0.1f, 5.0f);
 
         const ImVec2 mouse = ImGui::GetIO().MousePos;
         const ImVec2 rel = mouse - cursor_pos - image_preview.pan;
@@ -291,7 +291,7 @@ void PreviewWindow::RenderElfPreview() {
         ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
         ImGui::Text("OS/ABI: %s", elfFile->GetElfOSABI(elfHeader->e_ident.os_abi).c_str());
 
-        #ifdef WIN32
+        #if defined(WIN32) || defined(EMSCRIPTEN)
         ImGui::Text("Entry: 0x%llx", elfHeader->e_entry);
         #else
         ImGui::Text("Entry: 0x%lx", elfHeader->e_entry);
