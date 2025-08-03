@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
 
     Audio::InitAudioSystem();
 
-    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
@@ -272,18 +272,21 @@ int main(int argc, char *argv[]) {
         auto icon_font_path = fs::path("fonts") / "icons.ttf";
 #endif
 
+    if (fs::exists(font_path)) {
+        auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
+        if (!noto) {
+            Logger::warn("Failed to load main font!");
+        }
+    }
+    if (fs::exists(icon_font_path)) {
+        auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), 18, &iconConfig, icon_ranges);
+        if (!icons) {
+            Logger::warn("Failed to load icons! This will cause some things to not render properly.");
+        }
+    }
 
-    auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
-    auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), 18, &iconConfig, icon_ranges);
-    if (!noto) {
-        Logger::warn("Failed to load main font! Continuing with default...");
-    }
-    if (!icons) {
-        Logger::warn("Failed to load icons! This will cause some things to not render properly.");
-    }
 
     ThemeManager::SetTheme(Theme::BessDark);
-
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
