@@ -323,6 +323,9 @@ int main(int argc, char *argv[]) {
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();
                 if (fs::exists(dropped_path)) {
+                    if (fs::is_directory(dropped_path)) {
+                        dropped_path_dir = dropped_path;
+                    }
                     DirectoryNode::Node *newNode = DirectoryNode::CreateTreeFromPath(dropped_path_dir.string());
                     rootNode = newNode;
                     DirectoryNode::Node *itemNode = new DirectoryNode::Node {
@@ -333,6 +336,7 @@ int main(int argc, char *argv[]) {
                         .IsVirtualRoot = false,
                     };
                     HandleFileClick(itemNode);
+                    SetFilePath(dropped_path);
                 } else {
                     Logger::error("Failed to open file: %s", dropped_filedir);
                 }

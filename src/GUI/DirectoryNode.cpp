@@ -425,6 +425,9 @@ void DirectoryNode::HandleFileClick(Node *node) {
         }
     } else {
         auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.data());
+        if (!fs_buffer) {
+            return;
+        }
         size = fs_size;
         entry_buffer = malloc<u8>(size);
         memcpy(entry_buffer, fs_buffer, size);
