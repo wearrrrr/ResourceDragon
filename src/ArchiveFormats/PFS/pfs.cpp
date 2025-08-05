@@ -1,5 +1,4 @@
 #include "pfs.h"
-#include "sha1.h"
 #include <sha1.h>
 
 ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {

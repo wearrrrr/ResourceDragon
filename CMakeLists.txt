@@ -58,7 +58,7 @@ set(IMGUI_SRC
         vendored/imgui/imgui_widgets.cpp
         vendored/imgui/misc/freetype/imgui_freetype.cpp
 )
-
+include_directories(vendored/)
 include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
@@ -79,7 +79,7 @@ add_subdirectory(src/Scripting)
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
-    src/sha1.c
+    vendored/sha1.c
 )
 
 target_include_directories(ResourceDragon PRIVATE
@@ -91,17 +91,16 @@ if (WIN32)
     set(OPENGL opengl32)
 endif()
 
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting)
+target_link_libraries(ResourceDragon PRIVATE freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib z)
+
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting)
-target_link_libraries(ResourceDragon PRIVATE freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib z)
-
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
 )
-
 
 if (EMSCRIPTEN)
     set_target_properties(ResourceDragon PROPERTIES SUFFIX ".html")

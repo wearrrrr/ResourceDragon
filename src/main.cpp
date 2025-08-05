@@ -264,13 +264,16 @@ int main(int argc, char *argv[]) {
     iconConfig.GlyphMinAdvanceX = 18.0f;
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
+
+
 #ifdef EMSCRIPTEN
-        auto font_path = fs::path("/fonts") / "NotoSansCJKjp-Medium.otf";
-        auto icon_font_path = fs::path("/fonts") / "icons.ttf";
+    #define FONT_PATH_BASE fs::path("/fonts")
 #else
-        auto font_path = fs::path("fonts") / "NotoSansCJKjp-Medium.otf";
-        auto icon_font_path = fs::path("fonts") / "icons.ttf";
+    #define FONT_PATH_BASE fs::path("fonts")
 #endif
+
+    auto font_path = FONT_PATH_BASE / "NotoSansCJKjp-Medium.otf";
+    auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
     if (fs::exists(font_path)) {
         auto noto = io.Fonts->AddFontFromFileTTF(font_path.c_str(), 24, nullptr, gr.Data);
