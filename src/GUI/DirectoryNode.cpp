@@ -4,6 +4,7 @@
 #include <cmath>
 #include <filesystem>
 #include <string>
+#include <functional>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
@@ -540,23 +541,23 @@ struct Callback {
         if (call) call(context);
     }
 };
-template<typename Lambda>
-Callback MakeCallback(Lambda&& lambda) {
-    using LambdaType = std::decay_t<Lambda>;
+// template<typename Lambda>
+// Callback MakeCallback(Lambda&& lambda) {
+//     using LambdaType = std::decay_t<Lambda>;
 
-    // Allocate on heap (or make this a shared_ptr if needed)
-    LambdaType* stored = new LambdaType(std::forward<Lambda>(lambda));
+//     // Allocate on heap (or make this a shared_ptr if needed)
+//     LambdaType* stored = new LambdaType(std::forward<Lambda>(lambda));
 
-    return {
-        stored,
-        [](void* ptr) {
-            (*static_cast<LambdaType*>(ptr))();
-        }
-    };
-}
+//     return {
+//         stored,
+//         [](void* ptr) {
+//             (*static_cast<LambdaType*>(ptr))();
+//         }
+//     };
+// }
 
 
-void AddDirectoryNodeChild(std::string name, Callback cb = {}) {
+void AddDirectoryNodeChild(std::string name, std::function<void()> cb = {}) {
     if (ImGui::Selectable(name.data(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
         cb();
     };
@@ -617,7 +618,7 @@ void DirectoryNode::Setup(Node *node) {
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    AddDirectoryNodeChild("..", MakeCallback([&node](){
+    AddDirectoryNodeChild("..", [node](){
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             if (node->Parent) {
                 rootNode = node->Parent;
@@ -639,7 +640,7 @@ void DirectoryNode::Setup(Node *node) {
             }
             SetFilePath(rootNode->FullPath);
         }
-    }));
+    });
     ImGui::TableNextColumn();
 
     for (auto childNode : node->Children) {
