@@ -627,8 +627,11 @@ void DirectoryNode::Setup(Node *node) {
                 if (node->FullPath.ends_with("/")) {
                     node->FullPath.pop_back();
                 }
-                auto parent_path = fs::path(node->FullPath).parent_path();
-                rootNode = DirectoryNode::CreateTreeFromPath(parent_path.string());
+                auto parent_path = fs::path(node->FullPath).parent_path().string();
+                if (parent_path.empty()) {
+                    parent_path = "/";
+                }
+                rootNode = DirectoryNode::CreateTreeFromPath(parent_path);
                 if (current_buffer) {
                     free(current_buffer);
                     current_buffer = nullptr;
