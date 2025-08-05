@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(LTO OFF)
+set(LTO ON)
 
 if (UBUNTU)
     set(CMAKE_C_COMPILER clang-19)
@@ -22,11 +22,7 @@ else()
     if (EMSCRIPTEN)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
         # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
-    endif()
-    if (LTO)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
     endif()
 endif()
 
@@ -39,8 +35,6 @@ find_package(PkgConfig REQUIRED)
 find_package(Freetype)
 find_package(ZLIB REQUIRED)
 endif()
-
-
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
@@ -95,6 +89,10 @@ target_include_directories(ResourceDragon PRIVATE
 set(OPENGL GL)
 if (WIN32)
     set(OPENGL opengl32)
+endif()
+
+if (LTO)
+    set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting)
