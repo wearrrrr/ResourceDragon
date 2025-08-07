@@ -48,6 +48,15 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libx11-dev libxext-dev libxrandr-dev libxss-dev libxcursor-dev \
+          libxi-dev libxinerama-dev libxkbcommon-dev libxkbcommon-x11-dev \
+          wayland-protocols libwayland-dev libwayland-egl-backend-dev \
+          libegl1-mesa-dev libdrm-dev libgbm-dev libudev-dev
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
