@@ -1,6 +1,8 @@
-#include <ctime>
 #include "Utils.h"
 #include <util/Logger.h>
+
+#include <ctime>
+#include <algorithm>
 
 namespace chrono = std::chrono;
 

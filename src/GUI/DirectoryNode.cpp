@@ -1,6 +1,7 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <Image.h>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <string>

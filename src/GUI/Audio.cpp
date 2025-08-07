@@ -2,6 +2,7 @@
 #include <Utils.h>
 #include <DirectoryNode.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <algorithm>
 
 #include "state.h"
 
