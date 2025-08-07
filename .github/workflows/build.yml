@@ -88,11 +88,11 @@ jobs:
     - name: Deploy App with linuxdeploy
       if: runner.os == 'Linux'
       run: |
-        mkdir -p build/AppDir/usr/share/applications/
-        mkdir -p build/AppDir/usr/share/icons/hicolor/256x256/apps/
-        cp resource-dragon.png build/AppDir/usr/share/icons/hicolor/256x256/apps/resource-dragon.png
-        cp ResourceDragon.desktop build/AppDir/usr/share/applications/
-        cd build
+        mkdir -p AppDir/usr/share/applications/
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps/
+        cp resource-dragon.png AppDir/usr/share/icons/hicolor/256x256/apps/resource-dragon.png
+        cp ResourceDragon.desktop AppDir/usr/share/applications/
+        cp build/ResourceDragon ./
         NO_STRIP=true ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --executable ResourceDragon
 
     - name: Upload AppImage
