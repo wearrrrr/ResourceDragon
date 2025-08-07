@@ -79,6 +79,29 @@ jobs:
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: Download linuxdeploy
+      if: runner.os == 'Linux'
+      run: |
+        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+        chmod +x linuxdeploy-x86_64.AppImage
+
+    - name: Deploy App with linuxdeploy
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p build/AppDir/usr/share/applications/
+        mkdir -p build/AppDir/usr/share/icons/hicolor/256x256/apps/
+        cp resource-dragon.png build/AppDir/usr/share/icons/hicolor/256x256/apps/resource-dragon.png
+        cp ResourceDragon.desktop build/AppDir/usr/share/applications/
+        cd build
+        NO_STRIP=true linuxdeploy --appdir AppDir --output appimage --executable ResourceDragon
+
+    - name: Upload AppImage
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ResourceDragon-x86_64.AppImage
+        path: ResourceDragon*.AppImage
+
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
