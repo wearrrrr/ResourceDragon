@@ -1,3 +1,5 @@
+include(FetchContent)
+
 cmake_minimum_required(VERSION 3.10)
 
 set(LTO ON)
@@ -32,8 +34,24 @@ project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
 find_package(PkgConfig REQUIRED)
-find_package(Freetype)
+# find_package(Freetype QUIET)
 find_package(ZLIB REQUIRED)
+endif()
+
+if(NOT Freetype_FOUND)
+    message(STATUS "Freetype not found, fetching...")
+
+    FetchContent_Declare(
+        freetype
+        GIT_REPOSITORY https://github.com/freetype/freetype.git
+        GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
+    )
+    FetchContent_MakeAvailable(freetype)
+
+    set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
+    set(FREETYPE_LIBRARIES freetype)
+else()
+    message(STATUS "Using system Freetype")
 endif()
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
