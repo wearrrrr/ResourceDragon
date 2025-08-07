@@ -15,16 +15,18 @@ endif()
 
 set(CMAKE_CXX_STANDARD 23)
 
-if (DEBUG)
-    set(CMAKE_CXX_FLAGS "-g")
-    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
-else()
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
-    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
-    if (EMSCRIPTEN)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
-        # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+if (NOT WIN32)
+    if (DEBUG)
+        set(CMAKE_CXX_FLAGS "-g")
+        set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+    else()
+        set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
+        set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+        if (EMSCRIPTEN)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
+            # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+        endif()
     endif()
 endif()
 

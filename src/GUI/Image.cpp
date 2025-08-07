@@ -1,8 +1,10 @@
 #include <Image.h>
 #include <Utils.h>
-#include <string_view>
 #include <util/Logger.h>
 #include <GL/gl.h>
+
+#include <string_view>
+#include <algorithm>
 
 #include "../ResourceFormats/DDS.h"
 #include "ResourceFormats/dds_formats.h"
