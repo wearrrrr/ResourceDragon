@@ -60,7 +60,9 @@ jobs:
 
     - name: Install NASM
       if: runner.os == 'Windows'
-      run: choco install nasm -y
+      run: |
+        choco install nasm -y
+        echo "C:\Program Files\NASM" >> $env:GITHUB_PATH
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
