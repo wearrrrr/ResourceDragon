@@ -65,6 +65,8 @@ if (NOT EMSCRIPTEN)
             GIT_TAG        v1.3.1
         )
         FetchContent_MakeAvailable(zlib)
+        set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+        set(ZLIB_LIBRARY zlib)
     else()
         message(STATUS "Using system Zlib")
     endif()

@@ -58,6 +58,10 @@ jobs:
           wayland-protocols libwayland-dev libwayland-egl-backend-dev \
           libegl1-mesa-dev libdrm-dev libgbm-dev libudev-dev
 
+    - name: Install NASM
+      if: runner.os == 'Windows'
+      run: choco install nasm -y
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
