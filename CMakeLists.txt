@@ -72,6 +72,13 @@ if (NOT EMSCRIPTEN)
     endif()
 endif()
 
+set(INSTALL_CMAKE_DIR "" CACHE PATH "" FORCE)
+set(OGG_INSTALL OFF CACHE BOOL "" FORCE)
+set(VORBIS_INSTALL OFF CACHE BOOL "" FORCE)
+set(FLAC__NO_INSTALL ON CACHE BOOL "" FORCE)
+set(INSTALL_SDL OFF CACHE BOOL "" FORCE)
+set(INSTALL_SDL_MIXER OFF CACHE BOOL "" FORCE)
+set(INSTALL_SDL_IMAGE OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
@@ -130,9 +137,11 @@ if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
+if (LINUX)
 set_target_properties(ResourceDragon PROPERTIES
     INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
 )
+endif()
 
 if (EMSCRIPTEN)
     set_target_properties(ResourceDragon PROPERTIES SUFFIX ".html")
@@ -142,6 +151,16 @@ install(TARGETS ResourceDragon
     RUNTIME DESTINATION .
 )
 
+if (WIN32)
+    install(FILES
+        ${CMAKE_BINARY_DIR}/vendored/SDL/SDL3.dll
+        ${CMAKE_BINARY_DIR}/vendored/SDL_image/SDL3_image.dll
+        ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/SDL3_mixer.dll
+        DESTINATION .
+    )
+endif()
+
+if (LINUX)
 install(CODE "
     file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
          FILES ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/libSDL3_mixer.so.0.1.0
@@ -162,6 +181,7 @@ install(CODE "
          FILES ${CMAKE_BINARY_DIR}/vendored/libzip/lib/libzip.so.5.5
          RENAME libzip.so.5)
 ")
+endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts/
         DESTINATION fonts
