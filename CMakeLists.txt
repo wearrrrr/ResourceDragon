@@ -36,7 +36,7 @@ project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
     find_package(Freetype QUIET)
-    find_package(ZLIB REQUIRED)
+    find_package(ZLIB QUIET)
 
     if(NOT Freetype_FOUND)
         message(STATUS "Freetype not found, fetching...")
@@ -53,6 +53,20 @@ if (NOT EMSCRIPTEN)
         message(STATUS "Using system Freetype")
         pkg_check_modules(freetype2 REQUIRED freetype2)
         include_directories(${freetype2_INCLUDE_DIRS})
+    endif()
+
+    if(NOT ZLIB_FOUND)
+        message(STATUS "Zlib not found, fetching...")
+
+        include(FetchContent)
+        FetchContent_Declare(
+            zlib
+            GIT_REPOSITORY https://github.com/madler/zlib.git
+            GIT_TAG        v1.3.1
+        )
+        FetchContent_MakeAvailable(zlib)
+    else()
+        message(STATUS "Using system Zlib")
     endif()
 endif()
 
