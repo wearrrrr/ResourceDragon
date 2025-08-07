@@ -4,18 +4,12 @@ NPROC=$(nproc)
 if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
 DEBUG=OFF
-UBUNTU=OFF
 EMSCRIPTEN=OFF
 
 for arg in "$@"; do
     if [ "$arg" = "-debug" ]; then
         printf "Building as debug...\n"
         DEBUG=ON
-        break
-    fi
-    if [ "$arg" = "-ubuntu" ]; then
-        printf "Building targeting Ubuntu 22.04...\n"
-        UBUNTU=ON
         break
     fi
     if [ "$arg" = "-emscripten" ]; then
@@ -29,7 +23,7 @@ rm build/ResourceDragon
 if [ $EMSCRIPTEN = "ON" ]; then
     emcmake cmake -B build -G Ninja -DDEBUG=${DEBUG} -DEMSCRIPTEN=${EMSCRIPTEN}
 else
-    cmake -B build -G Ninja -DUBUNTU=${UBUNTU} -DDEBUG=${DEBUG}
+    cmake -B build -G Ninja -DDEBUG=${DEBUG}
 fi;
 
 cd build

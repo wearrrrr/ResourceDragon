@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>dev.wearr.resourcedragon</id>
+  <name>ResourceDragon</name>
+  <launchable type="desktop-id">ResourceDragon.desktop</launchable>
+
+  <summary>Generic and highly extensible extractor for proprietary game archives.</summary>
+  <description>
+    <p>Generic and highly extensible extractor for proprietary game archives.</p>
+  </description>
+
+  <project_license>MIT</project_license>
+  <metadata_license>CC0-1.0</metadata_license>
+  <content_rating type="oars-1.1" />
+
+  <developer id="dev.wearr">
+    <name>wearr</name>
+  </developer>
+
+<!--  <url type="homepage">https://emeric.io/QmlAppTemplate</url> -->
+  <url type="bugtracker">https://github.com/wearrrrr/ResourceDragon/issues</url>
+<!--  <url type="translate">https://github.com/emericg/QmlAppTemplate/blob/master/i18n/README.md</url> -->
+
+  <releases>
+    <release version="0.0.1" date="2025-8-7" />
+  </releases>
+
+<!--  <screenshots>
+    <screenshot type="default">
+      <image>https://i.imgur.com/tqCeaEC.png</image>
+      <caption>Device screen</caption>
+    </screenshot>
+  </screenshots>-->
+
+<!--  <requires>
+    <display_length>360</display_length>
+  </requires>-->
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+
+  <categories>
+    <category>Utility</category>
+  </categories>
+
+  <keywords>
+    <keyword>imgui</keyword>
+    <keyword>sdl3</keyword>
+    <keyword>reverse-engineering</keyword>
+  </keywords>
+</component>

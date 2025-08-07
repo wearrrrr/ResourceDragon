@@ -4,14 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(LTO ON)
 
-if (UBUNTU)
-    set(CMAKE_C_COMPILER clang-19)
-    set(CMAKE_CXX_COMPILER clang++-19)
-else()
-    set(CMAKE_C_COMPILER clang)
-    set(CMAKE_CXX_COMPILER clang++)
-endif()
-
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -71,14 +65,6 @@ if (NOT EMSCRIPTEN)
         message(STATUS "Using system Zlib")
     endif()
 endif()
-
-set(INSTALL_CMAKE_DIR "" CACHE PATH "" FORCE)
-set(OGG_INSTALL OFF CACHE BOOL "" FORCE)
-set(VORBIS_INSTALL OFF CACHE BOOL "" FORCE)
-set(FLAC__NO_INSTALL ON CACHE BOOL "" FORCE)
-set(INSTALL_SDL OFF CACHE BOOL "" FORCE)
-set(INSTALL_SDL_MIXER OFF CACHE BOOL "" FORCE)
-set(INSTALL_SDL_IMAGE OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
