@@ -34,7 +34,7 @@ project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
 find_package(PkgConfig REQUIRED)
-# find_package(Freetype QUIET)
+find_package(Freetype QUIET)
 find_package(ZLIB REQUIRED)
 endif()
 
