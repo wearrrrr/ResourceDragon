@@ -153,8 +153,9 @@ void DirectoryNode::UnloadSelectedFile() {
     Image::UnloadTexture(preview_state.texture.id);
     Image::UnloadAnimation(&preview_state.texture.anim);
 
-    preview_state.texture.id = {};
-    preview_state.contents.type = ContentType::UNKNOWN;
+    preview_state.texture = {};
+    image_preview.zoom = 1.0f;
+    image_preview.pan = {0.0f, 0.0f};
     preview_state.contents = {};
 
     if (preview_state.audio.music) {
