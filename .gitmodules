@@ -10,3 +10,6 @@
 [submodule "vendored/SDL_mixer"]
 	path = vendored/SDL_mixer
 	url = https://github.com/libsdl-org/SDL_mixer.git
+[submodule "vendored/thlib"]
+	path = vendored/thlib
+	url = https://github.com/wearrrrr/thlib
