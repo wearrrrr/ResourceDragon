@@ -7,7 +7,13 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
 
-#include <ArchiveFormats/Formats.h>
+#include <ArchiveFormats/HSP/hsp.h>
+#include <ArchiveFormats/PFS/pfs.h>
+#include <ArchiveFormats/NitroPlus/nitroplus.h>
+#include <ArchiveFormats/SonicAdv/sonicadv.h>
+// #include <ArchiveFormats/Touhou/pbg.h>
+#include <ArchiveFormats/XP3/xp3.h>
+
 #include <GUI/Audio.h>
 #include <GUI/Render.h>
 #include <GUI/Themes.h>
@@ -69,11 +75,6 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    auto canonical_path = fs::canonical(path).string();
-
-    SetFilePath(canonical_path);
-    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
-
     #ifdef linux
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
     inotify_fd = inotify_init();
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
     Audio::InitAudioSystem();
 
     if (GUI::InitRendering()) {
-        GUI::RenderLoop();
+        GUI::StartRenderLoop(path);
     }
 
     DirectoryNode::Unload(rootNode);

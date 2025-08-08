@@ -208,7 +208,12 @@ bool GUI::InitRendering() {
     return true;
 }
 
-void GUI::RenderLoop() {
+void GUI::StartRenderLoop(const char *path) {
+
+    auto canonical_path = fs::canonical(path).string();
+
+    SetFilePath(canonical_path);
+    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
     ImGuiIO &io = ImGui::GetIO();
     const constexpr float splitterWidth = 10.0f;
     const constexpr float minPanelSize = 400.0f;
@@ -277,7 +282,7 @@ void GUI::RenderLoop() {
                 ImGui::OpenPopup("Error");
                 ui_error.show = false;
             }
-            DirectoryNode::Setup(rootNode);
+            if (rootNode) DirectoryNode::Setup(rootNode);
         }
 
         if (openDelPopup) {
