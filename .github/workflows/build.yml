@@ -26,11 +26,27 @@ jobs:
     name: "Linux CI build"
     runs-on: ubuntu-22.04
     steps:
-      # Checkout repository (and submodules)
-      - name: Checkout repository (and submodules)
+      - name: Clone repo
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
+          fetch-depth: 0
+
+      - name: Compute submodule hash
+        run: git submodule status --recursive > submodules.txt
+
+      - name: Restore submodule cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .git/modules
+            vendored
+          key: submodules-${{ hashFiles('submodules.txt') }}
+          restore-keys: |
+            submodules-
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
       # Install dependencies (from package manager)
       - name: Install dependencies (from package manager)
@@ -68,24 +84,26 @@ jobs:
     name: "Windows CI build"
     runs-on: windows-2022
     steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
 
-      # Restore cache if it exists.
-      - name: Cache Git submodules
+      - name: Compute submodule hash
+        run: git submodule status --recursive > submodules.txt
+
+      - name: Restore submodule cache
         uses: actions/cache@v4
         with:
           path: |
             .git/modules
             vendored
-          key: submodules-${{ hashFiles('.gitmodules') }}
+          key: submodules-${{ hashFiles('submodules.txt') }}
           restore-keys: |
             submodules-
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Init submodules
+      - name: Checkout submodules
         run: git submodule update --init --recursive
 
       - name: Setup MSVC environment (for nmake and headers/libs)

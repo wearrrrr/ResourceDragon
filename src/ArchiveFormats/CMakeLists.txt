@@ -1,5 +1,6 @@
 add_library(ArchiveFormats
     ExeFile.cpp
+    sha1.c
 
     HSP/hsp.cpp
     NitroPlus/npa.cpp
