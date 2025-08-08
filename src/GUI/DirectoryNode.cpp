@@ -16,6 +16,8 @@
 #include <gl3.h>
 #include "state.h"
 
+#include <stdio.h>
+
 #include "icons.h"
 
 namespace ImGui {
@@ -106,7 +108,7 @@ bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path o
     fs::path fullOutputPath = basePath / entry->name;
 
     std::error_code err;
-    if (!CreateDirectoryRecursive(fullOutputPath.parent_path(), err)) {
+    if (!CreateDirectoryRecursive(fullOutputPath.parent_path().string(), err)) {
         Logger::error("Failed to create directory: %s", err.message().data());
         return false;
     }
