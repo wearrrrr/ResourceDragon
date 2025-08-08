@@ -208,7 +208,8 @@ bool GUI::InitRendering() {
     return true;
 }
 
-void GUI::RenderLoop(ImGuiIO &io) {
+void GUI::RenderLoop() {
+    ImGuiIO &io = ImGui::GetIO();
     const constexpr float splitterWidth = 10.0f;
     const constexpr float minPanelSize = 400.0f;
     bool resizing = false;

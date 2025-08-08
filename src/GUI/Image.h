@@ -5,6 +5,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #endif
 #include <gl3.h>

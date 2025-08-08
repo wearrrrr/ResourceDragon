@@ -6,5 +6,5 @@
 
 namespace GUI {
     bool InitRendering();
-    void RenderLoop(ImGuiIO &io);
+    void RenderLoop();
 }

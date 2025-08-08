@@ -69,10 +69,10 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    auto canonical_path = fs::canonical(path);
+    auto canonical_path = fs::canonical(path).string();
 
-    SetFilePath(canonical_path.string());
-    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path.string());
+    SetFilePath(canonical_path);
+    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
 
     #ifdef linux
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     Audio::InitAudioSystem();
 
     if (GUI::InitRendering()) {
-        GUI::RenderLoop(ImGui::GetIO());
+        GUI::RenderLoop();
     }
 
     DirectoryNode::Unload(rootNode);
