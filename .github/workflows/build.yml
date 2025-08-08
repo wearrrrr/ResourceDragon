@@ -64,46 +64,46 @@ jobs:
           path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
 
   ## Windows build #############################################################
-  # build-windows:
-  #   name: "Windows CI build"
-  #   runs-on: windows-2022
-  #   steps:
-  #     # Checkout repository (and submodules)
-  #     - name: Checkout repository (and submodules)
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: recursive
+  build-windows:
+    name: "Windows CI build"
+    runs-on: windows-2022
+    steps:
+      # Checkout repository (and submodules)
+      - name: Checkout repository (and submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-  #     # Configure MSVC
-  #     - name: Configure MSVC
-  #       uses: ilammy/msvc-dev-cmd@v1
-  #       with:
-  #         arch: x86_64
+      # Configure MSVC
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86_64
 
-  #     # - name: Install Conan
-  #     #   run: |
-  #     #       Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-  #     #       scoop install conan
+      # - name: Install Conan
+      #   run: |
+      #       Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+      #       scoop install conan
 
-  #     # Build application
-  #     - name: Build application
-  #       run: |
-  #            cmake --version
-  #            cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles"
-  #            cd build/
-  #            nmake
+      # Build application
+      - name: Build application
+        run: |
+             cmake --version
+             cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles"
+             cd build/
+             nmake
 
-  #     # Deploy application
-  #     - name: Deploy application
-  #       run: |
-  #            sh deploy_windows.sh -c -p
+      # # Deploy application
+      # - name: Deploy application
+      #   run: |
+      #        sh deploy_windows.sh -c -p
 
-  #     # Upload application ZIP
-  #     - name: Upload application ZIP
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
-  #         path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
+      # # Upload application ZIP
+      # - name: Upload application ZIP
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
+      #     path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
 
   #     # Upload NSIS installer
   #     - name: Upload NSIS installer
