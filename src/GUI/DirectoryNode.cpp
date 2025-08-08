@@ -242,7 +242,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
             fs::directory_iterator directoryIterator(parentPath);
             for (const auto &entry : directoryIterator) {
                 fs::path path = entry.path();
-                std::string fileName = path.filename();
+                std::string fileName = path.filename().string();
                 // Why the hell does steam still have this? It's an intentionally broken symlink.
                 // https://github.com/ValveSoftware/steam-for-linux/issues/5245
                 if (fileName.contains(".steampath")) {
