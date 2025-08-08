@@ -13,6 +13,9 @@
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UIError.h"
 #include <imgui.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <gl3.h>
 #include "state.h"
 

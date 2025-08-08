@@ -6,6 +6,9 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <gl3.h>
 #include <string>
 
