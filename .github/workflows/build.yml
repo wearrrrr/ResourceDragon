@@ -80,16 +80,19 @@ jobs:
         with:
           arch: x86_64
 
-      # - name: Install Conan
-      #   run: |
-      #       Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-      #       scoop install conan
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "19.0"
+
+      - name: Add LLVM to PATH
+        run: echo "$env:ProgramFiles\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       # Build application
       - name: Build application
         run: |
              cmake --version
-             cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles"
+             cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
              cd build/
              nmake
 
