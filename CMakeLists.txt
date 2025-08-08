@@ -63,7 +63,7 @@ set(DISABLE_DYNAMIC ON)
 add_subdirectory(vendored/squirrel EXCLUDE_FROM_ALL)
 set(DISABLE_DYNAMIC)
 
-add_subdirectory(vendored/thlib EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/thlib)
 
 # silence squirrel compiler warnings, not my code, not my problem :)
 target_compile_options(squirrel_static BEFORE PRIVATE -w)

@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
     RegisterFormat<NitroPlus::NPK>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<SonicAdv::PAK>();
-    RegisterFormat<THDAT>();
+    // RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
 
     ScriptManager *scriptManager = new ScriptManager();
