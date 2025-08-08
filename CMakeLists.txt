@@ -32,6 +32,22 @@ if (NOT EMSCRIPTEN)
     find_package(Freetype QUIET)
     find_package(ZLIB QUIET)
 
+    if(NOT ZLIB_FOUND OR WIN32)
+        message(STATUS "Zlib not found, fetching...")
+
+        include(FetchContent)
+        FetchContent_Declare(
+            zlib
+            GIT_REPOSITORY https://github.com/madler/zlib.git
+            GIT_TAG        v1.3.1
+        )
+        FetchContent_MakeAvailable(zlib)
+        set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+        set(ZLIB_LIBRARY zlib)
+    else()
+        message(STATUS "Using system Zlib")
+    endif()
+
     if(NOT Freetype_FOUND OR WIN32)
         message(STATUS "Freetype not found, fetching...")
         FetchContent_Declare(
@@ -47,22 +63,6 @@ if (NOT EMSCRIPTEN)
         message(STATUS "Using system Freetype")
         pkg_check_modules(freetype2 REQUIRED freetype2)
         include_directories(${freetype2_INCLUDE_DIRS})
-    endif()
-
-    if(NOT ZLIB_FOUND OR WIN32)
-        message(STATUS "Zlib not found, fetching...")
-
-        include(FetchContent)
-        FetchContent_Declare(
-            zlib
-            GIT_REPOSITORY https://github.com/madler/zlib.git
-            GIT_TAG        v1.3.1
-        )
-        FetchContent_MakeAvailable(zlib)
-        set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-        set(ZLIB_LIBRARY zlib)
-    else()
-        message(STATUS "Using system Zlib")
     endif()
 endif()
 

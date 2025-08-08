@@ -45,7 +45,7 @@ struct Logger {
           get_type_name(obj).data()
         );
 #if defined(__clang__) && __has_builtin(__builtin_dump_struct) && defined(HAS_CXXABI)
-        __builtin_dump_struct(&obj, printf);
+        __builtin_dump_struct(&obj, &printf);
         puts(RESET);
 #else
         Logger::error("__builtin_dump_struct is not supported with this compiler or cxxabi is missing!");
