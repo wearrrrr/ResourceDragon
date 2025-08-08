@@ -18,6 +18,10 @@
 
 #include <stdio.h>
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
 #include "icons.h"
 
 namespace ImGui {
@@ -115,7 +119,7 @@ bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path o
 
     u8 *extracted = loaded_arc_base->OpenStream(entry, current_buffer);
 
-    FILE *file = fopen(fullOutputPath.c_str(), "wb");
+    FILE *file = fopen(fullOutputPath.string().c_str(), "wb");
     if (!file) return false;
     fwrite(extracted, sizeof(u8), entry->size, file);
     fclose(file);
