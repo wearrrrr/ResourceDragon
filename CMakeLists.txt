@@ -104,8 +104,13 @@ if (WIN32)
     set(OPENGL opengl32)
 endif()
 
+set(ZLIB z)
+if (WIN32)
+    set(ZLIB "")
+endif()
+
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting)
-target_link_libraries(ResourceDragon PRIVATE freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib z)
+target_link_libraries(ResourceDragon PRIVATE freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
