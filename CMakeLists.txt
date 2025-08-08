@@ -55,12 +55,12 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 endif()
 
-add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
-add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
-add_subdirectory(vendored/SDL_mixer EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/SDL)
+add_subdirectory(vendored/SDL_image)
+add_subdirectory(vendored/SDL_mixer)
 
 set(DISABLE_DYNAMIC ON)
-add_subdirectory(vendored/squirrel EXCLUDE_FROM_ALL)
+add_subdirectory(vendored/squirrel)
 set(DISABLE_DYNAMIC)
 
 add_subdirectory(vendored/thlib)
