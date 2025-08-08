@@ -6,6 +6,10 @@
 #include <cstdint>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #if defined(_MSVC_LANG)
 #define DDS_CPP_VERSION _MSVC_LANG
 #else
