@@ -29,41 +29,26 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
-    find_package(ZLIB QUIET)
-    find_package(Freetype QUIET)
+    message("Downloading freetype...")
+    FetchContent_Declare(
+        freetype
+        GIT_REPOSITORY https://github.com/freetype/freetype.git
+        GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
+    )
+    FetchContent_MakeAvailable(freetype)
+    set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
+    set(FREETYPE_LIBRARIES freetype)
 
-    if(NOT Freetype_FOUND OR WIN32)
-        message(STATUS "Freetype not found, fetching...")
-        FetchContent_Declare(
-            freetype
-            GIT_REPOSITORY https://github.com/freetype/freetype.git
-            GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
-        )
-        FetchContent_MakeAvailable(freetype)
-        set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
-        set(FREETYPE_LIBRARIES freetype)
-    else()
-        find_package(PkgConfig REQUIRED)
-        message(STATUS "Using system Freetype")
-        pkg_check_modules(freetype2 REQUIRED freetype2)
-        include_directories(${freetype2_INCLUDE_DIRS})
-    endif()
-
-    if(NOT ZLIB_FOUND OR WIN32)
-        message(STATUS "Zlib not found, fetching...")
-
-        include(FetchContent)
-        FetchContent_Declare(
-            zlib
-            GIT_REPOSITORY https://github.com/madler/zlib.git
-            GIT_TAG        v1.3.1
-        )
-        FetchContent_MakeAvailable(zlib)
-        set(ZLIB_INCLUDE_DIR ${zlib_BINARY_DIR})
-        set(ZLIB_LIBRARY zlib)
-    else()
-        message(STATUS "Using system Zlib")
-    endif()
+    message("Downloading zlib...")
+    include(FetchContent)
+    FetchContent_Declare(
+        zlib
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG        v1.3.1
+    )
+    FetchContent_MakeAvailable(zlib)
+    set(ZLIB_INCLUDE_DIR ${zlib_BINARY_DIR})
+    set(ZLIB_LIBRARY zlib)
 
     set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
