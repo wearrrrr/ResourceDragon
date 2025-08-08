@@ -1,15 +1,12 @@
-[submodule "vendored/SDL_image"]
-	path = vendored/SDL_image
-	url = https://github.com/libsdl-org/SDL_image.git
-[submodule "vendored/thlib"]
-	path = vendored/thlib
-	url = https://github.com/wearrrrr/thlib
 [submodule "vendored/squirrel"]
 	path = vendored/squirrel
 	url = https://github.com/albertodemichelis/squirrel.git
 [submodule "vendored/SDL"]
 	path = vendored/SDL
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "vendored/SDL_image"]
+	path = vendored/SDL_image
+	url = https://github.com/libsdl-org/SDL_image.git
 [submodule "vendored/SDL_mixer"]
 	path = vendored/SDL_mixer
 	url = https://github.com/libsdl-org/SDL_mixer.git
