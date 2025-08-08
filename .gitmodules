@@ -3,7 +3,7 @@
 	url = https://github.com/libsdl-org/SDL_image.git
 [submodule "vendored/thlib"]
 	path = vendored/thlib
-	url = https://github.com/PieVieRo/thlib.git
+	url = https://github.com/wearrrrr/thlib
 [submodule "vendored/squirrel"]
 	path = vendored/squirrel
 	url = https://github.com/albertodemichelis/squirrel.git
