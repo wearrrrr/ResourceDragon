@@ -18,10 +18,6 @@
 
 #include <stdio.h>
 
-#ifdef WIN32
-#include <io.h>
-#endif
-
 #include "icons.h"
 
 namespace ImGui {
