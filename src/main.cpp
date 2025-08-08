@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <SDL3/SDL.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>

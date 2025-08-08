@@ -68,13 +68,26 @@ jobs:
     name: "Windows CI build"
     runs-on: windows-2022
     steps:
-      # Checkout repository (and submodules)
-      - name: Checkout repository (and submodules)
+
+      # Restore cache if it exists.
+      - name: Cache Git submodules
+        uses: actions/cache@v4
+        with:
+          path: |
+            .git/modules
+            vendored
+          key: submodules-${{ hashFiles('.gitmodules') }}
+          restore-keys: |
+            submodules-
+
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # Configure MSVC
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
       - name: Setup MSVC environment (for nmake and headers/libs)
         uses: ilammy/msvc-dev-cmd@v1
 
@@ -87,7 +100,6 @@ jobs:
       - name: Add LLVM to PATH
         run: echo "$env:ProgramFiles\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      # Build application
       - name: Build application
         run: |
              cmake --version
