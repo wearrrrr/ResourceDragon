@@ -3,7 +3,10 @@
 #include <string>
 #include <algorithm>
 
+#if defined(linux) || defined(EMSCRIPTEN)
 #include "iconv.h"
+#endif
+
 #include <util/int.h>
 
 static std::string currentEncoding = "UTF-8";
