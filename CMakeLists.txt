@@ -29,8 +29,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
-    find_package(Freetype QUIET)
     find_package(ZLIB QUIET)
+    find_package(Freetype QUIET)
+
+    if(NOT Freetype_FOUND OR WIN32)
+        message(STATUS "Freetype not found, fetching...")
+        FetchContent_Declare(
+            freetype
+            GIT_REPOSITORY https://github.com/freetype/freetype.git
+            GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
+        )
+        FetchContent_MakeAvailable(freetype)
+        set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
+        set(FREETYPE_LIBRARIES freetype)
+    else()
+        find_package(PkgConfig REQUIRED)
+        message(STATUS "Using system Freetype")
+        pkg_check_modules(freetype2 REQUIRED freetype2)
+        include_directories(${freetype2_INCLUDE_DIRS})
+    endif()
 
     if(NOT ZLIB_FOUND OR WIN32)
         message(STATUS "Zlib not found, fetching...")
@@ -51,23 +68,6 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
-
-    if(NOT Freetype_FOUND OR WIN32)
-        message(STATUS "Freetype not found, fetching...")
-        FetchContent_Declare(
-            freetype
-            GIT_REPOSITORY https://github.com/freetype/freetype.git
-            GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
-        )
-        FetchContent_MakeAvailable(freetype)
-        set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
-        set(FREETYPE_LIBRARIES freetype)
-    else()
-        find_package(PkgConfig REQUIRED)
-        message(STATUS "Using system Freetype")
-        pkg_check_modules(freetype2 REQUIRED freetype2)
-        include_directories(${freetype2_INCLUDE_DIRS})
-    endif()
 endif()
 
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
