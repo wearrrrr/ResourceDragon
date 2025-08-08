@@ -7,7 +7,6 @@
 #include <SDL3/SDL_audio.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #ifdef _WIN32
-#define NOMINMAX
 #include <windows.h>
 #endif
 #include <gl3.h>
@@ -123,3 +122,6 @@ template <typename T>
 T *malloc(size_t size) {
     return (T*)malloc(size);
 }
+
+inline bool openDelPopup = false;
+inline bool quitDialog = false;

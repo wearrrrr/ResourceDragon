@@ -1,3 +1,4 @@
+if (WIN32)
 set(IMGUI_SRC
         ../../vendored/imgui/backends/imgui_impl_sdl3.cpp
         ../../vendored/imgui/backends/imgui_impl_opengl3.cpp
@@ -7,6 +8,9 @@ set(IMGUI_SRC
         ../../vendored/imgui/imgui_widgets.cpp
         ../../vendored/imgui/misc/freetype/imgui_freetype.cpp
 )
+else()
+set(IMGUI_SRC "")
+endif()
 
 
 add_library(GUI
@@ -17,6 +21,7 @@ add_library(GUI
     Image.cpp
     ImVec2Util.h
     PreviewWindow.cpp
+    Render.cpp
     TextEditor/TextEditor.cpp
     Theme/BessDark.cpp
     UIError.cpp
@@ -27,7 +32,12 @@ target_include_directories(GUI PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(GUI PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util)
+set(OPENGL GL)
+if (WIN32)
+    set(OPENGL opengl32)
+endif()
+
+target_link_libraries(GUI PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util ${OPENGL})
 
 install(TARGETS GUI
     LIBRARY DESTINATION lib

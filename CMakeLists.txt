@@ -9,7 +9,9 @@ set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_CXX_STANDARD 23)
 
-if (NOT WIN32)
+project(ResourceDragon VERSION 0.1)
+
+if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "-g")
         set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
@@ -25,8 +27,6 @@ if (NOT WIN32)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-project(ResourceDragon VERSION 0.1)
 
 if (NOT EMSCRIPTEN)
     message("Downloading freetype...")

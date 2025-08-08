@@ -139,6 +139,8 @@ struct SQUtils {
         return 0;
     }
 
+    #ifndef _WIN32
+
     static void print_stack_top_value(std::vector<SQObjectValue>& recursion_vec, HSQUIRRELVM v, int depth) {
         union {
             SQInteger val_int;
@@ -299,4 +301,6 @@ struct SQUtils {
         printf("\n");
         sq_pop(vm, 1);
     }
+
+    #endif
 };

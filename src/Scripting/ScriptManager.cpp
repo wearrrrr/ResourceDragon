@@ -18,12 +18,12 @@ bool ScriptManager::LoadFile(std::string path) {
     return true;
 }
 
-void DumpRootTable(HSQUIRRELVM vm) {
-    HSQOBJECT rootTable;
-    sq_pushroottable(vm);
-    sq_getstackobj(vm, -1, &rootTable);
-    SQUtils::DumpSquirrelTable(vm, rootTable);
-}
+// void DumpRootTable(HSQUIRRELVM vm) {
+//     HSQOBJECT rootTable;
+//     sq_pushroottable(vm);
+//     sq_getstackobj(vm, -1, &rootTable);
+//     SQUtils::DumpSquirrelTable(vm, rootTable);
+// }
 
 SquirrelArchiveFormat* ScriptManager::Register() {
     sq_pushroottable(vm);

@@ -36,7 +36,7 @@ ArchiveBase* SquirrelArchiveFormat::TryOpen(u8* buffer, u64 size, std::string fi
     }
     sq_pop(vm, 1);
 
-    SQUtils::DumpSquirrelTable(vm, result);
+    // SQUtils::DumpSquirrelTable(vm, result);
 
     sq_pushobject(vm, result);
     sq_pushstring(vm, "entries", -1);
