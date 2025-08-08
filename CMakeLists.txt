@@ -42,11 +42,15 @@ if (NOT EMSCRIPTEN)
             GIT_TAG        v1.3.1
         )
         FetchContent_MakeAvailable(zlib)
-        set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+        set(ZLIB_INCLUDE_DIR ${zlib_BINARY_DIR})
         set(ZLIB_LIBRARY zlib)
     else()
         message(STATUS "Using system Zlib")
     endif()
+
+    set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
+    set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
+    set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 
     if(NOT Freetype_FOUND OR WIN32)
         message(STATUS "Freetype not found, fetching...")
