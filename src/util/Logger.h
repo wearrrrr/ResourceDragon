@@ -7,9 +7,7 @@
 #include <typeinfo>
 #if __has_include(<cxxabi.h>)
     #include <cxxabi.h>
-    #define HAS_CXXABI true
-#else
-    #define HAS_CXXABI false
+    #define HAS_CXXABI
 #endif
 
 #define PREFIX "[ResourceDragon] "
@@ -28,12 +26,15 @@ struct Logger {
     template <typename T>
     static std::string get_type_name(const T& obj) {
         const char* mangled = typeid(obj).name();
+        #ifdef HAS_CXXABI
         int status = 0;
         std::unique_ptr<char[], decltype(&free)> demangled(
             abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
             &free
         );
         return (status == 0 && demangled) ? demangled.get() : mangled;
+        #endif
+        return std::string(mangled);
     }
 
     template <typename T>
@@ -43,12 +44,12 @@ struct Logger {
           "Dumping struct %s\n",
           get_type_name(obj).data()
         );
-#if defined(__clang__) && __has_builtin(__builtin_dump_struct) && HAS_CXXABI
+#if defined(__clang__) && __has_builtin(__builtin_dump_struct) && defined(HAS_CXXABI)
         __builtin_dump_struct(&obj, printf);
-#else
-        printf("__builtin_dump_struct is not supported with this compiler!");
-#endif
         puts(RESET);
+#else
+        Logger::error("__builtin_dump_struct is not supported with this compiler or cxxabi is missing!");
+#endif
     }
 
     static void log(const char* format, va_list va) {
