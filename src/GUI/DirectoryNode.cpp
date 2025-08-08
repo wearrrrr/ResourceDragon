@@ -38,7 +38,7 @@ void InfoDialog() {
             ImGui::TableSetupColumn("Tag", ImGuiTableColumnFlags_WidthStretch, 250.0f);
             ImGui::TableHeadersRow();
 
-            for (const auto &pair : extractor_manager.GetFormats()) {
+            for (const auto &pair : extractor_manager->GetFormats()) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text(pair.first);
@@ -444,7 +444,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
         return;
     }
 
-    auto format_list = extractor_manager.GetExtractorCandidates(entry_buffer, size, ext);
+    auto format_list = extractor_manager->GetExtractorCandidates(entry_buffer, size, ext);
 
     if (format_list.size() <= 0) {
         preview_state.contents = {

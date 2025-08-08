@@ -81,63 +81,63 @@ jobs:
           path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
 
   ## Windows build #############################################################
-  build-windows:
-    name: "Windows CI build"
-    runs-on: windows-2022
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-          fetch-depth: 0
+  # build-windows:
+  #   name: "Windows CI build"
+  #   runs-on: windows-2022
+  #   steps:
+  #     - name: Clone repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: false
+  #         fetch-depth: 0
 
-      - name: Compute submodule hash
-        run: git submodule status --recursive > submodules.txt
+  #     - name: Compute submodule hash
+  #       run: git submodule status --recursive > submodules.txt
 
-      - name: Restore submodule cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            .git/modules
-            vendored
-          key: submodules-${{ hashFiles('submodules.txt') }}
-          restore-keys: |
-            submodules-
-          enableCrossOsArchive: true
+  #     - name: Restore submodule cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           .git/modules
+  #           vendored
+  #         key: submodules-${{ hashFiles('submodules.txt') }}
+  #         restore-keys: |
+  #           submodules-
+  #         enableCrossOsArchive: true
 
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
+  #     - name: Checkout submodules
+  #       run: git submodule update --init --recursive
 
-      - name: Setup MSVC environment (for nmake and headers/libs)
-        uses: ilammy/msvc-dev-cmd@v1
+  #     - name: Setup MSVC environment (for nmake and headers/libs)
+  #       uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install LLVM
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: latest
-          platform: x64
+  #     - name: Install LLVM
+  #       uses: egor-tensin/setup-clang@v1
+  #       with:
+  #         version: latest
+  #         platform: x64
 
-      - name: Add LLVM to PATH
-        run: echo "$env:ProgramFiles\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+  #     - name: Add LLVM to PATH
+  #       run: echo "$env:ProgramFiles\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Build application
-        run: |
-             cmake --version
-             cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-             cd build/
-             nmake
+  #     - name: Build application
+  #       run: |
+  #            cmake --version
+  #            cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+  #            cd build/
+  #            nmake
 
-      # # Deploy application
-      # - name: Deploy application
-      #   run: |
-      #        sh deploy_windows.sh -c -p
+  #     # # Deploy application
+  #     # - name: Deploy application
+  #     #   run: |
+  #     #        sh deploy_windows.sh -c -p
 
-      # # Upload application ZIP
-      # - name: Upload application ZIP
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
-      #     path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
+  #     # # Upload application ZIP
+  #     # - name: Upload application ZIP
+  #     #   uses: actions/upload-artifact@v4
+  #     #   with:
+  #     #     name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
+  #     #     path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
 
   #     # Upload NSIS installer
   #     - name: Upload NSIS installer

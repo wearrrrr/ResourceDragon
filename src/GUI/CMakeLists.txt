@@ -26,6 +26,8 @@ add_library(GUI
     Theme/BessDark.cpp
     UIError.cpp
     Utils.cpp
+
+    ../state.cpp
 )
 
 target_include_directories(GUI PUBLIC

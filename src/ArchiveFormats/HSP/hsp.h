@@ -5,12 +5,12 @@
 
 class HSPArchive : public ArchiveFormat {
     public:
-        std::string_view tag = "HSP";
-        std::string_view description = "Hot Soup Processor 3 Resource Archive";
+        std::string tag = "HSP";
+        std::string description = "Hot Soup Processor 3 Resource Archive";
 
         u32 DefaultKey = 0xAC52AE58;
 
-        std::vector<std::string_view> extensions = {"exe", "dpm", "bin", "dat"};
+        std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
 
         HSPArchive() {
             sig = PackUInt('D', 'P', 'M', 'X');
@@ -21,10 +21,10 @@ class HSPArchive : public ArchiveFormat {
 
         ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
         bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;
-        std::string_view GetTag() const override {
+        std::string GetTag() const override {
             return this->tag;
         }
-        std::string_view GetDescription() const override {
+        std::string GetDescription() const override {
             return this->description;
         }
 };

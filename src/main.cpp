@@ -30,12 +30,12 @@
 
 template <class T>
 inline void RegisterFormat() {
-    extractor_manager.RegisterFormat(std::make_unique<T>());
+    extractor_manager->RegisterFormat(std::make_unique<T>());
 }
 
 template <class T>
 inline void RegisterFormat(T *arc_fmt) {
-    extractor_manager.RegisterFormat(std::unique_ptr<T>(arc_fmt));
+    extractor_manager->RegisterFormat(std::unique_ptr<T>(arc_fmt));
 }
 
 int main(int argc, char *argv[]) {

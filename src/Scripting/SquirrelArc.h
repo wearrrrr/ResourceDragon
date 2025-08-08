@@ -36,11 +36,11 @@ public:
       sq_release(vm, &archive_format_table);
   }
 
-  std::string_view GetTag() const override {
+  std::string GetTag() const override {
     return GetStringField("tag", "GETTAG_FAIL");
   }
 
-  std::string_view GetDescription() const override {
+  std::string GetDescription() const override {
     return GetStringField("description", "GETDESC_FAIL");
   }
 
@@ -48,7 +48,7 @@ public:
   ArchiveBase* TryOpen(u8* buffer, u64 size, std::string file_name) override;
 
 private:
-  std::string_view GetStringField(const char *key, const char *fallback) const {
+  std::string GetStringField(const char *key, const char *fallback) const {
     sq_pushobject(vm, archive_format_table);
     sq_pushstring(vm, _SC(key), -1);
     if (SQ_SUCCESS(sq_get(vm, -2))) {

@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 
-typedef std::map<std::string_view, std::unique_ptr<ArchiveFormat>> FormatMap;
+typedef std::map<std::string, std::unique_ptr<ArchiveFormat>> FormatMap;
 typedef std::vector<ArchiveFormat*> FormatList;
 
 class ExtractorManager {

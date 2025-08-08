@@ -94,29 +94,22 @@ struct PreviewWinState {
   PWinStateTexture texture;
 };
 
-inline PreviewWinState preview_state = {
-    .audio {
-        .volumePercent = 100
-    }
-};
-inline ExtractorManager extractor_manager;
+extern PreviewWinState preview_state;
+extern ExtractorManager *extractor_manager;
 
-inline ArchiveBase *loaded_arc_base = nullptr;
-inline u8 *current_buffer = nullptr;
-inline Entry *selected_entry = nullptr;
+extern ArchiveBase *loaded_arc_base;
+extern u8 *current_buffer;
+extern Entry *selected_entry;
 
 inline TextEditor editor;
 
-inline PImageView image_preview = {
-    .zoom = 1.0f,
-    .pan = {0.0f, 0.0f}
-};
+extern PImageView image_preview;
 
-inline bool text_editor__unsaved_changes = false;
+extern bool text_editor__unsaved_changes;
 
 #ifdef linux
-inline int inotify_fd;
-inline int inotify_wd;
+extern int inotify_fd;
+extern int inotify_wd;
 #endif
 
 template <typename T>
@@ -124,5 +117,5 @@ T *malloc(size_t size) {
     return (T*)malloc(size);
 }
 
-inline bool openDelPopup = false;
-inline bool quitDialog = false;
+extern bool openDelPopup;
+extern bool quitDialog;

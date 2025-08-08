@@ -5,7 +5,7 @@ rm build-mingw/ResourceDragon.exe
 cd build-mingw
 ninja -j12
 mkdir -p Win32
-cp -r ../fonts/ ./Win32/fonts/
+cp -r ../fonts/ ./Win32/
 cp ResourceDragon.exe ./Win32/
 cp src/ArchiveFormats/libArchiveFormats.dll ./Win32/
 cp src/GUI/libGUI.dll ./Win32/

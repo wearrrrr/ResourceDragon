@@ -51,7 +51,7 @@ TextEditor::TextEditor()
   mLines.push_back(Line());
 }
 
-TextEditor::~TextEditor() {}
+TextEditor::~TextEditor() = default;
 
 void TextEditor::SetLanguageDefinition(const LanguageDefinition &aLanguageDef) {
   mLanguageDefinition = aLanguageDef;

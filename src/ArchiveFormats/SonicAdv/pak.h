@@ -1,8 +1,8 @@
 #include <ArchiveFormat.h>
 
 class SAPakFormat : public ArchiveFormat {
-    std::string_view tag = "SonicAdv.PAK";
-    std::string_view description = "Sonic Adventure Resource Archive";
+    std::string tag = "SonicAdv.PAK";
+    std::string description = "Sonic Adventure Resource Archive";
     u32 sig = PackUInt32(0x01, 'p', 'a', 'k');
 
     std::vector<std::string> extensions = {"pak"};
@@ -12,10 +12,10 @@ class SAPakFormat : public ArchiveFormat {
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &_ext) const override {
         return Read<u32>(buffer, 0) == sig;
     };
-    std::string_view GetTag() const override {
+    std::string GetTag() const override {
         return this->tag;
     };
-    std::string_view GetDescription() const override {
+    std::string GetDescription() const override {
         return this->description;
     }
 };
