@@ -1,7 +1,14 @@
 #pragma once
 
+
+
 #include <string>
+// FIXME: I cannot for the life of me get zlib working on windows, so zlib is disabled on non-linux / non-emscripten environments :(
+#if defined(linux) || defined(EMSCRIPTEN)
 #include <zlib.h>
+#else
+#define NO_ZLIB
+#endif
 
 #include <ArchiveFormat.h>
 
