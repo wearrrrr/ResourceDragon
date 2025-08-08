@@ -488,11 +488,9 @@ inline bool CanReadDirectory(const std::string& path) {
     #if defined(linux) || defined(EMSCRIPTEN)
     return access(path.data(), R_OK | X_OK) == 0;
     #else
-    // I think this is correct? I don't know how to use microsoft's version of this function
-    return _access(path.data(), 4) != -1;
+    // mhm yup go ahead bro
+    return true;
     #endif
-
-
 }
 
 void DirectoryNode::Display(Node *node) {
