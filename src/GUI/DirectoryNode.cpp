@@ -253,7 +253,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                     .FileName = fileName,
                     .FileSize = Utils::GetFileSize(path),
                     .FileSizeBytes = entry.is_directory() ? 0 : fs::file_size(entry),
-                    .LastModified = Utils::GetLastModifiedTime(path),
+                    .LastModified = Utils::GetLastModifiedTime(path.string()),
                     .LastModifiedUnix = (u64)fs::last_write_time(entry).time_since_epoch().count(),
                     .Children = {},
                     .IsDirectory = entry.is_directory()
@@ -485,7 +485,14 @@ void DirectoryNode::HandleFileClick(Node *node) {
 }
 
 inline bool CanReadDirectory(const std::string& path) {
+    #if defined(linux) || defined(EMSCRIPTEN)
     return access(path.data(), R_OK | X_OK) == 0;
+    #else
+    // I think this is correct? I don't know how to use microsoft's version of this function
+    return _access(path.data(), 4) != -1;
+    #endif
+
+
 }
 
 void DirectoryNode::Display(Node *node) {
