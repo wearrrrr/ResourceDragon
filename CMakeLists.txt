@@ -93,7 +93,7 @@ add_subdirectory(src/Scripting)
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
-    vendored/sha1.c
+    src/sha1.c
 )
 
 target_include_directories(ResourceDragon PRIVATE

@@ -17,7 +17,7 @@ target_include_directories(ArchiveFormats PUBLIC
 
 include_directories(../../vendored/thlib/src/)
 
-target_link_libraries(ArchiveFormats PRIVATE util)
+target_link_libraries(ArchiveFormats PRIVATE thlib util)
 
 install(TARGETS ArchiveFormats
     LIBRARY DESTINATION lib
