@@ -5,7 +5,12 @@
 #include <stdarg.h>
 #include <memory>
 #include <typeinfo>
-#include <cxxabi.h>
+#if __has_include(<cxxabi.h>)
+    #include <cxxabi.h>
+    #define HAS_CXXABI true
+#else
+    #define HAS_CXXABI false
+#endif
 
 #define PREFIX "[ResourceDragon] "
 #define LOG_COLOR "\x1b[1;34m"
@@ -38,7 +43,7 @@ struct Logger {
           "Dumping struct %s\n",
           get_type_name(obj).data()
         );
-#if defined(__clang__) && __has_builtin(__builtin_dump_struct)
+#if defined(__clang__) && __has_builtin(__builtin_dump_struct) && HAS_CXXABI
         __builtin_dump_struct(&obj, printf);
 #else
         printf("__builtin_dump_struct is not supported with this compiler!");

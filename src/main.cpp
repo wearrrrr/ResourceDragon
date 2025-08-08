@@ -242,6 +242,10 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+#ifdef DEBUG
+    Logger::log_struct(canonical_path.string());
+#endif
+
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
