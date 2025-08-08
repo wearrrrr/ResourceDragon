@@ -580,7 +580,7 @@ void DirectoryNode::Setup(Node *node) {
 #else
     // TODO: horrible for performance and probably does not work but I do not care right now :sob:
     SetFilePath(std::string(file_path_buf));
-    rootNode = CreateTreeFromPath(std::string(file_path_buf))
+    rootNode = CreateTreeFromPath(std::string(file_path_buf));
 #endif
 
     }
