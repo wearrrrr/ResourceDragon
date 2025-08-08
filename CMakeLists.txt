@@ -32,7 +32,7 @@ if (NOT EMSCRIPTEN)
     find_package(Freetype QUIET)
     find_package(ZLIB QUIET)
 
-    if(NOT Freetype_FOUND)
+    if(NOT Freetype_FOUND OR WIN32)
         message(STATUS "Freetype not found, fetching...")
         FetchContent_Declare(
             freetype
@@ -49,7 +49,7 @@ if (NOT EMSCRIPTEN)
         include_directories(${freetype2_INCLUDE_DIRS})
     endif()
 
-    if(NOT ZLIB_FOUND)
+    if(NOT ZLIB_FOUND OR WIN32)
         message(STATUS "Zlib not found, fetching...")
 
         include(FetchContent)
