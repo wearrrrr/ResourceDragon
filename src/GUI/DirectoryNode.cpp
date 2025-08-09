@@ -162,6 +162,7 @@ void DirectoryNode::UnloadSelectedFile() {
     image_preview.zoom = 1.0f;
     image_preview.pan = {0.0f, 0.0f};
     preview_state.contents = {};
+    preview_state.contents.type = ContentType::UNKNOWN;
 
     preview_state.audio.playing = false;
     if (preview_state.audio.music) {
@@ -363,6 +364,7 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
         preview_state.texture.frame = 0;
         preview_state.texture.last_frame_time = SDL_GetTicks();
     } else if (Audio::IsAudio(ext)) {
+        preview_state.contents.type = AUDIO;
         if (isVirtualRoot) {
             preview_state.audio.buffer = (u8*)malloc(size);
             memcpy(preview_state.audio.buffer, entry_buffer, size);
@@ -377,7 +379,6 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
         }
 
         if (preview_state.audio.music) {
-            preview_state.contents.type = AUDIO;
             MIX_SetTrackAudio(preview_state.audio.track, preview_state.audio.music);
             MIX_PlayTrack(preview_state.audio.track, 1);
             if (!MIX_GetAudioFormat(preview_state.audio.music, &preview_state.audio.spec)) {

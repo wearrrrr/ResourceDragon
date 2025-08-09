@@ -9,8 +9,6 @@
 void Audio::MusicFinishedCallback(void* userdata, MIX_Track *track) {
     if (preview_state.audio.music && preview_state.audio.shouldLoop) {
         MIX_PlayTrack(preview_state.audio.track, 0);
-    } else {
-        DirectoryNode::UnloadSelectedFile();
     }
 }
 

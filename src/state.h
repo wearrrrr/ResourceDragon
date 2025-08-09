@@ -55,11 +55,11 @@ struct PWinStateAudio {
 };
 
 enum ContentType {
+    UNKNOWN,
     IMAGE,
     GIF,
     AUDIO,
     ELF,
-    UNKNOWN
 };
 
 enum ContentEncoding {

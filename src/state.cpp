@@ -2,6 +2,9 @@
 #include "ExtractorManager.h"
 
 PreviewWinState preview_state = {
+    .contents {
+        .type = ContentType::UNKNOWN
+    },
     .audio {
         .volumePercent = 100
     }

@@ -10,7 +10,6 @@
 #include "SDL3_mixer/SDL_mixer.h"
 #include "state.h"
 #include "icons.h"
-#include "util/Logger.h"
 
 bool PlaybackScrubber(const char *id, float *progress, float width, bool interactive = true) {
     ImGui::PushID(id);
