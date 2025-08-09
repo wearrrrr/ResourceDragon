@@ -6,6 +6,7 @@ cd build-mingw
 ninja -j12
 mkdir -p Win32
 cp -r ../fonts/ ./Win32/
+cp -r ../scripts/ ./Win32/
 cp ResourceDragon.exe ./Win32/
 cp vendored/SDL/SDL3.dll ./Win32/
 cp vendored/SDL_image/SDL3_image.dll ./Win32/
@@ -23,6 +24,7 @@ cd ../../
 
 if ! [ ! -f build-mingw/Win32/ResourceDragon.exe ]; then
     printf "\x1B[1;32mCompiled successfully!\n\x1B[1;30mOutput files are in $PWD/build-mingw/Win32/\n"
+    strip build-mingw/Win32/ResourceDragon.exe
     exit 0
 else
     printf "\x1B[1;31mBuild Failed!! Check the build output.\n"

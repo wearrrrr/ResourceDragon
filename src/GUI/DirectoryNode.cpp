@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <functional>
 #include <util/Text.h>
@@ -190,12 +191,19 @@ void DirectoryNode::Unload(Node *node) {
     node->Children.clear();
 }
 
-inline void SortChildrenAlphabetical(DirectoryNode::Node *node) {
+inline void SortChildrenAlphabetical(DirectoryNode::Node *node, bool sortAscending) {
     std::sort(node->Children.begin(), node->Children.end(),
-    [](const DirectoryNode::Node* a, const DirectoryNode::Node* b) {
-        if (a->IsDirectory != b->IsDirectory) return a->IsDirectory > b->IsDirectory;
+    [=](const DirectoryNode::Node* a, const DirectoryNode::Node* b) {
+        if (a->IsDirectory != b->IsDirectory)
+            return a->IsDirectory > b->IsDirectory;
 
-        return Utils::ToLower(a->FileName) < Utils::ToLower(b->FileName);
+        std::string nameA = Utils::ToLower(a->FileName);
+        std::string nameB = Utils::ToLower(b->FileName);
+
+        if (sortAscending)
+            return nameA < nameB;
+        else
+            return nameA > nameB;
     });
 }
 
@@ -266,7 +274,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                 node->Children.push_back(childNode);
             }
         }
-        SortChildrenAlphabetical(node);
+        SortChildrenAlphabetical(node, true);
         return true;
     } catch (const fs::filesystem_error &err) {
         return false;
@@ -602,21 +610,50 @@ void DirectoryNode::Setup(Node *node) {
     ImGui::TableSetupColumn("Last Modified", ImGuiTableColumnFlags_WidthFixed, 170.0f);
     ImGui::TableNextRow();
 
+    static bool sortAscending = true;
+    static const char* currentSort = nullptr;
+
     for (int col = 0; col < FB_COLUMNS; col++) {
         ImGui::TableSetColumnIndex(col);
         const char* name = ImGui::TableGetColumnName(col);
         ImGui::PushID(col);
         if (ImGui::Selectable(name, false)) {
-            if (strcmp(name, "Size") == 0) {
-                SortChildrenBy(node, [](const Node* a, const Node* b) {
-                    return a->FileSizeBytes > b->FileSizeBytes;
-                });
-            } else if (strcmp(name, "Last Modified") == 0) {
-                SortChildrenBy(node, [](const Node* a, const Node* b) {
-                    return a->LastModifiedUnix < b->LastModifiedUnix;
-                });
+            if (currentSort == name) {
+                sortAscending = !sortAscending;
             } else {
-                SortChildrenAlphabetical(node);
+                currentSort = name;
+                sortAscending = true;
+            }
+
+            auto folderFirst = [](const Node *a, const Node *b) {
+                if (a->IsDirectory != b->IsDirectory)
+                    return a->IsDirectory ? -1 : 1;
+                // both are a folder
+                return 0;
+            };
+
+            if (strcmp(currentSort, "Size") == 0) {
+                SortChildrenBy(node, [&](const Node *a, const Node *b) {
+                    int ff = folderFirst(a, b);
+                    if (ff != 0) return ff < 0;
+
+                    return sortAscending
+                        ? a->FileSizeBytes < b->FileSizeBytes
+                        : a->FileSizeBytes > b->FileSizeBytes;
+                });
+            }
+            else if (strcmp(currentSort, "Last Modified") == 0) {
+                SortChildrenBy(node, [&](const Node *a, const Node *b) {
+                    int ff = folderFirst(a, b);
+                    if (ff != 0) return ff < 0;
+
+                    return sortAscending
+                        ? a->LastModifiedUnix < b->LastModifiedUnix
+                        : a->LastModifiedUnix > b->LastModifiedUnix;
+                });
+            }
+            else {
+                SortChildrenAlphabetical(node, sortAscending);
             }
         }
         ImGui::PopID();
