@@ -35,15 +35,15 @@ jobs:
       - name: Compute submodule hash
         run: git submodule status --recursive > submodules.txt
 
-      - name: Restore submodule cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            .git\modules
-            vendored
-          key: submodules-${{ hashFiles('submodules.txt') }}
-          restore-keys: |
-            submodules-
+      # - name: Restore submodule cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       .git\modules
+      #       vendored
+      #     key: submodules-${{ hashFiles('submodules.txt') }}
+      #     restore-keys: |
+      #       submodules-
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
