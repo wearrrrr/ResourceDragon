@@ -44,7 +44,6 @@ jobs:
           key: submodules-${{ hashFiles('submodules.txt') }}
           restore-keys: |
             submodules-
-          enableCrossOsArchive: true
 
       - name: Checkout submodules
         run: git submodule update --init --recursive

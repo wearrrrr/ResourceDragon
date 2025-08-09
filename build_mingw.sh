@@ -7,9 +7,6 @@ ninja -j12
 mkdir -p Win32
 cp -r ../fonts/ ./Win32/
 cp ResourceDragon.exe ./Win32/
-cp src/ArchiveFormats/libArchiveFormats.dll ./Win32/
-cp src/GUI/libGUI.dll ./Win32/
-cp src/Scripting/libScripting.dll ./Win32/
 cp vendored/SDL/SDL3.dll ./Win32/
 cp vendored/SDL_image/SDL3_image.dll ./Win32/
 cp vendored/SDL_mixer/SDL3_mixer.dll ./Win32/

@@ -1,4 +1,4 @@
-add_library(ArchiveFormats
+add_library(ArchiveFormats STATIC
     ExeFile.cpp
     sha1.c
 

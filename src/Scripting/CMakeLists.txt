@@ -1,4 +1,4 @@
-add_library(Scripting
+add_library(Scripting STATIC
     ScriptManager.cpp
     SquirrelArc.cpp
 )

@@ -162,7 +162,9 @@ void DirectoryNode::UnloadSelectedFile() {
     image_preview.pan = {0.0f, 0.0f};
     preview_state.contents = {};
 
+    preview_state.audio.playing = false;
     if (preview_state.audio.music) {
+        MIX_StopAllTracks(preview_state.audio.mixer, 0);
         MIX_DestroyAudio(preview_state.audio.music);
         preview_state.audio.music = nullptr;
     }
@@ -171,7 +173,6 @@ void DirectoryNode::UnloadSelectedFile() {
         free(preview_state.audio.buffer);
         preview_state.audio.buffer = nullptr;
     };
-    preview_state.audio.playing = false;
     preview_state.audio.time = {};
     preview_state.audio.scrubberDragging = false;
     if (preview_state.audio.update_timer) {

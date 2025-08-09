@@ -13,7 +13,7 @@ set(IMGUI_SRC "")
 endif()
 
 
-add_library(GUI
+add_library(GUI STATIC
     ${IMGUI_SRC}
     Audio.cpp
     Clipboard.cpp

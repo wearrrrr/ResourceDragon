@@ -24,6 +24,8 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
         endif()
     endif()
+else()
+    set(CMAKE_CXX_FLAGS "-O3")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
