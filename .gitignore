@@ -2,6 +2,7 @@
 
 build/
 build-mingw/
+build-emscripten/
 extracted/
 .vscode
 imgui.ini

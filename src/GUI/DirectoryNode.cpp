@@ -15,8 +15,13 @@
 #include "UIError.h"
 #include <imgui.h>
 #ifdef _WIN32
+#ifndef __MINGW32__
 #define NOMINMAX
+#endif
 #include <windows.h>
+#endif
+#if defined(linux) || defined(EMSCRIPTEN)
+#include <unistd.h>
 #endif
 #include <gl3.h>
 #include "state.h"

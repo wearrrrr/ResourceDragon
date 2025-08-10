@@ -7,7 +7,9 @@
 #include <SDL3/SDL_audio.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #ifdef _WIN32
+#ifndef __MINGW32__
 #define NOMINMAX
+#endif
 #include <windows.h>
 #endif
 #include <gl3.h>
@@ -55,11 +57,11 @@ struct PWinStateAudio {
 };
 
 enum ContentType {
-    UNKNOWN,
     IMAGE,
     GIF,
     AUDIO,
     ELF,
+    UNKNOWN
 };
 
 enum ContentEncoding {

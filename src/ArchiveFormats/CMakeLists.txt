@@ -8,7 +8,7 @@ add_library(ArchiveFormats STATIC
     NitroPlus/mpk.cpp
     PFS/pfs.cpp
     SonicAdv/pak.cpp
-    # Touhou/pbg.cpp
+    Touhou/pbg.cpp
     XP3/xp3.cpp
 )
 

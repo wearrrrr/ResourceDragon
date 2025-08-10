@@ -5,7 +5,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #ifdef _WIN32
+#ifndef __MINGW32__
+#ifndef __MINGW32__
 #define NOMINMAX
+#endif
+#endif
 #include <windows.h>
 #endif
 #include <gl3.h>

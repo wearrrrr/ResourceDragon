@@ -21,7 +21,7 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
         if (EMSCRIPTEN)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
             # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
         endif()
     endif()
 else()
@@ -140,46 +140,3 @@ if (WIN32)
         DESTINATION .
     )
 endif()
-
-if (LINUX)
-install(CODE "
-    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_mixer/libSDL3_mixer.so.0.1.0
-         RENAME libSDL3_mixer.so.0)
-")
-install(CODE "
-    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/SDL_image/libSDL3_image.so.0.3.0
-         RENAME libSDL3_image.so.0)
-")
-install(CODE "
-    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/SDL/libSDL3.so.0.3.0
-         RENAME libSDL3.so.0)
-")
-install(CODE "
-    file(INSTALL DESTINATION \${CMAKE_INSTALL_PREFIX}/lib TYPE FILE
-         FILES ${CMAKE_BINARY_DIR}/vendored/libzip/lib/libzip.so.5.5
-         RENAME libzip.so.5)
-")
-endif()
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts/
-        DESTINATION fonts
-        FILES_MATCHING PATTERN "*"
-)
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/scripts/
-        DESTINATION scripts
-        FILES_MATCHING PATTERN "*"
-)
-
-set(CPACK_PACKAGE_NAME "ResourceDragon")
-set(CPACK_PACKAGE_VERSION "0.1")
-set(CPACK_GENERATOR "ZIP")
-set(CPACK_PACKAGE_CONTACT "contact@wearr.dev")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ResourceDragon asset viewer")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
-
-include(CPack)

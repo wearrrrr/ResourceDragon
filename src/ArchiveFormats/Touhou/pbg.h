@@ -10,8 +10,8 @@ static int findPbg3Entry(ThArchive *dat, const char *entry) {
 }
 
 class THDAT : public ArchiveFormat {
-    std::string_view tag = "Touhou.DAT";
-    std::string_view description = "Archive format for mainline Touhou games";
+    std::string tag = "Touhou.DAT";
+    std::string description = "Archive format for mainline Touhou games";
     u32 sig = PackUInt32('P', 'B', 'G', '3');
 
     std::vector<std::string> extensions = {".dat", ".DAT"};
@@ -25,10 +25,10 @@ class THDAT : public ArchiveFormat {
 
         return false;
     };
-    std::string_view GetTag() const override {
+    std::string GetTag() const override {
         return this->tag;
     };
-    std::string_view GetDescription() const override {
+    std::string GetDescription() const override {
         return this->description;
     }
 };

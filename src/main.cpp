@@ -11,7 +11,7 @@
 #include <ArchiveFormats/PFS/pfs.h>
 #include <ArchiveFormats/NitroPlus/nitroplus.h>
 #include <ArchiveFormats/SonicAdv/sonicadv.h>
-// #include <ArchiveFormats/Touhou/pbg.h>
+#include <ArchiveFormats/Touhou/pbg.h>
 #include <ArchiveFormats/XP3/xp3.h>
 
 #include <GUI/Audio.h>
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     RegisterFormat<NitroPlus::NPK>();
     RegisterFormat<NitroPlus::MPK>();
     RegisterFormat<SonicAdv::PAK>();
-    // RegisterFormat<THDAT>();
+    RegisterFormat<THDAT>();
     RegisterFormat<XP3Format>();
 
     ScriptManager *scriptManager = new ScriptManager();
