@@ -242,7 +242,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
                     if (found == current->Children.end()) {
                         Node *newNode = new Node{
-                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + "/" + part),
+                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + static_cast<char>(fs::path::preferred_separator) + part),
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
@@ -538,7 +538,7 @@ void DirectoryNode::Display(Node *node) {
         if (rootNode->FullPath.ends_with("/")) {
             SetFilePath(rootNode->FullPath);
         } else {
-            SetFilePath(rootNode->FullPath + "/");
+            SetFilePath(rootNode->FullPath + static_cast<char>(fs::path::preferred_separator));
         }
 
     }
@@ -578,9 +578,19 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> cb = {}) {
 static char *file_path_buf = (char*)calloc(sizeof(char), 1024);
 
 void SetFilePath(const std::string& file_path) {
-    std::string normalized = file_path.ends_with("/") ? file_path : (file_path + "/");
-    std::strncpy(file_path_buf, normalized.data(), 1024);
-    file_path_buf[1023] = '\0';
+    char sep = static_cast<char>(fs::path::preferred_separator);
+
+    bool ends_with_sep = false;
+    if (!file_path.empty()) {
+        char last_char = file_path.back();
+        ends_with_sep = (last_char == '/') || (last_char == '\\');
+    }
+
+    std::string normalized = ends_with_sep ? file_path : (file_path + sep);
+
+    size_t copy_len = std::min(normalized.size(), size_t(1023));
+    std::memcpy(file_path_buf, normalized.data(), copy_len);
+    file_path_buf[copy_len] = '\0';
 }
 
 #define FB_COLUMNS 3

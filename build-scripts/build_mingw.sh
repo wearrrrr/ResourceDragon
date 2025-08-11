@@ -1,6 +1,7 @@
 x86_64-w64-mingw32-cmake -B build-mingw -G Ninja
 
 rm build-mingw/ResourceDragon.exe
+rm build-mingw/Win32/ResourceDragon.exe
 
 cd build-mingw
 ninja -j12
@@ -24,7 +25,7 @@ cp /usr/x86_64-w64-mingw32/bin/zlib1.dll ./
 cd ../../
 
 if ! [ ! -f build-mingw/Win32/ResourceDragon.exe ]; then
-    printf "\x1B[1;32mCompiled successfully!\n\x1B[1;30mOutput files are in $PWD/build-mingw/Win32/\n"
+    printf "\x1B[1;32mCompiled successfully!\n\x1B[1;30mOutput files are in $PWD/build-mingw/Win32/\x1B[0m \n"
     strip build-mingw/Win32/ResourceDragon.exe
     exit 0
 else

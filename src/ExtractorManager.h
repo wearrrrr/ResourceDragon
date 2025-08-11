@@ -20,6 +20,12 @@ public:
     m_formats.erase(tag);
   }
 
+  ArchiveFormat *GetFormat(std::string name) {
+      auto format = m_formats[name].get();
+      if (format) return format;
+      else return nullptr;
+  };
+
   const FormatMap& GetFormats() {
       return m_formats;
   }

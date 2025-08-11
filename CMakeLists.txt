@@ -25,7 +25,7 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
         endif()
     endif()
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -fstack-protector-strong")
+    set(CMAKE_CXX_FLAGS "-O3 -fstack-protector-strong -mwindows")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

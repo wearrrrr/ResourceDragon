@@ -44,7 +44,7 @@ else
     cd ..
 
     if [ -f build/ResourceDragon ] || [ -f build/ResourceDragon.wasm ]; then
-        printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\n\x1B[m"
+        printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\x1B[0m \n"
         exit 0
     else
         printf "\x1B[1;31mBuild Failed!! Check the build output.\n"
