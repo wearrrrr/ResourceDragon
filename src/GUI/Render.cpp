@@ -4,6 +4,7 @@
 #include <PreviewWindow.h>
 #include <Themes.h>
 #include <UIError.h>
+#include "SDL3/SDL_video.h"
 #include "imgui.h"
 #include "state.h"
 #include <util/Logger.h>
@@ -133,6 +134,7 @@ bool GUI::InitRendering() {
     }
 
     window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
+
     if (!window)
     {
         Logger::error("Error: SDL_CreateWindow(): %s\n", SDL_GetError());

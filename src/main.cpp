@@ -1,3 +1,4 @@
+#include "SDL3/SDL_hints.h"
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -109,6 +110,8 @@ int main(int argc, char *argv[]) {
     });
     inotify_thread.detach();
     #endif
+
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "1");
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());

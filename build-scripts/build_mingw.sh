@@ -8,6 +8,7 @@ mkdir -p Win32
 cp -r ../fonts/ ./Win32/
 cp -r ../scripts/ ./Win32/
 cp ResourceDragon.exe ./Win32/
+cp vendored/thlib/libthlib.dll ./Win32/
 cp vendored/SDL/SDL3.dll ./Win32/
 cp vendored/SDL_image/SDL3_image.dll ./Win32/
 cp vendored/SDL_mixer/SDL3_mixer.dll ./Win32/

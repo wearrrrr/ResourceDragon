@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <functional>
 #include <util/Text.h>
