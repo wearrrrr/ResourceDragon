@@ -10,6 +10,11 @@
     #define HAS_CXXABI
 #endif
 
+#if __has_include(<stacktrace>) && !defined(_WIN32)
+#include <stacktrace>
+#define HAS_STACKTRACE
+#endif
+
 #define PREFIX "[ResourceDragon] "
 #define LOG_COLOR "\x1b[1;34m"
 #define WARN_COLOR "\x1b[1;33m"
@@ -51,6 +56,20 @@ struct Logger {
         Logger::error("__builtin_dump_struct is not supported with this compiler or cxxabi is missing!");
 #endif
     }
+
+    static void print_trace() {
+#ifdef HAS_STACKTRACE
+        auto trace = std::stacktrace::current();
+        puts("\n");
+        for (const auto& entry: trace) {
+            printf("%s\n", std::to_string(entry).c_str());
+        }
+#else
+        Logger::warn("Backtrace unavailable! Try linking with -lstdc++exp.");
+#endif
+    }
+
+
 
     static void log(const char* format, va_list va) {
         printf(LOG_PREFIX);

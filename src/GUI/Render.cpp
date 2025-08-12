@@ -223,6 +223,8 @@ void GUI::StartRenderLoop(const char *path) {
 
     const std::string preview_win_label = "Preview";
 
+    Logger::print_trace();
+
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {

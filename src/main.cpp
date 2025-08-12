@@ -28,20 +28,6 @@
 
 #include "state.h"
 
-#if __has_include(<stacktrace>)
-#include <stacktrace>
-void print_trace() {
-    auto trace = std::stacktrace::current();
-    for (const auto& entry: trace) {
-        printf("%s\n", std::to_string(entry).c_str());
-    }
-}
-#else
-void print_trace() {
-    Logger::warn("Backtrace unavailable! Try linking with -lstdc++exp.");
-}
-#endif
-
 template <class T>
 inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
@@ -131,8 +117,6 @@ int main(int argc, char *argv[]) {
     }
 
     Audio::InitAudioSystem();
-
-    print_trace();
 
     if (GUI::InitRendering()) {
         GUI::StartRenderLoop(path);

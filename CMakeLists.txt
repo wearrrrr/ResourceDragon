@@ -11,6 +11,17 @@ set(CMAKE_CXX_STANDARD 23)
 
 project(ResourceDragon VERSION 0.1)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+file(WRITE ${CMAKE_BINARY_DIR}/check_stdexp.cpp "int main() { return 0; }\n")
+
+try_compile(HAVE_STDCXX_EXP
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/check_stdexp.cpp
+    LINK_LIBRARIES stdc++exp
+)
+
 if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "-g")
@@ -22,9 +33,10 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
             # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
-        else()
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++exp")
         endif()
+    endif()
+    if(HAVE_STDCXX_EXP)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++exp")
     endif()
 else()
     set(CMAKE_CXX_FLAGS "-O3 -fstack-protector-strong -mwindows")
