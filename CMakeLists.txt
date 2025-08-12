@@ -22,6 +22,12 @@ try_compile(HAVE_STDCXX_EXP
     LINK_LIBRARIES stdc++exp
 )
 
+if(HAVE_STDCXX_EXP)
+    message(STATUS "Found libstdc++exp, linking with it")
+else()
+    message(STATUS "libstdc++exp not found, skipping")
+endif()
+
 if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "-g")
