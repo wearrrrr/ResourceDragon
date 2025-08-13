@@ -29,7 +29,7 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -lbacktrace")
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -fstack-protector-strong -mwindows")
+    set(CMAKE_CXX_FLAGS "-mwindows -g")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -59,6 +59,15 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
+
+    FetchContent_Declare(
+        cpptrace
+        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+        GIT_TAG        v1.0.4
+    )
+    FetchContent_MakeAvailable(cpptrace)
+    set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
+    set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
 endif()
 
 add_subdirectory(vendored/SDL)
@@ -88,6 +97,7 @@ include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(vendored/squirrel/include/)
+include_directories(${CPPTRACE_INCLUDE_DIR})
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -120,7 +130,7 @@ if (WIN32)
     target_link_libraries(ResourceDragon PRIVATE shlwapi)
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype cpptrace::cpptrace squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
