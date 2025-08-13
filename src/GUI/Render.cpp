@@ -223,7 +223,7 @@ void GUI::StartRenderLoop(const char *path) {
 
     const std::string preview_win_label = "Preview";
 
-    Logger::print_trace();
+    Logger::print_stacktrace("Test error with stacktrace..");
 
     while (running) {
         SDL_Event event;

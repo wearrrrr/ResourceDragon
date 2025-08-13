@@ -5,14 +5,12 @@
 #include <stdarg.h>
 #include <memory>
 #include <typeinfo>
-#if __has_include(<cxxabi.h>)
-    #include <cxxabi.h>
-    #define HAS_CXXABI
-#endif
 
-#if __has_include(<stacktrace>) && !defined(_WIN32)
-#include <stacktrace>
-#define HAS_STACKTRACE
+#include <util/Stacktrace.h>
+
+#if __has_include(<cxxabi.h>)
+#include <cxxabi.h>
+#define HAS_CXXABI
 #endif
 
 #define PREFIX "[ResourceDragon] "
@@ -57,18 +55,32 @@ struct Logger {
 #endif
     }
 
-    static void print_trace() {
-#ifdef HAS_STACKTRACE
-        auto trace = std::stacktrace::current();
-        puts("\n");
-        for (const auto& entry: trace) {
-            printf("%s\n", std::to_string(entry).c_str());
+    static int full_callback(void *data, uintptr_t pc, const char *filename, int lineno, const char *function) {
+        const char *funcname = function ? function : "??";
+
+        int status = 0;
+        char *demangled = abi::__cxa_demangle(funcname, nullptr, nullptr, &status);
+        if (status == 0 && demangled) {
+            funcname = demangled;
         }
-#else
-        Logger::warn("Backtrace unavailable! Try linking with -lstdc++exp.");
-#endif
+
+        const char *file = filename ? filename : "??";
+
+        printf("%s at %s:%d\n", funcname, file, lineno);
+
+        free(demangled);
+        return 0;
     }
 
+
+    static void error_callback(void *data, const char *msg, int errnum) {
+        printf("libbacktrace error: %s\n", msg);
+    }
+
+    static void print_stacktrace(const char *message = nullptr) {
+        if (message) Logger::warn(message);
+        RDStacktrace::print_stacktrace();
+    }
 
 
     static void log(const char* format, va_list va) {

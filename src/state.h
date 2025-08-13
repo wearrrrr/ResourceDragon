@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEBUG
-
 #include "imgui.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
