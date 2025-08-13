@@ -79,7 +79,7 @@ struct Logger {
 
     static void print_stacktrace(const char *message = nullptr) {
         if (message) Logger::warn(message);
-        RDStacktrace::print_stacktrace();
+        Stacktrace::print_stacktrace();
     }
 
 

@@ -14,20 +14,6 @@ project(ResourceDragon VERSION 0.1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-file(WRITE ${CMAKE_BINARY_DIR}/check_stdexp.cpp "int main() { return 0; }\n")
-
-try_compile(HAVE_STDCXX_EXP
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}/check_stdexp.cpp
-    LINK_LIBRARIES stdc++exp
-)
-
-if(HAVE_STDCXX_EXP)
-    message(STATUS "Found libstdc++exp, linking with it")
-else()
-    message(STATUS "libstdc++exp not found, skipping")
-endif()
-
 if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "-g")
@@ -128,6 +114,10 @@ endif()
 set(ZLIB z)
 if (WIN32)
     set(ZLIB "")
+endif()
+
+if (WIN32)
+    target_link_libraries(ResourceDragon PRIVATE shlwapi)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
