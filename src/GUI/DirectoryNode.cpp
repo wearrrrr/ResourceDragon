@@ -472,6 +472,12 @@ void DirectoryNode::HandleFileClick(Node *node) {
         InitializePreviewData(node, entry_buffer, size, ext, isVirtualRoot);
 
         return;
+    } else if (format_list.size() > 0) {
+        Logger::warn("Multiple formats found for %s", node->FileName.data());
+        Logger::warn("All formats detected as compatible: ");
+        for (auto& format : format_list) {
+            printf("\t%s\n", format->GetTag().data());
+        }
     }
     // TODO: Show a UI to ask the user what format they meant to select if there's somehow a collision
     auto format = format_list[0];

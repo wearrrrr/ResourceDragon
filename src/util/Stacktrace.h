@@ -1,18 +1,12 @@
 #pragma once
 
-// sorry windows users, i have absolutely no idea how to get a stacktrace on windows until <stacktrace> is actually standardized.
-#ifndef _WIN32
 #ifdef DEBUG
     #define USE_CPPTRACE
     #include <cpptrace/cpptrace.hpp>
-#else
+#elif !defined(_WIN32)
     #define USE_EXECINFO
     #include <execinfo.h>
     #include <dlfcn.h>
-#endif
-#else
-    #define USE_CPPTRACE
-    #include <cpptrace/cpptrace.hpp>
 #endif
 
 #if __has_include(<cxxabi.h>)
@@ -54,14 +48,7 @@ namespace Stacktrace {
     }
     #else
     static void print_stacktrace() {
-        printf("Unable to generate stacktrace! You are likely on windows.\n");
-        // register int32_t esp_reg asm("esp");
-        // #ifdef _M_IX86
-        // #define rsp_reg esp_reg
-        // #else
-        // register int64_t rsp_reg asm("rsp");
-        // #endif
-        // Stacktrace::win_stack_walk(rsp_reg);
+        printf("Unable to generate stacktrace! You are likely running from an unsupported platform.\n");
     }
     #endif
 }

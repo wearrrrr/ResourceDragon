@@ -211,7 +211,6 @@ bool GUI::InitRendering() {
 }
 
 void GUI::StartRenderLoop(const char *path) {
-
     auto canonical_path = fs::canonical(path).string();
 
     SetFilePath(canonical_path);
