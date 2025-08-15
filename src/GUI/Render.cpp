@@ -192,13 +192,13 @@ bool GUI::InitRendering() {
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
     if (fs::exists(font_path)) {
-        auto noto = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 24, nullptr, gr.Data);
+        auto noto = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, gr.Data);
         if (!noto) {
             Logger::warn("Failed to load main font!");
         }
     }
     if (fs::exists(icon_font_path)) {
-        auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 18, &iconConfig, icon_ranges);
+        auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {
             Logger::warn("Failed to load icons! This will cause some things to not render properly.");
         }
