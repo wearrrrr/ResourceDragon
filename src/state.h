@@ -113,7 +113,7 @@ extern int inotify_wd;
 #endif
 
 template <typename T>
-T *malloc(size_t size) {
+inline T* malloc(size_t size) {
     return (T*)malloc(size);
 }
 

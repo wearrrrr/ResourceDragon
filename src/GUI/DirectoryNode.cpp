@@ -196,9 +196,9 @@ void DirectoryNode::Unload(Node *node) {
     node->Children.clear();
 }
 
-inline void SortChildrenAlphabetical(DirectoryNode::Node *node, bool sortAscending) {
+inline void DirectoryNode::SortChildrenAlphabetical(Node *node, bool sortAscending) {
     std::sort(node->Children.begin(), node->Children.end(),
-    [=](const DirectoryNode::Node* a, const DirectoryNode::Node* b) {
+    [=](const Node* a, const Node* b) {
         if (a->IsDirectory != b->IsDirectory)
             return a->IsDirectory > b->IsDirectory;
 
@@ -212,7 +212,7 @@ inline void SortChildrenAlphabetical(DirectoryNode::Node *node, bool sortAscendi
     });
 }
 
-inline void SortChildrenBy(DirectoryNode::Node* node, auto func) {
+inline void DirectoryNode::SortChildrenBy(Node *node, auto func) {
     std::sort(node->Children.begin(), node->Children.end(), func);
 }
 
@@ -241,7 +241,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                     );
 
                     if (found == current->Children.end()) {
-                        Node *newNode = new Node{
+                        Node *newNode = new Node {
                             .FullPath = (current->FullPath.empty() ? part : current->FullPath + static_cast<char>(fs::path::preferred_separator) + part),
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
@@ -261,11 +261,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
             for (const auto &entry : directoryIterator) {
                 fs::path path = entry.path();
                 std::string fileName = path.filename().string();
-                // Why the hell does steam still have this? It's an intentionally broken symlink.
-                // https://github.com/ValveSoftware/steam-for-linux/issues/5245
-                if (fileName.contains(".steampath")) {
-                    continue;
-                }
+
                 Node *childNode = new Node {
                     .FullPath = path.string(),
                     .FileName = fileName,
@@ -282,6 +278,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         SortChildrenAlphabetical(node, true);
         return true;
     } catch (const fs::filesystem_error &err) {
+        SortChildrenAlphabetical(node, true);
         return false;
     }
 }

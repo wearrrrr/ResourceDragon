@@ -32,6 +32,9 @@ namespace DirectoryNode {
     void Setup(Node *node);
     void UnloadSelectedFile();
     void Unload(Node* node);
+
+    void SortChildrenAlphabetical(DirectoryNode::Node *node, bool sortAscending);
+    void SortChildrenBy(DirectoryNode::Node *node, auto func);
 }
 
 void SetFilePath(const std::string& file_path);
