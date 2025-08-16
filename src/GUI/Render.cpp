@@ -274,6 +274,8 @@ void GUI::StartRenderLoop(const char *path) {
 
         ImGui::NewFrame();
 
+        // ImGui::ShowDemoWindow(&running);
+
         ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
         ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_LIST_FLAGS)) {
@@ -310,10 +312,11 @@ void GUI::StartRenderLoop(const char *path) {
         ImGui::SetNextWindowSize({right_pan_width, window_size.y});
         ImGui::SetNextWindowPos({left_pan_width + splitterWidth, 0});
         std::string preview_win_title = preview_win_label;
-        if (text_editor__unsaved_changes) preview_win_title += " *";
-        else preview_win_title += " ";
+        int preview_flags;
+        if (text_editor__unsaved_changes) preview_flags = FILE_PREVIEW_FLAGS | ImGuiWindowFlags_UnsavedDocument;
+        else preview_flags = FILE_PREVIEW_FLAGS;
         preview_win_title += "###Preview";
-        if(ImGui::Begin(preview_win_title.c_str(), NULL, FILE_PREVIEW_FLAGS)) {
+        if(ImGui::Begin(preview_win_title.c_str(), NULL, preview_flags)) {
             PreviewContextMenu();
             if (preview_state.contents.size > 0) {
                 PreviewWindow::RenderPreviewFor(preview_state.contents.type);

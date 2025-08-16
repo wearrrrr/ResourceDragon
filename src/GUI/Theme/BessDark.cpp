@@ -56,7 +56,7 @@ void ThemeManager::BessDark() {
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
     // Style adjustments
-    style.FrameRounding = 4.0f;
+    style.FrameRounding = 8.0f;
     style.ScrollbarRounding = 6.0f;
     style.GrabRounding = 4.0f;
     style.ChildRounding = 4.0f;
@@ -70,6 +70,8 @@ void ThemeManager::BessDark() {
 
     style.ScrollbarSize = 16.0f;
     style.GrabMinSize = 10.0f;
+
+    style.WindowBorderSize = 0.0f;
 
     style.AntiAliasedLines = true;
     style.AntiAliasedFill = true;

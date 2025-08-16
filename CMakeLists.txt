@@ -87,6 +87,7 @@ set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
         vendored/imgui/backends/imgui_impl_opengl3.cpp
         vendored/imgui/imgui.cpp
+        vendored/imgui/imgui_demo.cpp
         vendored/imgui/imgui_draw.cpp
         vendored/imgui/imgui_tables.cpp
         vendored/imgui/imgui_widgets.cpp

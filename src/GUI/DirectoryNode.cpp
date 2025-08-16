@@ -153,6 +153,8 @@ void VirtualArc::ExtractEntry(std::string path) {
 }
 
 void DirectoryNode::UnloadSelectedFile() {
+    text_editor__unsaved_changes = false;
+
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;
     };
