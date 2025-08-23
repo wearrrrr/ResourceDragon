@@ -2,8 +2,6 @@ include(FetchContent)
 
 cmake_minimum_required(VERSION 3.10)
 
-set(LTO ON)
-
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 
@@ -30,6 +28,10 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -lbacktrace")
 else()
     set(CMAKE_CXX_FLAGS "-mwindows -g")
+endif()
+
+if (NOT DEBUG)
+    set(LTO ON)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,14 +62,16 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 
-    FetchContent_Declare(
-        cpptrace
-        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-        GIT_TAG        v1.0.4
-    )
-    FetchContent_MakeAvailable(cpptrace)
-    set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
-    set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
+    if (DEBUG)
+        FetchContent_Declare(
+            cpptrace
+            GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+            GIT_TAG        v1.0.4
+        )
+        FetchContent_MakeAvailable(cpptrace)
+        set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
+        set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
+    endif()
 endif()
 
 add_subdirectory(vendored/SDL)
@@ -127,11 +131,11 @@ if (WIN32)
     set(ZLIB "")
 endif()
 
-if (WIN32)
-    target_link_libraries(ResourceDragon PRIVATE shlwapi)
+if (DEBUG)
+    target_link_libraries(ResourceDragon PRIVATE ${CPPTRACE_LIBRARIES})
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype cpptrace::cpptrace squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)

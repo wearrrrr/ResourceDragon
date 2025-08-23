@@ -118,8 +118,9 @@ int main(int argc, char *argv[]) {
 
     Audio::InitAudioSystem();
 
+#ifdef DEBUG
     Logger::print_stacktrace("Test error with stacktrace..");
-
+#endif
 
 
     if (GUI::InitRendering()) {
