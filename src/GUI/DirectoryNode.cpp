@@ -471,7 +471,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
         InitializePreviewData(node, entry_buffer, size, ext, isVirtualRoot);
 
         return;
-    } else if (format_list.size() > 0) {
+    } else if (format_list.size() > 1) {
         Logger::warn("Multiple formats found for %s", node->FileName.data());
         Logger::warn("All formats detected as compatible: ");
         for (auto& format : format_list) {
