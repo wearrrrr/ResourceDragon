@@ -71,6 +71,7 @@ if (NOT EMSCRIPTEN)
         FetchContent_MakeAvailable(cpptrace)
         set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
         set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
+        add_compile_definitions(CPPTRACE_ENABLED)
     endif()
 endif()
 
@@ -131,7 +132,7 @@ if (WIN32)
     set(ZLIB "")
 endif()
 
-if (DEBUG)
+if (DEBUG AND CPPTRACE_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CPPTRACE_LIBRARIES})
 endif()
 

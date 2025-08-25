@@ -13,7 +13,7 @@
 #include <gl3.h>
 #include <string>
 
-#ifdef linux
+#ifdef __linux__
 #include <sys/inotify.h>
 #define EVENT_SIZE sizeof(struct inotify_event)
 #endif
@@ -107,7 +107,7 @@ extern PImageView image_preview;
 
 extern bool text_editor__unsaved_changes;
 
-#ifdef linux
+#ifdef __linux__
 extern int inotify_fd;
 extern int inotify_wd;
 #endif

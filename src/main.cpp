@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
         Logger::error("Failed to start scripting! Error: %s", err.what());
     }
 
-    #ifdef linux
+#ifdef __linux__
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
     fs::remove_all("/tmp/rd/");
-    #endif
+#endif
 
     const char *path;
     if (argc < 2) {
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
         path = argv[1];
     }
 
-    #ifdef linux
+#ifdef __linux__
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
     inotify_fd = inotify_init();
     if (inotify_fd < 0) {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         }
     });
     inotify_thread.detach();
-    #endif
+#endif
 
     SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "1");
 
@@ -122,14 +122,13 @@ int main(int argc, char *argv[]) {
     Logger::print_stacktrace("Test error with stacktrace..");
 #endif
 
-
     if (GUI::InitRendering()) {
         GUI::StartRenderLoop(path);
     }
 
     DirectoryNode::Unload(rootNode);
 
-    #ifdef linux
+#ifdef linux
     if (inotify_thread.joinable()) {
         inotify_thread.join();
     }

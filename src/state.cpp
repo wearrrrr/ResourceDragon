@@ -22,7 +22,7 @@ PImageView image_preview = {
 
 bool text_editor__unsaved_changes = false;
 
-#ifdef linux
+#ifdef __linux__
 int inotify_fd;
 int inotify_wd;
 #endif

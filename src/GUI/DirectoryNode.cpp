@@ -110,7 +110,7 @@ inline bool ValidateGlobals() {
 bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return false;
 
-#ifdef linux
+#ifdef __linux__
     std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
 #endif
 
@@ -225,7 +225,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
             for (const auto &entry : entries) {
                 // Still not entirely sure if this is necessary?
-#ifdef linux
+#ifdef __linux__
                 std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
 #endif
 
