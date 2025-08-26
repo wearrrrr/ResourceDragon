@@ -19,7 +19,7 @@
 #endif
 #include <windows.h>
 #endif
-#if defined(linux) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
 #include <unistd.h>
 #endif
 #include <gl3.h>
@@ -508,7 +508,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
 }
 
 inline bool CanReadDirectory(const std::string& path) {
-    #if defined(linux) || defined(EMSCRIPTEN)
+    #if defined(__linux__) || defined(EMSCRIPTEN)
     return access(path.data(), R_OK | X_OK) == 0;
     #else
     // mhm yup go ahead bro
@@ -604,7 +604,7 @@ void DirectoryNode::Setup(Node *node) {
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 48);
     if (ImGui::InputText("##file_path", file_path_buf, 1024, ImGuiInputTextFlags_EnterReturnsTrue)) {
-#if defined(linux) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
     std::string expanded_path = LinuxExpandUserPath(std::string(file_path_buf));
     SetFilePath(expanded_path);
     rootNode = CreateTreeFromPath(expanded_path);

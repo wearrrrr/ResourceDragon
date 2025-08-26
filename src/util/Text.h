@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 
-#if defined(linux) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
 #include "iconv.h"
 #endif
 
@@ -14,7 +14,7 @@ static std::string currentEncoding = "UTF-8";
 class TextConverter {
     public:
         static std::string UTF16ToUTF8(const std::u16string& utf16_str) {
-#if defined(linux) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-8", "UTF-16LE");
             if (cd == (iconv_t)-1) {
                 return "";
@@ -40,17 +40,17 @@ class TextConverter {
             return "";
         }
         static std::u16string UTF8ToUTF16(const std::string& utf8_str) {
-            #if defined(linux) || defined(EMSCRIPTEN)
+            #if defined(__linux__) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-16", "UTF-8");
             if (cd == (iconv_t)-1) {
                 return u"";
             }
 
             size_t in_bytes_left = utf8_str.size();
-            size_t out_bytes_left = in_bytes_left * 2; // Allocate enough space for UTF-16
-            char* in_buf = (char*)utf8_str.data();
-            char* out_buf = new char[out_bytes_left];
-            char* out_ptr = out_buf;
+            size_t out_bytes_left = in_bytes_left * 2;
+            char *in_buf = (char*)utf8_str.data();
+            char *out_buf = new char[out_bytes_left];
+            char *out_ptr = out_buf;
 
             if (iconv(cd, &in_buf, &in_bytes_left, &out_ptr, &out_bytes_left) == (size_t)-1) {
                 delete[] out_buf;
@@ -75,7 +75,7 @@ class TextConverter {
         }
 
         static std::string ShiftJISToUTF8(const std::string& sjis_str) {
-#if defined(linux) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
             iconv_t cd = iconv_open("UTF-8", "SHIFT-JIS");
             if (cd == (iconv_t)-1) {
                 return "";
@@ -101,7 +101,7 @@ class TextConverter {
             return "";
         }
 
-        static void SetCurrentEncoding(std::string encoding) {
+        static void SetCurrentEncoding(const std::string& encoding) {
             currentEncoding = encoding;
         }
 
@@ -126,14 +126,15 @@ class Text {
             return str;
         }
 
-        // Not even going to pretend like I know what these functions do :lesanae:
         static inline void ltrim(std::string &str) {
             str.erase(str.begin(), std::find_if(str.begin(), str.end(),
-                [](u8 chr) { return !std::isspace(chr); }));
+                [](u8 chr) { return !std::isspace(chr); }
+            ));
         }
 
         static inline void rtrim(std::string &str) {
             str.erase(std::find_if(str.rbegin(), str.rend(),
-                [](u8 chr) { return !std::isspace(chr); }).base(), str.end());
+                [](u8 chr) { return !std::isspace(chr); }).base(), str.end()
+            );
         }
 };
