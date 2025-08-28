@@ -125,12 +125,16 @@ void RenderErrorPopup(ImGuiIO *io) {
 #endif
 
 void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges) {
+    ImFontConfig config;
+    config.OversampleH = 2;
+    config.OversampleV = 2;
+
     if (fs::exists(font_path)) {
-        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, ranges.Data);
+        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, &config, ranges.Data);
         if (!font) {
             Logger::warn("Failed to load main font!");
         }
-        font_registry.emplace(font_name, font);
+        font_registry[font_name] = font;
     }
 }
 
@@ -141,9 +145,6 @@ bool running = true;
 
 bool GUI::InitRendering() {
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-
-    SDL_DisplayID display = SDL_GetPrimaryDisplay();
-    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
 
     window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
 
