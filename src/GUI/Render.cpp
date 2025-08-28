@@ -210,6 +210,9 @@ bool GUI::InitRendering() {
 
     ThemeManager::SetTheme(Theme::BessDark);
 
+    editor.SetColorizerEnable(false);
+    editor.SetShowWhitespaces(false);
+
     return true;
 }
 

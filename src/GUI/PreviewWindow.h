@@ -28,12 +28,14 @@ namespace PreviewWindow {
             case ELF:
                 RenderElfPreview();
                 break;
+            case HEX:
+                RenderHexEditor(ImGui::GetIO());
+                break;
+            case TEXT:
+                RenderTextViewer(ImGui::GetIO());
+                break;
             default:
-                if (preview_state.show_hex) {
-                    RenderHexEditor(ImGui::GetIO());
-                } else {
-                    RenderTextViewer(ImGui::GetIO());
-                }
+                RenderTextViewer(ImGui::GetIO());
                 break;
         }
     };

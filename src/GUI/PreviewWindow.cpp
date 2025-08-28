@@ -313,7 +313,7 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
     ImGui::Combo("##EncodingCombo", encoding, encodings, SIZEOF_ARRAY(encodings));
     ImGui::SameLine();
     if (ImGui::Button("Hex View")) {
-        preview_state.show_hex = !preview_state.show_hex;
+        preview_state.contents.type = HEX;
     }
 
     if (currentEncoding != encodings[preview_state.contents.encoding]) {
@@ -344,7 +344,7 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
 
 void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
     if (ImGui::Button("Text View")) {
-        preview_state.show_hex = !preview_state.show_hex;
+        preview_state.contents.type = ContentType::TEXT;
     }
     auto pos = font_registry.find("MonoFont");
     ImFont *font;

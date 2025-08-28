@@ -402,12 +402,15 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
         preview_state.contents.elfFile = elfFile;
         preview_state.contents.type = ELF;
     } else {
+        // Default to text if size is less than 3MB
         auto text = std::string((char*)entry_buffer, size);
         editor.SetText(text);
         editor.SetTextChanged(false);
-        editor.SetColorizerEnable(false);
-        editor.SetShowWhitespaces(false);
-        preview_state.contents.type = UNKNOWN;
+        if (size < 3000000) {
+            preview_state.contents.type = TEXT;
+        } else {
+            preview_state.contents.type = HEX;
+        }
     }
 
     return;

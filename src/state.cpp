@@ -10,7 +10,6 @@ PreviewWinState preview_state = {
     .audio {
         .volumePercent = 100
     },
-    .show_hex = false
 };
 ExtractorManager *extractor_manager = new ExtractorManager();
 

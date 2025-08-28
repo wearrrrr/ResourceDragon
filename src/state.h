@@ -60,6 +60,8 @@ enum ContentType {
     GIF,
     AUDIO,
     ELF,
+    HEX,
+    TEXT,
     UNKNOWN
 };
 
@@ -93,7 +95,6 @@ struct PreviewWinState {
   PWinStateContents contents;
   PWinStateAudio audio;
   PWinStateTexture texture;
-  bool show_hex;
 };
 
 extern std::map<std::string, ImFont*> font_registry;
