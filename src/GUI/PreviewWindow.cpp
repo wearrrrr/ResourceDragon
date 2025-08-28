@@ -3,7 +3,6 @@
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
 #include <SDL3/SDL_audio.h>
-#include <cstdio>
 #include <util/Text.h>
 #include <imgui.h>
 #include "SDL3/SDL_properties.h"
@@ -312,6 +311,10 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
     ImGui::SameLine();
     int *encoding = (int*)&preview_state.contents.encoding;
     ImGui::Combo("##EncodingCombo", encoding, encodings, SIZEOF_ARRAY(encodings));
+    ImGui::SameLine();
+    if (ImGui::Button("Hex View")) {
+        preview_state.show_hex = !preview_state.show_hex;
+    }
 
     if (currentEncoding != encodings[preview_state.contents.encoding]) {
         TextConverter::SetCurrentEncoding(encodings[preview_state.contents.encoding]);
@@ -337,4 +340,20 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
     }
 
     editor.Render("TextEditor", {0, 0}, false);
+}
+
+void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
+    if (ImGui::Button("Text View")) {
+        preview_state.show_hex = !preview_state.show_hex;
+    }
+    auto pos = font_registry.find("MonoFont");
+    ImFont *font;
+    if (pos == font_registry.end()) {
+        font = io.FontDefault;
+    } else {
+        font = pos->second;
+    }
+    ImGui::PushFont(font);
+    hex_editor.DrawContents(preview_state.contents.data, preview_state.contents.size);
+    ImGui::PopFont();
 }

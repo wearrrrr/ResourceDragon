@@ -513,7 +513,7 @@ inline bool CanReadDirectory(const std::string& path) {
     #else
     // mhm yup go ahead bro
     return true;
-    #endif
+#endif
 }
 
 void DirectoryNode::Display(Node *node) {
@@ -646,9 +646,9 @@ void DirectoryNode::Setup(Node *node) {
             }
 
             auto folderFirst = [](const Node *a, const Node *b) {
-                if (a->IsDirectory != b->IsDirectory)
+                if (a->IsDirectory != b->IsDirectory) {
                     return a->IsDirectory ? -1 : 1;
-                // both are a folder
+                }
                 return 0;
             };
 
@@ -707,7 +707,7 @@ void DirectoryNode::Setup(Node *node) {
     ImGui::TableNextColumn();
 
     for (auto childNode : node->Children) {
-        Display(childNode);
+        DirectoryNode::Display(childNode);
     }
 
     ImGui::EndTable();

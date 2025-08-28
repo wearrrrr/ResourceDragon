@@ -40,9 +40,9 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         header_stream.resize(header_size);
         memcpy(header_stream.data(), buffer + dir_offset + 0x9, (u32)header_size);
     } else {
-        #ifdef NO_ZLIB
+#ifdef NO_ZLIB
         return nullptr;
-        #else
+#else
         int64_t packed_size = Read<int64_t>(buffer, dir_offset + 0x1);
         if ((u64)packed_size > UINT64_MAX) {
             Logger::error("XP3: Packed size is invalid!");
@@ -61,7 +61,7 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
             Logger::error("XP3: Decompressed size does not match header size!");
             return nullptr;
         }
-        #endif
+#endif
     }
 
     EntryMap dir;

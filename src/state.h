@@ -24,6 +24,7 @@
 #include "vec2.h"
 
 #include <TextEditor/TextEditor.h>
+#include <HexEditor/imgui_hex_editor.h>
 
 struct PWinStateTexture {
   GLuint id;
@@ -92,7 +93,10 @@ struct PreviewWinState {
   PWinStateContents contents;
   PWinStateAudio audio;
   PWinStateTexture texture;
+  bool show_hex;
 };
+
+extern std::map<std::string, ImFont*> font_registry;
 
 extern PreviewWinState preview_state;
 extern ExtractorManager *extractor_manager;
@@ -102,6 +106,7 @@ extern u8 *current_buffer;
 extern Entry *selected_entry;
 
 inline TextEditor editor;
+inline MemoryEditor hex_editor;
 
 extern PImageView image_preview;
 

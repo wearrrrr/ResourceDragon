@@ -1,12 +1,4 @@
-#include "SDL3/SDL_hints.h"
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <SDL3/SDL.h>
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl3.h>
 
 #include <ArchiveFormats/HSP/hsp.h>
 #include <ArchiveFormats/PFS/pfs.h>
@@ -23,6 +15,7 @@
 #include <GUI/PreviewWindow.h>
 #include <GUI/UIError.h>
 #include <Scripting/ScriptManager.h>
+
 #include <thread>
 #include <filesystem>
 
@@ -31,11 +24,6 @@
 template <class T>
 inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
-}
-
-template <class T>
-inline void RegisterFormat(T *arc_fmt) {
-    extractor_manager->RegisterFormat(std::unique_ptr<T>(arc_fmt));
 }
 
 int main(int argc, char *argv[]) {
@@ -55,7 +43,7 @@ int main(int argc, char *argv[]) {
             if (entry_path.extension() == ".nut") {
                 if (scriptManager->LoadFile(entry_path.string())) {
                     auto fmt = scriptManager->Register();
-                    if (fmt) RegisterFormat<SquirrelArchiveFormat>(fmt);
+                    if (fmt) extractor_manager->RegisterFormat(std::unique_ptr<SquirrelArchiveFormat>(fmt));
                 }
             }
         }
@@ -134,9 +122,7 @@ int main(int argc, char *argv[]) {
     }
     inotify_running = false;
     close(inotify_fd);
-    #endif
-
-
+#endif
 
     return 0;
 }

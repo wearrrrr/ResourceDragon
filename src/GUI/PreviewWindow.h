@@ -12,6 +12,7 @@ namespace PreviewWindow {
     void RenderAudioPlayer();
     void RenderElfPreview();
     void RenderTextViewer(ImGuiIO &io);
+    void RenderHexEditor(ImGuiIO &io);
 
     inline void RenderPreviewFor(ContentType content_type) {
         switch (content_type) {
@@ -28,7 +29,11 @@ namespace PreviewWindow {
                 RenderElfPreview();
                 break;
             default:
-                RenderTextViewer(ImGui::GetIO());
+                if (preview_state.show_hex) {
+                    RenderHexEditor(ImGui::GetIO());
+                } else {
+                    RenderTextViewer(ImGui::GetIO());
+                }
                 break;
         }
     };

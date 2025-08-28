@@ -118,6 +118,23 @@ void RenderErrorPopup(ImGuiIO *io) {
 }
 
 
+#ifdef EMSCRIPTEN
+    #define FONT_PATH_BASE fs::path("/fonts")
+#else
+    #define FONT_PATH_BASE fs::path("fonts")
+#endif
+
+void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges) {
+    if (fs::exists(font_path)) {
+        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, ranges.Data);
+        if (!font) {
+            Logger::warn("Failed to load main font!");
+        }
+        font_registry.emplace(font_name, font);
+    }
+}
+
+
 SDL_Window* window;
 
 bool running = true;
@@ -127,11 +144,6 @@ bool GUI::InitRendering() {
 
     SDL_DisplayID display = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
-    if (mode) {
-        if (mode->w < 1600 || mode->h < 900) {
-            window_flags |= SDL_WINDOW_MAXIMIZED;
-        }
-    }
 
     window = SDL_CreateWindow("ResourceDragon", 1600, 900, window_flags);
 
@@ -182,21 +194,12 @@ bool GUI::InitRendering() {
     iconConfig.GlyphMinAdvanceX = 18.0f;
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
-#ifdef EMSCRIPTEN
-    #define FONT_PATH_BASE fs::path("/fonts")
-#else
-    #define FONT_PATH_BASE fs::path("fonts")
-#endif
-
-    auto font_path = FONT_PATH_BASE / "NotoSansCJKjp-Medium.otf";
+    auto noto_font_path = FONT_PATH_BASE / "NotoSansCJKjp-Medium.otf";
+    auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
-    if (fs::exists(font_path)) {
-        auto noto = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, gr.Data);
-        if (!noto) {
-            Logger::warn("Failed to load main font!");
-        }
-    }
+    LoadFont(io, noto_font_path, "UIFont", gr);
+    LoadFont(io, mono_font_path, "MonoFont", gr);
     if (fs::exists(icon_font_path)) {
         auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {

@@ -1,13 +1,16 @@
 #include "state.h"
 #include "ExtractorManager.h"
 
+std::map<std::string, ImFont*> font_registry;
+
 PreviewWinState preview_state = {
     .contents {
         .type = ContentType::UNKNOWN
     },
     .audio {
         .volumePercent = 100
-    }
+    },
+    .show_hex = false
 };
 ExtractorManager *extractor_manager = new ExtractorManager();
 
