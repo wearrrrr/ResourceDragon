@@ -22,6 +22,15 @@ namespace fs = std::filesystem;
 
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
+        if (ImGui::BeginMenu("Open As...")) {
+            if (ImGui::MenuItem("Hex")) {
+                preview_state.contents.type = ContentType::HEX;
+            }
+            if (ImGui::MenuItem("Image")) {
+                preview_state.contents.type = ContentType::IMAGE;
+            }
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Copy..")) {
             if (ImGui::MenuItem("Name")) {
                 ImGui::SetClipboardText(fb__selectedItem->FileName.c_str());

@@ -79,6 +79,7 @@ struct PWinStateContents {
     std::string path;
     std::string ext;
     std::string fileName;
+    bool reloadNeeded;
     union {
       const Elf32_Header *elf32;
       const Elf64_Header *elf64;

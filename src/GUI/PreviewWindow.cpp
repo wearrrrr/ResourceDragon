@@ -306,15 +306,16 @@ void PreviewWindow::RenderElfPreview() {
 static const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
 
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
+    if (ImGui::Button("Hex View")) {
+        preview_state.contents.type = HEX;
+    }
+    ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
     ImGui::Text("Content Encoding");
     ImGui::SameLine();
     int *encoding = (int*)&preview_state.contents.encoding;
     ImGui::Combo("##EncodingCombo", encoding, encodings, SIZEOF_ARRAY(encodings));
-    ImGui::SameLine();
-    if (ImGui::Button("Hex View")) {
-        preview_state.contents.type = HEX;
-    }
+
 
     if (currentEncoding != encodings[preview_state.contents.encoding]) {
         TextConverter::SetCurrentEncoding(encodings[preview_state.contents.encoding]);
@@ -329,7 +330,7 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
         if (!text.empty() && text.back() == '\n') {
             text.pop_back();
         }
-        FILE *file = fopen(preview_state.contents.path.c_str(), "w");
+        FILE *file = fopen(preview_state.contents.path.c_str(), "wb");
         fwrite(text.c_str(), text.size(), sizeof(u8), file);
         fclose(file);
         ReloadRootNode(rootNode);
@@ -345,6 +346,9 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
 void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
     if (ImGui::Button("Text View")) {
         preview_state.contents.type = ContentType::TEXT;
+        // don't like that I have to do this here, but whatever
+        editor.SetText(std::string((char*)preview_state.contents.data, preview_state.contents.size));
+        editor.SetTextChanged(false);
     }
     auto pos = font_registry.find("MonoFont");
     ImFont *font;
