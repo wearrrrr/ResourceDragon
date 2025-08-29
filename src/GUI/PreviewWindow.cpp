@@ -321,6 +321,7 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
         TextConverter::SetCurrentEncoding(encodings[preview_state.contents.encoding]);
         auto text = std::string((char*)preview_state.contents.data, preview_state.contents.size);
         editor.SetText(TextConverter::convert_to_utf8(text));
+        editor.SetTextChanged(false);
     }
 
     if (io.KeyCtrl && ImGui::IsKeyDown(ImGuiKey_S) && text_editor__unsaved_changes) {
