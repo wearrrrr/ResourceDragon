@@ -30,38 +30,49 @@
 #include "icons.h"
 
 namespace ImGui {
-    void Text(const std::string_view &str) {
+    void Text(std::string_view str) {
         ImGui::Text("%s", str.data());
     };
 }
 
 void InfoDialog() {
-    if (ImGui::BeginPopupModal("Format Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+    if (ImGui::BeginPopupModal("Format Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+    {
+        if (ImGui::BeginTabBar("FormatsBar"))
+        {
+            if (ImGui::BeginTabItem("Formats"))
+            {
+                if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
+                {
+                    ImGui::TableSetupColumn("Name", 200.0f);
+                    ImGui::TableSetupColumn("Tag", 300.0f);
+                    ImGui::TableHeadersRow();
 
-        if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
-            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 250.0f);
-            ImGui::TableSetupColumn("Tag", ImGuiTableColumnFlags_WidthStretch, 250.0f);
-            ImGui::TableHeadersRow();
+                    for (const auto &pair : extractor_manager->GetFormats()) {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text(pair.first);
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text(pair.second->GetDescription());
+                    }
 
-            for (const auto &pair : extractor_manager->GetFormats()) {
-                ImGui::TableNextRow();
-                ImGui::TableSetColumnIndex(0);
-                ImGui::Text(pair.first);
-                ImGui::TableSetColumnIndex(1);
-                ImGui::Text(pair.second->GetDescription());
+                    ImGui::EndTable();
+                }
+
+                if (ImGui::Button("Close", {100, 0})) {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndTabItem();
             }
 
-            ImGui::EndTable();
-        }
-
-
-        if (ImGui::Button("Close", {100, 0})) {
-            ImGui::CloseCurrentPopup();
+            ImGui::EndTabBar();
         }
 
         ImGui::EndPopup();
     }
 }
+
 
 Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
     const std::string &fullPath = node->FullPath;

@@ -1,13 +1,7 @@
 #pragma once
 
-
 #if defined(CPPTRACE_ENABLED)
     #include <cpptrace/cpptrace.hpp>
-#endif
-
-#if __has_include(<cxxabi.h>)
-#include <cxxabi.h>
-#define HAS_CXXABI
 #endif
 
 #include <util/platform.h>

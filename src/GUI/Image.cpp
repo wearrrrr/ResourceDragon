@@ -6,8 +6,7 @@
 #include <string_view>
 #include <algorithm>
 
-#include "../ResourceFormats/DDS.h"
-#include "ResourceFormats/dds_formats.h"
+#include <ResourceFormats/DDS/DDS.h>
 using dds::ReadResult;
 
 bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_animation)

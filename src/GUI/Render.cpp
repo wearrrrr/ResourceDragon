@@ -311,7 +311,7 @@ void GUI::StartRenderLoop(const char *path) {
 
         ImGui::End();
 
-        const bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
+        const bool hovered = !io.WantCaptureMouse && (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
 
         if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 

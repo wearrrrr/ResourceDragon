@@ -2,8 +2,9 @@
 
 #include <optional>
 #include <string>
-#include <util/int.h>
 #include <vector>
+
+#include <util/int.h>
 
 class BinaryReader {
 private:
@@ -20,15 +21,15 @@ public:
     return data[position];
   }
 
-  template <typename T> T &read() {
+  template <typename T>
+  T &read() {
     size_t offset = position;
     position += sizeof(T);
     return *(T *)&data[offset];
   }
 
   std::string ReadChars(size_t count) {
-    std::string result(data.begin() + position,
-                       data.begin() + position + count);
+    std::string result(data.begin() + position, data.begin() + position + count);
     position += count;
     return result;
   }
