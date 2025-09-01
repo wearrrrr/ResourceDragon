@@ -29,7 +29,10 @@ inline void RegisterFormat() {
 struct Thingy {
     int x, y;
     std::string to_string() const {
-        return std::format("Thingy(x={}, y={})", x, y);
+        // Don't use std::format here
+        char buffer[128];
+        snprintf(buffer, sizeof(buffer), "Thingy(x=%d, y=%d)", x, y);
+        return std::string(buffer);
     }
 };
 
