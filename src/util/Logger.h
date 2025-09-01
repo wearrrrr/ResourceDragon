@@ -5,7 +5,8 @@
 #include <stdarg.h>
 #include <memory>
 #include <typeinfo>
-#include <format>
+
+#include <fmt/core.h>
 
 #include <util/Stacktrace.h>
 
@@ -29,7 +30,7 @@ struct is_formattable : std::false_type {};
 
 template <typename T>
 struct is_formattable<T, std::void_t<
-    decltype(std::format(std::declval<std::string>(), std::declval<T>()))
+    decltype(fmt::format(std::declval<std::string>(), std::declval<T>()))
 >> : std::true_type {};
 
 template <typename T>
@@ -58,7 +59,7 @@ static std::string cvt_to_string(T&& val) {
         return val.to_string();
     }
     else if constexpr (is_formattable_v<U>) {
-        return std::format("{}", val);
+        return fmt::format("{}", val);
     }
     else {
         return get_type_name(val);
@@ -128,7 +129,7 @@ struct Logger {
 
     // Arbitrary types
     template <typename... Args>
-    static void log(std::string_view fmt, Args&&... args) {
+    static void log(const std::string_view &fmt, Args&&... args) {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {
@@ -141,7 +142,7 @@ struct Logger {
     }
 
     template <typename... Args>
-    static void warn(std::string_view fmt, Args&&... args) {
+    static void warn(const std::string_view &fmt, Args&&... args) {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {
@@ -154,7 +155,7 @@ struct Logger {
     }
 
     template <typename... Args>
-    static void error(std::string_view fmt, Args&&... args) {
+    static void error(const std::string_view &fmt, Args&&... args) {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {

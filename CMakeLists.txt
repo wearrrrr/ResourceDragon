@@ -73,6 +73,15 @@ if (NOT EMSCRIPTEN)
         set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
         add_compile_definitions(CPPTRACE_ENABLED)
     endif()
+
+    FetchContent_Declare(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG        11.2.0
+    )
+    FetchContent_MakeAvailable(fmt)
+    set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include)
+    set(FMT_LIBRARIES fmt::fmt)
 endif()
 
 add_subdirectory(vendored/SDL)
@@ -136,7 +145,7 @@ if (DEBUG AND CPPTRACE_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CPPTRACE_LIBRARIES})
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB} ${FMT_LIBRARIES})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
