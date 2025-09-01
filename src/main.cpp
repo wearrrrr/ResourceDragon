@@ -19,6 +19,7 @@
 #include <thread>
 #include <filesystem>
 
+#include "fmt/format.h"
 #include "state.h"
 
 template <class T>
@@ -26,13 +27,11 @@ inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
 }
 
+#include <fmt/core.h>
 struct Thingy {
     int x, y;
     std::string to_string() const {
-        // Don't use std::format here
-        char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Thingy(x=%d, y=%d)", x, y);
-        return std::string(buffer);
+        return fmt::format("Thingy(x={}, y={})", x, y);
     }
 };
 
