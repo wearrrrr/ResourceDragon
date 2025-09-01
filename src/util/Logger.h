@@ -79,6 +79,27 @@ struct LogTrait {
     }
 };
 
+template <typename T>
+struct LogTrait<T, std::enable_if_t<std::is_integral_v<T>>> {
+    static void print(const T& value) {
+        printf("%d", value);
+    }
+};
+
+template <typename T>
+struct LogTrait<T, std::enable_if_t<std::is_floating_point_v<T>>> {
+    static void print(const T& value) {
+        printf("%f", value);
+    }
+};
+
+template <typename T>
+struct LogTrait<T, std::enable_if_t<std::is_pointer_v<T>>> {
+    static void print(const T& value) {
+        printf("%p", value);
+    }
+};
+
 template <typename T, typename U>
 struct LogTrait<std::pair<T, U>> {
     static void print(const std::pair<T, U>& p) {
