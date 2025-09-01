@@ -133,7 +133,7 @@ struct Logger {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {
-                return std::vformat(fmt, std::make_format_args(s...));
+                return fmt::vformat(fmt, fmt::make_format_args(s...));
             },
             arg_strings
         );
@@ -146,7 +146,7 @@ struct Logger {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {
-                return std::vformat(fmt, std::make_format_args(s...));
+                return fmt::vformat(fmt, fmt::make_format_args(s...));
             },
             arg_strings
         );
@@ -159,7 +159,7 @@ struct Logger {
         auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
         auto str = std::apply(
             [&](auto&... s) {
-                return std::vformat(fmt, std::make_format_args(s...));
+                return fmt::vformat(fmt, fmt::make_format_args(s...));
             },
             arg_strings
         );
