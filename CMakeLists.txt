@@ -80,7 +80,7 @@ if (NOT EMSCRIPTEN)
         GIT_TAG        11.2.0
     )
     FetchContent_MakeAvailable(fmt)
-    set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include)
+    set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
     set(FMT_LIBRARIES fmt::fmt)
 endif()
 
@@ -112,6 +112,7 @@ include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(vendored/squirrel/include/)
+include_directories(${FMT_INCLUDE_DIR})
 include_directories(${CPPTRACE_INCLUDE_DIR})
 
 add_library(util INTERFACE)
