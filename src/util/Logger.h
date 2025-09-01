@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <memory>
 #include <typeinfo>
+#include <format>
 
 #include <util/Stacktrace.h>
 
@@ -23,23 +24,68 @@
 #define WARN_PREFIX     WARN_COLOR PREFIX RESET
 #define ERROR_PREFIX    ERROR_COLOR PREFIX RESET
 
-#define VA_LOG(func) va_list va; va_start(va, format); func(format, va); va_end(va)
+template <typename T, typename = void>
+struct is_formattable : std::false_type {};
+
+template <typename T>
+struct is_formattable<T, std::void_t<
+    decltype(std::format(std::declval<std::string>(), std::declval<T>()))
+>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_formattable_v = is_formattable<T>::value;
+
+template <typename T>
+static std::string get_type_name(const T& obj) {
+    const char* mangled = typeid(obj).name();
+#ifdef HAS_CXXABI
+    int status = 0;
+    std::unique_ptr<char[], decltype(&std::free)> demangled(
+        abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
+        &std::free
+    );
+    return (status == 0 && demangled) ? std::string(demangled.get()) : std::string(mangled);
+#else
+    return std::string(mangled);
+#endif
+}
+
+template<typename T>
+static std::string cvt_to_string(T&& val) {
+    using U = std::remove_cvref_t<T>;
+
+    if constexpr (requires { val.to_string(); }) {
+        return val.to_string();
+    }
+    else if constexpr (is_formattable_v<U>) {
+        return std::format("{}", val);
+    }
+    else {
+        return get_type_name(val);
+    }
+}
+
+template <typename T, typename = void>
+struct LogTrait {
+    static void print(const T& value) {
+        if constexpr (requires { value.to_string(); }) {
+            printf("%s", value.to_string().data());
+        } else if constexpr (requires { value(); }) {
+            value();
+        } else {
+            printf("<%s - unprintable>", get_type_name<T>(value).data());
+        }
+    }
+};
+
+template <typename T, typename U>
+struct LogTrait<std::pair<T, U>> {
+    static void print(const std::pair<T, U>& p) {
+        printf("(%s, %s)", cvt_to_string(p.first).c_str(), cvt_to_string(p.second).c_str());
+    }
+};
 
 struct Logger {
-    template <typename T>
-    static std::string get_type_name(const T& obj) {
-        const char* mangled = typeid(obj).name();
-        #ifdef HAS_CXXABI
-        int status = 0;
-        std::unique_ptr<char[], decltype(&free)> demangled(
-            abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
-            &free
-        );
-        return (status == 0 && demangled) ? demangled.get() : mangled;
-        #endif
-        return std::string(mangled);
-    }
-
     template <typename T>
     static void log_struct(const T& obj) {
         printf(
@@ -55,63 +101,69 @@ struct Logger {
 #endif
     }
 
-    static int full_callback(void *data, uintptr_t pc, const char *filename, int lineno, const char *function) {
-        const char *funcname = function ? function : "??";
-
-        int status = 0;
-        char *demangled = abi::__cxa_demangle(funcname, nullptr, nullptr, &status);
-        if (status == 0 && demangled) {
-            funcname = demangled;
-        }
-
-        const char *file = filename ? filename : "??";
-
-        printf("%s at %s:%d\n", funcname, file, lineno);
-
-        free(demangled);
-        return 0;
-    }
-
-
-    static void error_callback(void *data, const char *msg, int errnum) {
-        printf("libbacktrace error: %s\n", msg);
-    }
-
     static void print_stacktrace(const char *message = nullptr) {
         if (message) Logger::warn(message);
         Stacktrace::print_stacktrace();
     }
 
-
-    static void log(const char* format, va_list va) {
+    template <typename T>
+    static void log(const T& value) {
         printf(LOG_PREFIX);
-        vprintf(format, va);
-        puts(RESET);
-    }
-    static void warn(const char* format, va_list va) {
-        printf(WARN_PREFIX);
-        vprintf(format, va);
-        puts(RESET);
-    }
-    static void error(const char* format, va_list va) {
-        printf(ERROR_PREFIX);
-        vprintf(format, va);
+        LogTrait<T>::print(value);
         puts(RESET);
     }
 
-    // These are templates purely to
-    // prioritize the non-variadic version
-    template <typename T = void>
-    static void log(const char* format, ...) {
-        VA_LOG(log);
+    template <typename T>
+    static void warn(const T& value) {
+        printf(WARN_PREFIX);
+        LogTrait<T>::print(value);
+        puts(RESET);
     }
-    template <typename T = void>
-    static void warn(const char* format, ...) {
-        VA_LOG(warn);
+    template <typename T>
+    static void error(const T& value) {
+        printf(ERROR_PREFIX);
+        LogTrait<T>::print(value);
+        puts(RESET);
     }
-    template <typename T = void>
-    static void error(const char* format, ...) {
-        VA_LOG(error);
+
+    // Arbitrary types
+    template <typename... Args>
+    static void log(std::string_view fmt, Args&&... args) {
+        auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
+        auto str = std::apply(
+            [&](auto&... s) {
+                return std::vformat(fmt, std::make_format_args(s...));
+            },
+            arg_strings
+        );
+
+        printf(LOG_PREFIX "%s" RESET "\n", str.c_str());
+    }
+
+    template <typename... Args>
+    static void warn(std::string_view fmt, Args&&... args) {
+        auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
+        auto str = std::apply(
+            [&](auto&... s) {
+                return std::vformat(fmt, std::make_format_args(s...));
+            },
+            arg_strings
+        );
+
+        printf(WARN_PREFIX "%s" RESET "\n", str.c_str());
+    }
+
+    template <typename... Args>
+    static void error(std::string_view fmt, Args&&... args) {
+        auto arg_strings = std::make_tuple(cvt_to_string(std::forward<Args>(args))...);
+        auto str = std::apply(
+            [&](auto&... s) {
+                return std::vformat(fmt, std::make_format_args(s...));
+            },
+            arg_strings
+        );
+
+        printf(ERROR_PREFIX "%s" RESET "\n", str.c_str());
     }
 
     static void log(const char* str) {
@@ -132,24 +184,5 @@ struct Logger {
     }
     static void error(const std::string& str) {
         error(str.data());
-    }
-
-    template <typename L>
-    static void log(const L& lambda) {
-        printf(LOG_PREFIX);
-        lambda();
-        puts(RESET);
-    }
-    template <typename L>
-    static void warn(const L& lambda) {
-        printf(WARN_PREFIX);
-        lambda();
-        puts(RESET);
-    }
-    template <typename L>
-    static void error(const L& lambda) {
-        printf(ERROR_PREFIX);
-        lambda();
-        puts(RESET);
     }
 };

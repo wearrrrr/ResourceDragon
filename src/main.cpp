@@ -26,6 +26,13 @@ inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
 }
 
+struct Thingy {
+    int x, y;
+    std::string to_string() const {
+        return std::format("Thingy(x={}, y={})", x, y);
+    }
+};
+
 int main(int argc, char *argv[]) {
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
@@ -108,6 +115,15 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
     Logger::print_stacktrace("Test error with stacktrace..");
+
+    Thingy t{1,2};
+    Logger::log("Loaded {}", t);
+    Logger::warn("Warning with {}", t);
+    Logger::error("Error with {}", t);
+    Logger::log(t);
+
+    std::pair<float, Thingy> p{1.0f, t};
+    Logger::warn(p);
 #endif
 
     if (GUI::InitRendering()) {

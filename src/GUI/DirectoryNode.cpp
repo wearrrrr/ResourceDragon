@@ -385,7 +385,7 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
             SDL_IOStream *snd_io = SDL_IOFromMem(preview_state.audio.buffer, size);
             preview_state.audio.music = MIX_LoadAudio_IO(preview_state.audio.mixer, snd_io, true, true);
             if (!preview_state.audio.music) {
-                Logger::error("Failed to load audio: %s", SDL_GetError());
+                Logger::error("Failed to load audio: {}", SDL_GetError());
                 preview_state.audio.buffer = nullptr;
             }
         } else {
@@ -396,10 +396,10 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
             MIX_SetTrackAudio(preview_state.audio.track, preview_state.audio.music);
             MIX_PlayTrack(preview_state.audio.track, 1);
             if (!MIX_GetAudioFormat(preview_state.audio.music, &preview_state.audio.spec)) {
-                Logger::error("Failed to get audio format: %s", SDL_GetError());
+                Logger::error("Failed to get audio format: {}", SDL_GetError());
                 MIX_DestroyAudio(preview_state.audio.music);
             } else {
-                Logger::log("Loaded audio sample rate: %d Hz", preview_state.audio.spec.freq);
+                Logger::log("Loaded audio sample rate: {} Hz", preview_state.audio.spec.freq);
             }
             double duration_frames = MIX_GetAudioDuration(preview_state.audio.music);
             double duration_sec = MIX_FramesToMS(preview_state.audio.spec.freq, duration_frames) / 1000.0;

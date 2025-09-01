@@ -121,7 +121,7 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
         return true;
     } else if (result != ReadResult::InvalidMagic) {
         Logger::log("Failed to load DDS into memory!");
-        Logger::log("Error: %s", dds::DecodeReadResult(result).c_str());
+        Logger::log("Error: {}", dds::DecodeReadResult(result).c_str());
     }
 
     int image_width = 0;

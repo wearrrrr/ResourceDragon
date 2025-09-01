@@ -4,7 +4,7 @@
 #include "squirrel.h"
 
 bool ScriptManager::LoadFile(std::string path) {
-    Logger::log("Loading %s...", path.c_str());
+    Logger::log("Loading {}...", path.c_str());
 
     sq_pushroottable(vm);
 
