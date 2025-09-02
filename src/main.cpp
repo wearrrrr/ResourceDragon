@@ -19,7 +19,6 @@
 #include <thread>
 #include <filesystem>
 
-#include "fmt/format.h"
 #include "state.h"
 
 template <class T>

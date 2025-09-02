@@ -35,15 +35,28 @@ namespace ImGui {
     };
 }
 
+inline void TableTextCentered(const char* label) {
+    float textHeight = ImGui::GetTextLineHeight();
+    float frameHeight = ImGui::GetFrameHeight();
+    float y_offset = (frameHeight - textHeight) * 0.5f;
+
+    float frameWidth = ImGui::GetContentRegionAvail().x;
+    float x_offset = (frameWidth - textHeight) * 0.5f;
+
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + x_offset);
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + y_offset);
+    ImGui::TextUnformatted(label);
+}
+
+static bool settings_open = false;
+
 void InfoDialog() {
-    if (ImGui::BeginPopupModal("Format Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
-    {
-        if (ImGui::BeginTabBar("FormatsBar"))
-        {
-            if (ImGui::BeginTabItem("Formats"))
-            {
-                if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
-                {
+    ImGui::SetNextWindowSize({ImGui::GetIO().DisplaySize.x / 2, 425.0f});
+    if (ImGui::BeginPopupModal("Settings", &settings_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        if (ImGui::BeginTabBar("SettingsBar")) {
+            if (ImGui::BeginTabItem("Formats")) {
+                if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
                     ImGui::TableSetupColumn("Name", 200.0f);
                     ImGui::TableSetupColumn("Tag", 300.0f);
                     ImGui::TableHeadersRow();
@@ -59,8 +72,21 @@ void InfoDialog() {
                     ImGui::EndTable();
                 }
 
-                if (ImGui::Button("Close", {100, 0})) {
-                    ImGui::CloseCurrentPopup();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Settings")) {
+                if (ImGui::BeginTable("SettingsTable", 2)) {
+                    ImGui::TableSetupColumn("Name", 200.0f);
+                    ImGui::TableSetupColumn("Value", 300.0f);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    TableTextCentered("Theme");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Combo("###ThemeCombo", &theme_manager.currentTheme, theme_manager.themes.data(), theme_manager.themes.size());
+
+                    ImGui::EndTable();
                 }
 
                 ImGui::EndTabItem();
@@ -635,7 +661,8 @@ void DirectoryNode::Setup(Node *node) {
     InfoDialog();
 
     if (ImGui::Button(HELP_ICON, {40, 0})) {
-        ImGui::OpenPopup("Format Info");
+        settings_open = true;
+        ImGui::OpenPopup("Settings");
     };
 
     ImGui::BeginTable("DirectoryTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable);

@@ -3,6 +3,8 @@
 
 std::map<std::string, ImFont*> font_registry;
 
+ThemeManager theme_manager;
+
 PreviewWinState preview_state = {
     .contents {
         .type = ContentType::UNKNOWN

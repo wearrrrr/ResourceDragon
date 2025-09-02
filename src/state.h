@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Themes.h"
 #include "imgui.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
@@ -99,6 +100,8 @@ struct PreviewWinState {
 };
 
 extern std::map<std::string, ImFont*> font_registry;
+
+extern ThemeManager theme_manager;
 
 extern PreviewWinState preview_state;
 extern ExtractorManager *extractor_manager;

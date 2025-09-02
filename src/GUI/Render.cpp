@@ -218,7 +218,8 @@ bool GUI::InitRendering() {
     }
     io.Fonts->Build();
 
-    ThemeManager::SetTheme(Theme::BessDark);
+    theme_manager.LoadThemes();
+    theme_manager.SetTheme(Theme::BessDark);
 
     editor.SetColorizerEnable(false);
     editor.SetShowWhitespaces(false);
