@@ -204,7 +204,7 @@ bool GUI::InitRendering() {
     iconConfig.GlyphMinAdvanceX = 18.0f;
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
-    auto noto_font_path = FONT_PATH_BASE / "NotoSansCJKjp-Medium.otf";
+    auto noto_font_path = FONT_PATH_BASE / "NotoSansCJK-Medium.otf";
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
