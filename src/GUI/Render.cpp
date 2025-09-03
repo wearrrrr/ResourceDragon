@@ -226,7 +226,7 @@ bool GUI::InitRendering() {
 
     theme_manager.LoadThemes();
     theme_manager.AdjustmentStyles();
-    theme_manager.SetTheme(Theme::BessDark);
+    theme_manager.SetTheme(Theme::Dark);
 
     editor.SetColorizerEnable(false);
     editor.SetShowWhitespaces(false);
@@ -298,6 +298,9 @@ void GUI::StartRenderLoop(const char *path) {
 
         ImGui::NewFrame();
 
+        // Process any completed file loading operations
+        DirectoryNode::ProcessPendingFileLoads();
+
         // ImGui::ShowDemoWindow(&running);
 
         ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
@@ -360,6 +363,33 @@ void GUI::StartRenderLoop(const char *path) {
             }
         }
         ImGui::End();
+
+        // Bottom bar
+        ImGui::SetNextWindowPos(
+            ImVec2(0, window_size.y),
+            ImGuiCond_Always,
+            ImVec2(0.0f, 1.0f)
+        );
+        ImGui::SetNextWindowSize({window_size.x, 0});
+
+        if (fb__loading_arc) {
+            if (ImGui::Begin("Bottom Bar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
+                std::string loading_text = "Loading";
+                if (!fb__loading_file_name.empty()) {
+                    loading_text += ": " + fb__loading_file_name;
+                    // Truncate long filenames for display
+                    if (loading_text.length() > 50) {
+                        loading_text = loading_text.substr(0, 47) + "...";
+                    }
+                }
+                loading_text += "...";
+                
+                ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {250.0f, 30.0f}, loading_text.c_str());
+            }
+            ImGui::End();
+        }
+
+
 
         // #ifdef DEBUG
         // constexpr float DISTANCE = 8.0f;

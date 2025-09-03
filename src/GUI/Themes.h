@@ -3,7 +3,7 @@
 #include <vector>
 
 enum Theme {
-    BessDark,
+    Dark,
     CatpuccinMocha
 };
 
@@ -17,15 +17,13 @@ class ThemeManager {
         void AdjustmentStyles();
 
         void LoadThemes() {
-            themes.push_back("BessDark");
+            themes.push_back("Dark");
             themes.push_back("Catpuccin Mocha");
-            // TODO: take in parameter to this function to load the actual current theme.
-            currentTheme = Theme::BessDark;
         }
 
         inline void SetTheme(Theme theme) {
-            if (theme == Theme::BessDark) {
-                BessDark();
+            if (theme == Theme::Dark) {
+                Dark();
             }
             if (theme == Theme::CatpuccinMocha) {
                 CatpuccinMocha();
@@ -36,6 +34,6 @@ class ThemeManager {
             return (Theme)currentTheme;
         }
     private:
-        void BessDark();
+        void Dark();
         void CatpuccinMocha();
 };

@@ -6,6 +6,10 @@
 #include <filesystem>
 #include <string>
 #include <functional>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <queue>
 #include <util/Text.h>
 #include <util/int.h>
 #include <Utils.h>
@@ -50,6 +54,21 @@ inline void TableTextCentered(const char* label) {
 }
 
 static bool settings_open = false;
+
+struct FileLoadingResult {
+    bool success = false;
+    u8* entry_buffer = nullptr;
+    size_t size = 0;
+    std::string_view error_message;
+    DirectoryNode::Node* node = nullptr;
+    std::string ext;
+    bool isVirtualRoot = false;
+    Entry* selected_entry = nullptr;
+};
+
+static std::atomic<bool> file_loading_in_progress = false;
+static std::mutex file_loading_mutex;
+static std::queue<FileLoadingResult> completed_loads;
 
 void InfoDialog() {
     ImGui::SetNextWindowSize({ImGui::GetIO().DisplaySize.x / 2, 425.0f});
@@ -161,7 +180,7 @@ bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path o
 
     std::error_code err;
     if (!CreateDirectoryRecursive(fullOutputPath.parent_path().string(), err)) {
-        Logger::error("Failed to create directory: %s", err.message().data());
+        Logger::error("Failed to create directory: {}", err.message().data());
         return false;
     }
 
@@ -186,7 +205,7 @@ void VirtualArc::ExtractAll() {
 
     for (auto &entry : entries) {
         if (!VirtualArc::ExtractEntry(basePath, entry.second)) {
-            Logger::error("Failed to extract: %s", entry.second->name.data());
+            Logger::error("Failed to extract: {}", entry.second->name.data());
         }
     }
 }
@@ -459,98 +478,203 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
     return;
 }
 
-void DirectoryNode::HandleFileClick(Node *node) {
-    UnloadSelectedFile();
-
-    std::string filename = node->FileName;
-    std::string ext = filename.substr(filename.find_last_of(".") + 1);
-    bool isVirtualRoot = rootNode->IsVirtualRoot;
-    u8* entry_buffer = nullptr;
-    size_t size = 0;
-
-    if (isVirtualRoot && !node->IsDirectory) {
-        selected_entry = FindEntryByNode(loaded_arc_base->GetEntries(), node);
-
-        if (selected_entry) {
-            if (current_buffer) {
-                auto arc_read = loaded_arc_base->OpenStream(selected_entry, current_buffer);
-                if (arc_read == nullptr) {
-                    Logger::error("Received nullptr from OpenStream! Cannot show entry.");
-                    return;
-                }
-                size = selected_entry->size;
-                entry_buffer = malloc<u8>(size);
-                memcpy(entry_buffer, arc_read, size);
-                free(arc_read);
-            } else {
-                Logger::error("current_buffer is not initialized!");
-                return;
-            }
+void ProcessFileLoadingResult(const FileLoadingResult& result) {
+    if (!result.success) {
+        if (!result.error_message.empty()) {
+            ui_error = UIError::CreateError(result.error_message.data(), "Failed to open file!");
+            Logger::error("File loading failed: {}", result.error_message.data());
         }
-    } else {
-        auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.data());
-        if (!fs_buffer) {
-            return;
-        }
-        size = fs_size;
-        entry_buffer = malloc<u8>(size);
-        memcpy(entry_buffer, fs_buffer, size);
-        free(fs_buffer);
-    }
 
-    if (entry_buffer == nullptr) {
-        Logger::error("Unable to resolve what entry_buffer should be! Aborting.");
+        // Clean up any partially allocated resources
+        if (result.entry_buffer) {
+            free(result.entry_buffer);
+        }
         return;
     }
 
-    auto format_list = extractor_manager->GetExtractorCandidates(entry_buffer, size, ext);
+    // Update selected_entry if we loaded from a virtual archive
+    if (result.isVirtualRoot && result.selected_entry) {
+        selected_entry = result.selected_entry;
+    }
+
+    auto format_list = extractor_manager->GetExtractorCandidates(result.entry_buffer, result.size, result.ext);
 
     if (format_list.size() <= 0) {
+        // This is a regular file preview (not an archive)
         preview_state.contents = {
-            .data = entry_buffer,
-            .size = size,
-            .path = node->FullPath,
-            .ext = ext,
-            .fileName = node->FileName
+            .data = result.entry_buffer,
+            .size = result.size,
+            .path = result.node->FullPath,
+            .ext = result.ext,
+            .fileName = result.node->FileName
         };
 
-        InitializePreviewData(node, entry_buffer, size, ext, isVirtualRoot);
-
+        InitializePreviewData(result.node, result.entry_buffer, result.size, result.ext, result.isVirtualRoot);
         return;
     } else if (format_list.size() > 1) {
-        Logger::warn("Multiple formats found for %s", node->FileName.data());
+        Logger::warn("Multiple formats found for {}", result.node->FileName.data());
         Logger::warn("All formats detected as compatible: ");
         for (auto& format : format_list) {
             printf("\t%s\n", format->GetTag().data());
         }
     }
-    // TODO: Show a UI to ask the user what format they meant to select if there's somehow a collision
-    auto format = format_list[0];
 
-    auto arc = format->TryOpen(entry_buffer, size, node->FileName);
+    auto format = format_list[0];
+    auto arc = format->TryOpen(result.entry_buffer, result.size, result.node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", node->FileName.data(), format->GetTag().data());
+        Logger::error("Failed to open archive: %s! Attempted to open as: %s", result.node->FileName.data(), format->GetTag().data());
         char message_buffer[256];
-        snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", node->FileName.data(), format->GetTag().data());
+        snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", result.node->FileName.data(), format->GetTag().data());
         ui_error = UIError::CreateError(message_buffer, "Failed to open archive!");
-        free(entry_buffer);
+        free(result.entry_buffer);
         return;
     }
 
+    Logger::log("Successfully opened archive: %s", result.node->FileName.c_str());
+
+    // Clean up previous archive if it exists
     if (loaded_arc_base) {
         delete loaded_arc_base;
+        loaded_arc_base = nullptr;
     }
     loaded_arc_base = arc;
 
     if (current_buffer) {
         free(current_buffer);
+        current_buffer = nullptr;
     }
 
-    current_buffer = malloc<u8>(size);
-    memcpy(current_buffer, entry_buffer, size);
-    free(entry_buffer);
+    current_buffer = malloc<u8>(result.size);
+    if (current_buffer) {
+        memcpy(current_buffer, result.entry_buffer, result.size);
+        Logger::log("Archive buffer stored (%zu bytes)", result.size);
+    } else {
+        Logger::error("Failed to allocate current_buffer for archive");
+    }
 
-    rootNode = CreateTreeFromPath(node->FullPath);
+    free(result.entry_buffer);
+
+    rootNode = DirectoryNode::CreateTreeFromPath(result.node->FullPath);
+    Logger::log("Directory tree created for archive: {}", result.node->FileName.c_str());
+}
+
+void DirectoryNode::HandleFileClick(Node *node) {
+    if (file_loading_in_progress.load()) {
+        Logger::warn("File loading already in progress, ignoring request for {}", node->FileName.c_str());
+        return;
+    }
+
+    UnloadSelectedFile();
+
+    std::string filename = node->FileName;
+    std::string ext = filename.substr(filename.find_last_of(".") + 1);
+    bool isVirtualRoot = rootNode->IsVirtualRoot;
+
+    fb__loading_arc = true;
+    fb__loading_file_name = filename;
+    file_loading_in_progress = true;
+
+    std::thread loading_thread([node, ext, isVirtualRoot]() {
+        FileLoadingResult result;
+        result.node = node;
+        result.ext = ext;
+        result.isVirtualRoot = isVirtualRoot;
+
+        try {
+            if (isVirtualRoot && !node->IsDirectory) {
+                // Don't hold the mutex for the entire operation, just for the critical sections
+                Entry* entry_to_process = nullptr;
+                {
+                    std::lock_guard<std::mutex> lock(file_loading_mutex);
+                    entry_to_process = FindEntryByNode(loaded_arc_base->GetEntries(), node);
+                }
+
+                if (entry_to_process) {
+                    if (current_buffer) {
+                        auto arc_read = loaded_arc_base->OpenStream(entry_to_process, current_buffer);
+                        if (arc_read == nullptr) {
+                            result.error_message = "Received nullptr from OpenStream! Cannot show entry.";
+                            result.success = false;
+                            Logger::error("OpenStream failed for entry: {}", node->FileName.c_str());
+                        } else {
+                            result.size = entry_to_process->size;
+                            result.entry_buffer = malloc<u8>(result.size);
+                            if (result.entry_buffer) {
+                                memcpy(result.entry_buffer, arc_read, result.size);
+                                free(arc_read);
+                                result.success = true;
+                                result.selected_entry = entry_to_process;
+                            } else {
+                                result.error_message = "Failed to allocate memory for entry buffer";
+                                result.success = false;
+                                free(arc_read);
+                                Logger::error("Memory allocation failed for entry: {}", node->FileName.c_str());
+                            }
+                        }
+                    } else {
+                        result.error_message = "current_buffer is not initialized!";
+                        result.success = false;
+                        Logger::error("current_buffer is not initialized for entry: {}", node->FileName.c_str());
+                    }
+                } else {
+                    result.error_message = "Entry not found in archive";
+                    result.success = false;
+                    Logger::error("Entry not found in archive: {}", node->FileName.c_str());
+                }
+            } else {
+                auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.data());
+                if (!fs_buffer) {
+                    char error_message[256];
+                    snprintf(error_message, sizeof(error_message), "Failed to read file from filesystem: %s", node->FullPath.c_str());
+                    result.error_message = error_message;
+                    result.success = false;
+                    Logger::error("Failed to read file: {}", node->FullPath.c_str());
+                } else {
+                    result.size = fs_size;
+                    result.entry_buffer = malloc<u8>(result.size);
+                    if (result.entry_buffer) {
+                        memcpy(result.entry_buffer, fs_buffer, result.size);
+                        free(fs_buffer);
+                        result.success = true;
+                    } else {
+                        result.error_message = "Failed to allocate memory for file buffer";
+                        result.success = false;
+                        free(fs_buffer);
+                        Logger::error("Memory allocation failed for file: {}", node->FileName.c_str());
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            char error_message[256];
+            snprintf(error_message, sizeof(error_message), "Exception during file loading: %s", e.what());
+            result.error_message = error_message;
+            result.success = false;
+            Logger::error("Exception while loading {}: {}", node->FileName.c_str(), e.what());
+        } catch (...) {
+            result.error_message = "Unknown exception during file loading";
+            result.success = false;
+            Logger::error("Unknown exception while loading {}", node->FileName.c_str());
+        }
+
+        std::lock_guard<std::mutex> lock(file_loading_mutex);
+        completed_loads.push(result);
+
+        // Reset loading state
+        fb__loading_arc = false;
+        fb__loading_file_name = "";
+        file_loading_in_progress = false;
+    });
+
+    loading_thread.detach();
+}
+
+void DirectoryNode::ProcessPendingFileLoads() {
+    std::lock_guard<std::mutex> lock(file_loading_mutex);
+    while (!completed_loads.empty()) {
+        FileLoadingResult result = completed_loads.front();
+        completed_loads.pop();
+        ProcessFileLoadingResult(result);
+    }
 }
 
 inline bool CanReadDirectory(const std::string& path) {

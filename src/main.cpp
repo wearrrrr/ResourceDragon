@@ -60,6 +60,10 @@ int main(int argc, char *argv[]) {
     if (argc < 2) {
         path = ".";
     } else {
+        if (strcmp(argv[1], "--version") == 0) {
+            printf("ResourceDragon %s\n", "0.0.1");
+            return 0;
+        }
         path = argv[1];
     }
 

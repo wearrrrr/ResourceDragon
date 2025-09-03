@@ -3,6 +3,7 @@
 
 void ThemeManager::AdjustmentStyles() {
     ImGuiStyle &style = ImGui::GetStyle();
+
     style.FrameRounding = 8.0f;
     style.ScrollbarRounding = 6.0f;
     style.GrabRounding = 4.0f;
@@ -24,9 +25,8 @@ void ThemeManager::AdjustmentStyles() {
     style.AntiAliasedFill = true;
 }
 
-void ThemeManager::BessDark() {
-    ImGuiStyle &style = ImGui::GetStyle();
-    ImVec4 *colors = style.Colors;
+void ThemeManager::Dark() {
+    ImVec4 *colors = ImGui::GetStyle().Colors;
 
     colors[ImGuiCol_Text]               = ImVec4(0.92f, 0.93f, 0.94f, 1.00f);
     colors[ImGuiCol_TextDisabled]       = ImVec4(0.50f, 0.52f, 0.54f, 1.00f);
@@ -84,8 +84,7 @@ void ThemeManager::BessDark() {
 }
 
 void ThemeManager::CatpuccinMocha() {
-    ImGuiStyle &style = ImGui::GetStyle();
-    ImVec4 *colors = style.Colors;
+    ImVec4 *colors = ImGui::GetStyle().Colors;
 
     colors[ImGuiCol_Text] = ImVec4(0.90f, 0.89f, 0.88f, 1.00f);         // Latte
     colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.56f, 0.52f, 1.00f); // Surface2

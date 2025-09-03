@@ -117,6 +117,9 @@ extern PImageView image_preview;
 
 extern bool text_editor__unsaved_changes;
 
+extern bool fb__loading_arc;
+extern std::string fb__loading_file_name;
+
 #ifdef __linux__
 extern int inotify_fd;
 extern int inotify_wd;

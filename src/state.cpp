@@ -25,6 +25,8 @@ PImageView image_preview = {
 };
 
 bool text_editor__unsaved_changes = false;
+bool fb__loading_arc = false;
+std::string fb__loading_file_name = "";
 
 #ifdef __linux__
 int inotify_fd;
