@@ -23,7 +23,7 @@ add_library(GUI STATIC
     PreviewWindow.cpp
     Render.cpp
     TextEditor/TextEditor.cpp
-    Theme/BessDark.cpp
+    Themes.cpp
     UIError.cpp
     Utils.cpp
 

@@ -13,7 +13,7 @@
 namespace fs = std::filesystem;
 
 #ifdef DEBUG
-#include <cmath>
+// #include <cmath>
 #define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
 #endif
 
@@ -139,7 +139,7 @@ void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVe
     config.OversampleV = 2;
 
     if (fs::exists(font_path)) {
-        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, &config, ranges.Data);
+        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, ranges.Data);
         if (!font) {
             Logger::warn("Failed to load main font!");
         }
@@ -208,17 +208,24 @@ bool GUI::InitRendering() {
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
+
+    // For some reason, things break if I change the order in which these are loaded.. very cool.
     LoadFont(io, noto_font_path, "UIFont", gr);
-    LoadFont(io, mono_font_path, "MonoFont", gr);
     if (fs::exists(icon_font_path)) {
         auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {
             Logger::warn("Failed to load icons! This will cause some things to not render properly.");
         }
+    } else {
+        Logger::warn("Failed to find icons.ttf, icons will not properly render...");
     }
+
+    LoadFont(io, mono_font_path, "MonoFont", gr);
+
     io.Fonts->Build();
 
     theme_manager.LoadThemes();
+    theme_manager.AdjustmentStyles();
     theme_manager.SetTheme(Theme::BessDark);
 
     editor.SetColorizerEnable(false);
@@ -312,15 +319,22 @@ void GUI::StartRenderLoop(const char *path) {
 
         ImGui::End();
 
-        const bool hovered = !io.WantCaptureMouse && (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
+        bool popupIsOpen = ImGui::IsPopupOpen(0, ImGuiPopupFlags_AnyPopupId);
 
-        if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+        if (!popupIsOpen) {
+            const bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
 
-        if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) resizing = true;
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) resizing = false;
+            if (hovered)
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
-        if (resizing) {
-            left_pan_width += io.MouseDelta.x;
+            if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                resizing = true;
+            if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                resizing = false;
+
+            if (resizing) {
+                left_pan_width += io.MouseDelta.x;
+            }
         }
 
         left_pan_width = std::max(minPanelSize, std::min(left_pan_width, window_size.x - minPanelSize - splitterWidth));
@@ -347,36 +361,32 @@ void GUI::StartRenderLoop(const char *path) {
         }
         ImGui::End();
 
-        #ifdef DEBUG
-        constexpr float DISTANCE = 8.0f;
-        const ImVec2 window_pos = {
-            DISTANCE,
-            window_size.y - DISTANCE
-        };
-        const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
+        // #ifdef DEBUG
+        // constexpr float DISTANCE = 8.0f;
+        // const ImVec2 window_pos = {
+        //     DISTANCE,
+        //     window_size.y - DISTANCE
+        // };
+        // const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
 
-        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-        ImGui::SetNextWindowBgAlpha(0.55f);
+        // ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+        // ImGui::SetNextWindowBgAlpha(0.55f);
 
-        if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) {
-            ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
-        }
-        ImGui::End();
+        // if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) {
+        //     ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
+        // }
+        // ImGui::End();
 
 
-        #endif
-
-        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            quitDialog = !quitDialog;
-            if (quitDialog) {
-                ImGui::OpenPopup("Quit Confirmation");
-            }
-        }
+        // #endif
 
         ImGui::Render();
 
         glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-        static const constexpr ImVec4 clear_color = {0.23f, 0.23f, 0.23f, 1.00f};
+        ImGuiStyle &style = ImGui::GetStyle();
+        ImVec4 *colors = style.Colors;
+        ImVec4 clear_color = colors[ImGuiCol_Separator];
+
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 

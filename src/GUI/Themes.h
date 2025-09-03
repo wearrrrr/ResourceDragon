@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <string_view>
 
 enum Theme {
-    BessDark
+    BessDark,
+    CatpuccinMocha
 };
 
 
@@ -14,8 +14,12 @@ class ThemeManager {
         int currentTheme;
         std::vector<const char*> themes;
 
+        void AdjustmentStyles();
+
         void LoadThemes() {
             themes.push_back("BessDark");
+            themes.push_back("Catpuccin Mocha");
+            // TODO: take in parameter to this function to load the actual current theme.
             currentTheme = Theme::BessDark;
         }
 
@@ -23,11 +27,15 @@ class ThemeManager {
             if (theme == Theme::BessDark) {
                 BessDark();
             }
+            if (theme == Theme::CatpuccinMocha) {
+                CatpuccinMocha();
+            }
             currentTheme = theme;
         };
-        int GetCurrentTheme() {
-            return currentTheme;
+        Theme GetCurrentTheme() {
+            return (Theme)currentTheme;
         }
     private:
-        static void BessDark();
+        void BessDark();
+        void CatpuccinMocha();
 };

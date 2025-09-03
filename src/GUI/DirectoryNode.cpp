@@ -54,6 +54,10 @@ static bool settings_open = false;
 void InfoDialog() {
     ImGui::SetNextWindowSize({ImGui::GetIO().DisplaySize.x / 2, 425.0f});
     if (ImGui::BeginPopupModal("Settings", &settings_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+            ImGui::SetWindowFocus(nullptr);
+        }
         if (ImGui::BeginTabBar("SettingsBar")) {
             if (ImGui::BeginTabItem("Formats")) {
                 if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
@@ -84,7 +88,9 @@ void InfoDialog() {
                     ImGui::TableSetColumnIndex(0);
                     TableTextCentered("Theme");
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Combo("###ThemeCombo", &theme_manager.currentTheme, theme_manager.themes.data(), theme_manager.themes.size());
+                    if (ImGui::Combo("###ThemeCombo", &theme_manager.currentTheme, theme_manager.themes.data(), theme_manager.themes.size())) {
+                        theme_manager.SetTheme(theme_manager.GetCurrentTheme());
+                    };
 
                     ImGui::EndTable();
                 }
