@@ -28,7 +28,7 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         Logger::error("XP3: Header type is invalid!");
         return nullptr;
     }
-    Logger::log("XP3 Header type: %s", header_type == XP3_HEADER_UNPACKED ? "Unpacked" : "Packed");
+    Logger::log("XP3 Header type: {}", header_type == XP3_HEADER_UNPACKED ? "Unpacked" : "Packed");
 
     std::vector<u8> header_stream;
     if (header_type == XP3_HEADER_UNPACKED) {

@@ -25,11 +25,11 @@ struct SQUtils {
             sq_pushroottable(vm);
 
             if (SQ_FAILED(sq_call(vm, 1, SQFalse, SQTrue))) {
-                Logger::error("Failed to call %s()!", name);
+                Logger::error("Failed to call {}()!", name);
                 sqstd_printcallstack(vm);
             }
         } else {
-            Logger::error("Function '%s' not found.", name);
+            Logger::error("Function '{}' not found.", name);
         }
     }
     static inline SQInteger read_bytes(HSQUIRRELVM vm) {
@@ -98,7 +98,7 @@ struct SQUtils {
 
         if (SQ_FAILED(sq_get(vm, -2))) {
             sq_pop(vm, 1); // pop table
-            Logger::error("[Squirrel] Squirrel function not found: '%s'", func_name);
+            Logger::error("[Squirrel] Squirrel function not found: '{}'", func_name);
             return false;
         }
         // push this

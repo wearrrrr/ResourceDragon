@@ -13,13 +13,13 @@ bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_ani
 {
     SDL_IOStream* stream = SDL_IOFromMem(data, data_size);
     if (!stream) {
-        Logger::error("Failed to create IOStream: %s", SDL_GetError());
+        Logger::error("Failed to create IOStream: {}", SDL_GetError());
         return false;
     }
 
     IMG_Animation* animation = IMG_LoadAnimation_IO(stream, 1);
     if (!animation) {
-        Logger::error("Failed to load GIF animation: %s", SDL_GetError());
+        Logger::error("Failed to load GIF animation: {}", SDL_GetError());
         return false;
     }
 
@@ -42,7 +42,7 @@ bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_ani
     for (int i = 0; i < animation->count; i++) {
         SDL_Surface* frame_surface = animation->frames[i];
         if (!frame_surface) {
-            Logger::error("Failed to load GIF frame %d: %s", i, SDL_GetError());
+            Logger::error("Failed to load frame {}: {}", i, SDL_GetError());
             continue;
         }
 
@@ -50,7 +50,7 @@ bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_ani
         SDL_DestroySurface(frame_surface);
 
         if (!converted_surface) {
-            Logger::error("Failed to convert GIF frame %d", i);
+            Logger::error("Failed to convert frame {} to surface!", i);
             continue;
         }
 
@@ -104,7 +104,7 @@ GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
-        Logger::log("OpenGL error uploading texture: 0x%x", err);
+        Logger::log("OpenGL error uploading texture: 0x{}", err);
     }
     return image_texture;
 }
@@ -130,12 +130,12 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
 
     SDL_IOStream *stream = SDL_IOFromMem(data, data_size);
     if (!stream) {
-        Logger::error("Failed to create IOStream: %s", SDL_GetError());
+        Logger::error("Failed to create IOStream: {}", SDL_GetError());
         return false;
     }
     SDL_Surface *surface = IMG_Load_IO(stream, 1);
     if (!surface) {
-        Logger::error("Failed to load image: %s", SDL_GetError());
+        Logger::error("Failed to load image: {}", SDL_GetError());
         return false;
     }
 
@@ -143,7 +143,7 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
     SDL_DestroySurface(surface);
 
     if (!converted_surface) {
-        Logger::error("Failed to convert surface format: %s", SDL_GetError());
+        Logger::error("Failed to convert surface format: {}", SDL_GetError());
         return false;
     }
 

@@ -27,7 +27,7 @@ static SQInteger squirrel_runtime_error(HSQUIRRELVM vm) {
   if (sq_gettop(vm) > 0) {
     const SQChar *error_msg;
     if (SQ_SUCCEEDED(sq_getstring(vm, 2, &error_msg))) {
-      Logger::error("Squirrel runtime exception: \"%s\" ", error_msg);
+      Logger::error("Squirrel runtime exception: \"{}\"", error_msg);
       SQStackInfos sqstack;
       for (SQInteger i = 1; SQ_SUCCEEDED(sq_stackinfos(vm, i, &sqstack)); ++i) {
         printf(sqstack.source ? SQ_RUNTIME_EXCEPTION_FORMAT : "\t at %s\n",

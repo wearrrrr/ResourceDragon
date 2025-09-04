@@ -22,7 +22,7 @@ ArchiveBase *MPKFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
     FileCount = Read<u16>(buffer);
 
     if (MinorVersion != 0 || MajorVersion != 2) {
-        Logger::error("Unsupported MPK Version! Version found: %u.%u", MajorVersion, MinorVersion);
+        Logger::error("Unsupported MPK Version! Version found: {}.{}", MajorVersion, MinorVersion);
         return nullptr;
     }
 
@@ -32,7 +32,7 @@ ArchiveBase *MPKFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
         u32 id = Read<u32>(buffer);
 
         if (compression != 0 && compression != 1) {
-            Logger::warn("Unknown compression type! %x", compression);
+            Logger::warn("Unknown compression type! {}", compression);
             Seek(0x100 - 8);
             continue;
         }

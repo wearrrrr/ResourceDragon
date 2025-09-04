@@ -159,13 +159,13 @@ bool GUI::InitRendering() {
 
     if (!window)
     {
-        Logger::error("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_CreateWindow(): {}", SDL_GetError());
         return false;
     }
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     if (!gl_context) {
-        Logger::error("Error: SDL_GL_CreateContext(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_GL_CreateContext(): {}", SDL_GetError());
         return false;
     }
 
@@ -275,7 +275,7 @@ void GUI::StartRenderLoop(const char *path) {
                     HandleFileClick(itemNode);
                     SetFilePath(dropped_path.string());
                 } else {
-                    Logger::error("Failed to open file: %s", dropped_filedir);
+                    Logger::error("Failed to open file: {}", dropped_filedir);
                 }
             }
 

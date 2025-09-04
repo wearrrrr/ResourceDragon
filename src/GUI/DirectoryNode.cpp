@@ -239,7 +239,6 @@ void DirectoryNode::UnloadSelectedFile() {
         preview_state.audio.music = nullptr;
     }
     if (preview_state.audio.buffer) {
-        Logger::log("freeing audio buffer");
         free(preview_state.audio.buffer);
         preview_state.audio.buffer = nullptr;
     };
@@ -522,7 +521,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
     auto format = format_list[0];
     auto arc = format->TryOpen(result.entry_buffer, result.size, result.node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: %s! Attempted to open as: %s", result.node->FileName.data(), format->GetTag().data());
+        Logger::error("Failed to open archive: {}! Attempted to open as: {}", result.node->FileName.data(), format->GetTag().data());
         char message_buffer[256];
         snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", result.node->FileName.data(), format->GetTag().data());
         ui_error = UIError::CreateError(message_buffer, "Failed to open archive!");
@@ -692,7 +691,7 @@ void DirectoryNode::Display(Node *node) {
     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         if (node->IsDirectory) {
             if (!rootNode->IsVirtualRoot && !CanReadDirectory(node->FullPath)) {
-                Logger::error("Cannot access directory: %s", node->FullPath.data());
+                Logger::error("Cannot access directory: {}", node->FullPath.data());
                 ui_error = UIError::CreateError("You do not have permission to access this directory!", "Access Denied");
             } else {
                 if (rootNode->IsVirtualRoot) {

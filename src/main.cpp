@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
             }
         }
     } catch (const fs::filesystem_error &err) {
-        Logger::error("Failed to start scripting! Error: %s", err.what());
+        Logger::error("Failed to start scripting! Error: {}", err.what());
     }
 
 #ifdef __linux__
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "1");
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-        Logger::error("Error: SDL_Init(): %s\n", SDL_GetError());
+        Logger::error("Error: SDL_Init(): {}", SDL_GetError());
     }
 
     Audio::InitAudioSystem();

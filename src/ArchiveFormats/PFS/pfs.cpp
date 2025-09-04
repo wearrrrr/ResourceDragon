@@ -23,7 +23,7 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
     u32 file_count = Read<u32>(buffer, 7);
 
     if (!IsSaneFileCount(file_count)) {
-        Logger::error("File count is %d. This is way too high!", file_count);
+        Logger::error("File count is {}. This is way too high!", file_count);
         return nullptr;
     }
     if (index_size > size) {
@@ -46,7 +46,7 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
 
         u32 name_length = Read<u32>(index_buf, index_offset);
         if (index_offset + 4 + name_length + 8 + 8 > index_size) {
-            Logger::error("Index overrun when reading entry %d", i);
+            Logger::error("Index overrun when reading entry {}", i);
             break;
         }
 

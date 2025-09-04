@@ -23,20 +23,20 @@ void Audio::InitAudioSystem() {
 
     preview_state.audio.mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec);
     if (!preview_state.audio.mixer) {
-        Logger::error("Failed to initialize SDL_mixer: %s", SDL_GetError());
+        Logger::error("Failed to initialize SDL_mixer: {}", SDL_GetError());
         return;
     }
 
     MIX_GetMixerFormat(preview_state.audio.mixer, &spec);
     if (spec.freq == 0 || spec.format == 0 || spec.channels == 0) {
-        Logger::error("Failed to query audio spec: %s", SDL_GetError());
+        Logger::error("Failed to query audio spec: {}", SDL_GetError());
         MIX_DestroyAudio(preview_state.audio.music);
         return;
     }
 
     preview_state.audio.track = MIX_CreateTrack(preview_state.audio.mixer);
     if (!preview_state.audio.track) {
-        Logger::error("Failed to reserve track: %s", SDL_GetError());
+        Logger::error("Failed to reserve track: {}", SDL_GetError());
         return;
     }
 

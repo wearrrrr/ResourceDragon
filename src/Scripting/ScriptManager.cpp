@@ -9,7 +9,7 @@ bool ScriptManager::LoadFile(std::string path) {
     sq_pushroottable(vm);
 
     if (SQ_FAILED(sqstd_dofile(vm, path.c_str(), SQFalse, SQTrue))) {
-        Logger::error("Failed to load script: %s", path.c_str());
+        Logger::error("Failed to load script: {}", path.c_str());
         sqstd_printcallstack(vm);
         return false;
     }
