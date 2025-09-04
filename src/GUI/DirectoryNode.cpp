@@ -530,8 +530,6 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
         return;
     }
 
-    Logger::log("Successfully opened archive: %s", result.node->FileName.c_str());
-
     // Clean up previous archive if it exists
     if (loaded_arc_base) {
         delete loaded_arc_base;
@@ -547,7 +545,6 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
     current_buffer = malloc<u8>(result.size);
     if (current_buffer) {
         memcpy(current_buffer, result.entry_buffer, result.size);
-        Logger::log("Archive buffer stored (%zu bytes)", result.size);
     } else {
         Logger::error("Failed to allocate current_buffer for archive");
     }
@@ -555,7 +552,6 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
     free(result.entry_buffer);
 
     rootNode = DirectoryNode::CreateTreeFromPath(result.node->FullPath);
-    Logger::log("Directory tree created for archive: {}", result.node->FileName.c_str());
 }
 
 void DirectoryNode::HandleFileClick(Node *node) {

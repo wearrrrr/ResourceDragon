@@ -364,13 +364,13 @@ void GUI::StartRenderLoop(const char *path) {
         }
         ImGui::End();
 
-        // Bottom bar
+
         ImGui::SetNextWindowPos(
             ImVec2(0, window_size.y),
             ImGuiCond_Always,
             ImVec2(0.0f, 1.0f)
         );
-        ImGui::SetNextWindowSize({window_size.x, 0});
+        ImGui::SetNextWindowSize({260.0f, 0});
 
         if (fb__loading_arc) {
             if (ImGui::Begin("Bottom Bar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
@@ -383,7 +383,7 @@ void GUI::StartRenderLoop(const char *path) {
                     }
                 }
                 loading_text += "...";
-                
+
                 ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {250.0f, 30.0f}, loading_text.c_str());
             }
             ImGui::End();
