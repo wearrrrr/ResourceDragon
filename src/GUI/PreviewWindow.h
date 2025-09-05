@@ -32,10 +32,13 @@ namespace PreviewWindow {
                 RenderHexEditor(ImGui::GetIO());
                 break;
             case TEXT:
-                RenderTextViewer(ImGui::GetIO());
+                if (default_to_hex_view && !text_viewer_override)
+                    RenderHexEditor(ImGui::GetIO());
+                else
+                    RenderTextViewer(ImGui::GetIO());
                 break;
             default:
-                RenderTextViewer(ImGui::GetIO());
+                RenderHexEditor(ImGui::GetIO());
                 break;
         }
     };

@@ -28,6 +28,9 @@ bool text_editor__unsaved_changes = false;
 bool fb__loading_arc = false;
 std::string fb__loading_file_name = "";
 
+bool default_to_hex_view = false;
+bool text_viewer_override = false;
+
 #ifdef __linux__
 int inotify_fd;
 int inotify_wd;

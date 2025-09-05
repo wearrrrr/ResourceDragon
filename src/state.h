@@ -120,6 +120,9 @@ extern bool text_editor__unsaved_changes;
 extern bool fb__loading_arc;
 extern std::string fb__loading_file_name;
 
+extern bool default_to_hex_view;
+extern bool text_viewer_override;
+
 #ifdef __linux__
 extern int inotify_fd;
 extern int inotify_wd;

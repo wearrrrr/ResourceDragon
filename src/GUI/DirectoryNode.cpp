@@ -111,6 +111,15 @@ void InfoDialog() {
                         theme_manager.SetTheme(theme_manager.GetCurrentTheme());
                     };
 
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    TableTextCentered("Default to Hex View");
+                    ImGui::TableSetColumnIndex(1);
+                    if (ImGui::Checkbox("###DefaultToHexViewCheckbox", &default_to_hex_view)) {
+                        text_viewer_override = !default_to_hex_view;
+                        Logger::log("Default to Hex View changed to: {}", default_to_hex_view);
+                    };
+
                     ImGui::EndTable();
                 }
 
@@ -216,6 +225,11 @@ void VirtualArc::ExtractEntry(std::string path) {
 
 void DirectoryNode::UnloadSelectedFile() {
     text_editor__unsaved_changes = false;
+
+    if (default_to_hex_view) {
+        preview_state.contents.type = HEX;
+        text_viewer_override = false;
+    }
 
     if (preview_state.contents.size > 0) {
         preview_state.contents.data = nullptr;

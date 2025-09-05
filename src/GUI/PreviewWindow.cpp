@@ -308,6 +308,7 @@ static const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
     if (ImGui::Button("Hex View")) {
         preview_state.contents.type = HEX;
+        text_viewer_override = false;
     }
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
@@ -350,6 +351,7 @@ void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
         // don't like that I have to do this here, but whatever
         editor.SetText(std::string((char*)preview_state.contents.data, preview_state.contents.size));
         editor.SetTextChanged(false);
+        text_viewer_override = true;
     }
     auto pos = font_registry.find("MonoFont");
     ImFont *font;
