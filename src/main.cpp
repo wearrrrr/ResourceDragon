@@ -23,6 +23,7 @@
 #ifdef __linux__
 #include <unistd.h>
 #include <signal.h>
+#include <util/Stacktrace.h>
 
 static constexpr std::size_t MAX_SAFE_FRAMES = 32;
 static constexpr std::size_t MAX_OBJECT_FRAMES = 32;
