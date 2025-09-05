@@ -20,6 +20,52 @@
 #include <filesystem>
 
 #include "state.h"
+#ifdef __linux__
+#include <unistd.h>
+#include <signal.h>
+
+static constexpr std::size_t MAX_SAFE_FRAMES = 32;
+static constexpr std::size_t MAX_OBJECT_FRAMES = 32;
+
+static cpptrace::frame_ptr g_frames[MAX_SAFE_FRAMES];
+static cpptrace::safe_object_frame g_obj_frames[MAX_OBJECT_FRAMES];
+static std::size_t g_num_frames = 0;
+
+// TODO: log crash information to a file based on user settings
+static void crash_handler(int sig, siginfo_t* si, void* ucontext) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        const char msg[] = "Crash: fork failed\n";
+        write(STDERR_FILENO, msg, sizeof(msg)-1);
+        _exit(128 + sig);
+    }
+
+    if (pid == 0) {
+        signal(SIGSEGV, SIG_DFL);
+        auto message = "Crash detected! Dumping trace:\n";
+        write(STDERR_FILENO, message, strlen(message));
+        auto trace = Stacktrace::generate_stacktrace().to_string();
+        trace += "\n";
+        write(STDERR_FILENO, trace.c_str(), trace.size());
+        _exit(128 + sig);
+    }
+}
+
+static void install_handler() {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = crash_handler;
+    sa.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGSEGV, &sa, nullptr);
+    sigaction(SIGABRT, &sa, nullptr);
+    sigaction(SIGFPE, &sa, nullptr);
+    sigaction(SIGILL, &sa, nullptr);
+}
+#endif
+
+
+
 
 template <class T>
 inline void RegisterFormat() {
@@ -27,6 +73,10 @@ inline void RegisterFormat() {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef __linux__
+    install_handler();
+#endif
+
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
     RegisterFormat<NitroPlus::NPK>();
@@ -109,10 +159,6 @@ int main(int argc, char *argv[]) {
     }
 
     Audio::InitAudioSystem();
-
-#ifdef DEBUG
-    Logger::print_stacktrace("Test error with stacktrace..");
-#endif
 
     if (GUI::InitRendering()) {
         GUI::StartRenderLoop(path);

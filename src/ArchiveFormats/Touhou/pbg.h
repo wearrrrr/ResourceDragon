@@ -10,7 +10,7 @@ static int findPbg3Entry(ThArchive *dat, const char *entry) {
 }
 
 class THDAT : public ArchiveFormat {
-    std::string tag = "Touhou.DAT";
+    std::string tag = "Touhou.PGB3";
     std::string description = "Archive format for mainline Touhou games";
     u32 sig = PackUInt32('P', 'B', 'G', '3');
 

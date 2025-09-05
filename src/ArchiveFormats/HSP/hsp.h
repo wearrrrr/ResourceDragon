@@ -7,15 +7,11 @@ class HSPArchive : public ArchiveFormat {
     public:
         std::string tag = "HSP";
         std::string description = "Hot Soup Processor 3 Resource Archive";
+        u32 sig = PackUInt('D', 'P', 'M', 'X');
 
         u32 DefaultKey = 0xAC52AE58;
 
         std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
-
-        HSPArchive() {
-            sig = PackUInt('D', 'P', 'M', 'X');
-        };
-
 
         u32 FindExeKey(ExeFile *exe, u32 dpmx_offset);
 

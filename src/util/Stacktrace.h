@@ -9,8 +9,11 @@
 
 namespace Stacktrace {
     #ifdef CPPTRACE_ENABLED
+    inline static cpptrace::stacktrace generate_stacktrace() {
+        return cpptrace::generate_trace();
+    }
     static void print_stacktrace() {
-        cpptrace::generate_trace().print();
+        generate_stacktrace().print();
     }
     #else
     #include <stdio.h>

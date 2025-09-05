@@ -117,7 +117,6 @@ void InfoDialog() {
                     ImGui::TableSetColumnIndex(1);
                     if (ImGui::Checkbox("###DefaultToHexViewCheckbox", &default_to_hex_view)) {
                         text_viewer_override = !default_to_hex_view;
-                        Logger::log("Default to Hex View changed to: {}", default_to_hex_view);
                     };
 
                     ImGui::EndTable();
@@ -462,8 +461,6 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
             if (!MIX_GetAudioFormat(preview_state.audio.music, &preview_state.audio.spec)) {
                 Logger::error("Failed to get audio format: {}", SDL_GetError());
                 MIX_DestroyAudio(preview_state.audio.music);
-            } else {
-                Logger::log("Loaded audio sample rate: {} Hz", preview_state.audio.spec.freq);
             }
             double duration_frames = MIX_GetAudioDuration(preview_state.audio.music);
             double duration_sec = MIX_FramesToMS(preview_state.audio.spec.freq, duration_frames) / 1000.0;
@@ -498,7 +495,6 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
             Logger::error("File loading failed: {}", result.error_message.data());
         }
 
-        // Clean up any partially allocated resources
         if (result.entry_buffer) {
             free(result.entry_buffer);
         }
@@ -536,7 +532,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
     auto arc = format->TryOpen(result.entry_buffer, result.size, result.node->FileName);
     if (arc == nullptr) {
         Logger::error("Failed to open archive: {}! Attempted to open as: {}", result.node->FileName.data(), format->GetTag().data());
-        char message_buffer[256];
+        char message_buffer[512];
         snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", result.node->FileName.data(), format->GetTag().data());
         ui_error = UIError::CreateError(message_buffer, "Failed to open archive!");
         free(result.entry_buffer);
@@ -633,7 +629,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
             } else {
                 auto [fs_buffer, fs_size] = read_file_to_buffer<u8>(node->FullPath.data());
                 if (!fs_buffer) {
-                    char error_message[256];
+                    char error_message[512];
                     snprintf(error_message, sizeof(error_message), "Failed to read file from filesystem: %s", node->FullPath.c_str());
                     result.error_message = error_message;
                     result.success = false;
@@ -654,7 +650,7 @@ void DirectoryNode::HandleFileClick(Node *node) {
                 }
             }
         } catch (const std::exception& e) {
-            char error_message[256];
+            char error_message[512];
             snprintf(error_message, sizeof(error_message), "Exception during file loading: %s", e.what());
             result.error_message = error_message;
             result.success = false;
