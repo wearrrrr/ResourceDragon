@@ -1,6 +1,6 @@
 # ResourceDragon
 
-ResourceDragon is a WIP highly extensible viewer and extractor for proprietary formats, particularly game archives written in ImGui, SDL3 and OpenGL.
+ResourceDragon is a WIP highly extensible viewer and extractor for proprietary formats, written in ImGui, SDL3 and OpenGL.
 
 ## Features
 - Preview images, gifs, audio, and archives entirely from within ResourceDragon

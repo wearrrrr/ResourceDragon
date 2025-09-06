@@ -6,12 +6,16 @@
 #define CURRENT_PLATFORM "MacOS"
 #elifdef _WIN32
 #define CURRENT_PLATFORM "Windows"
+#elifdef EMSCRIPTEN
+#define CURRENT_PLATFORM "Emscripten (Wasm)"
 #endif
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define CURRENT_ARCH "x86_64"
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
 #define CURRENT_ARCH "x86_32"
+#elif defined(EMSCRIPTEN)
+#define CURRENT_ARCH "wasm"
 #elif defined(__aarch64__) || defined(_M_ARM64)
 #define CURRENT_ARCH "ARM64"
 #elif defined(mips) || defined(__mips__) || defined(__mips)

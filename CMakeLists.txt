@@ -22,7 +22,11 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
         if (EMSCRIPTEN)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0")
             # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -sASSERTIONS --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+            if (EMSCRIPTEN)
+                add_compile_options(-pthread)
+                add_link_options(-pthread -sUSE_PTHREADS=1)
+            endif()
         endif()
     endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
@@ -62,27 +66,25 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 
-    if (DEBUG)
-        FetchContent_Declare(
-            cpptrace
-            GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-            GIT_TAG        v1.0.4
-        )
-        FetchContent_MakeAvailable(cpptrace)
-        set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
-        set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
-        add_compile_definitions(CPPTRACE_ENABLED)
-    endif()
-
     FetchContent_Declare(
-        fmt
-        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG        11.2.0
+        cpptrace
+        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+        GIT_TAG        v1.0.4
     )
-    FetchContent_MakeAvailable(fmt)
-    set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
-    set(FMT_LIBRARIES fmt::fmt)
+    FetchContent_MakeAvailable(cpptrace)
+    set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
+    set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
+    add_compile_definitions(CPPTRACE_ENABLED)
 endif()
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG        11.2.0
+)
+FetchContent_MakeAvailable(fmt)
+set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
+set(FMT_LIBRARIES fmt::fmt)
 
 add_subdirectory(vendored/SDL)
 add_subdirectory(vendored/SDL_image)
@@ -142,11 +144,14 @@ if (WIN32)
     set(ZLIB "")
 endif()
 
-if (DEBUG AND CPPTRACE_LIBRARIES)
+if (CPPTRACE_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CPPTRACE_LIBRARIES})
 endif()
+if (FMT_LIBRARIES)
+    target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
+endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB} ${FMT_LIBRARIES})
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)

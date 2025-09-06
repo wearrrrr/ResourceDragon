@@ -25,13 +25,6 @@
 #include <signal.h>
 #include <util/Stacktrace.h>
 
-static constexpr std::size_t MAX_SAFE_FRAMES = 32;
-static constexpr std::size_t MAX_OBJECT_FRAMES = 32;
-
-static cpptrace::frame_ptr g_frames[MAX_SAFE_FRAMES];
-static cpptrace::safe_object_frame g_obj_frames[MAX_OBJECT_FRAMES];
-static std::size_t g_num_frames = 0;
-
 // TODO: log crash information to a file based on user settings
 static void crash_handler(int sig, siginfo_t* si, void* ucontext) {
     pid_t pid = fork();

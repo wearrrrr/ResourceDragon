@@ -6,6 +6,8 @@ build-emscripten/
 extracted/
 .vscode
 imgui.ini
+node_modules
+package-lock.json
 
 # Test files - Eventually, this will be moved into a directory.
 tests/
