@@ -36,8 +36,11 @@ jobs:
         run: git submodule status --recursive > submodules.txt
 
       # set up a reasonable clang version (thanks ubuntu!)
-      - name: Latest Clang
-        uses: MorganCaron/latest-clang-action@master
+      - name: Set up Clang
+        uses: dragondive/setup-clang@feat/ubuntu-add-24.04-remove-18.04-clang-add-16-17-18-remove-3.9-4-5
+        with:
+          version: latest
+          platform: x64
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
