@@ -6,16 +6,12 @@
 #include <UIError.h>
 #include "SDL3/SDL_video.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "state.h"
 #include <util/Logger.h>
 
 #include <filesystem>
 namespace fs = std::filesystem;
-
-#ifdef DEBUG
-// #include <cmath>
-#define FPS_OVERLAY_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs
-#endif
 
 #define DIRECTORY_LIST_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus
 #define FILE_PREVIEW_FLAGS   DIRECTORY_LIST_FLAGS | ImGuiWindowFlags_HorizontalScrollbar
@@ -147,6 +143,34 @@ void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVe
     }
 }
 
+void ShowDockSpace(bool* p_open) {
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    ImGuiWindowFlags host_flags = ImGuiWindowFlags_NoTitleBar |
+                                  ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoResize |
+                                  ImGuiWindowFlags_NoMove |
+                                  ImGuiWindowFlags_NoNavFocus |
+                                  ImGuiWindowFlags_NoBackground |
+                                  ImGuiWindowFlags_NoInputs;
+
+    ImGui::Begin("DockSpaceHost", p_open, host_flags);
+    ImGui::PopStyleVar(2);
+
+    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(
+        viewport->ID,
+        viewport
+    );
+    ImGui::DockSpace(dockspace_id, ImVec2(0,0), ImGuiDockNodeFlags_PassthruCentralNode);
+
+    ImGui::End();
+}
 
 SDL_Window* window;
 
@@ -185,6 +209,7 @@ bool GUI::InitRendering() {
 
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
@@ -244,8 +269,6 @@ void GUI::StartRenderLoop(const char *path) {
     const constexpr float minPanelSize = 400.0f;
     bool resizing = false;
 
-    const std::string preview_win_label = "Preview";
-
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -291,20 +314,34 @@ void GUI::StartRenderLoop(const char *path) {
         ImGui_ImplOpenGL3_NewFrame();
 
         const ImVec2 window_size = io.DisplaySize;
-        const ImVec2 mouse_pos = io.MousePos;
-
-        static float left_pan_width = (window_size.x / 2.0f) - splitterWidth;
-        static float right_pan_width = window_size.x - left_pan_width - splitterWidth;
 
         ImGui::NewFrame();
 
-        // Process any completed file loading operations
         DirectoryNode::ProcessPendingFileLoads();
 
         // ImGui::ShowDemoWindow(&running);
 
-        ImGui::SetNextWindowSize({left_pan_width, window_size.y}, ImGuiCond_Always);
-        ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
+        static bool first_time = true;
+        if (first_time) {
+            first_time = false;
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+            ImGuiID dockspace_id = viewport->ID;
+
+            ImGui::DockBuilderRemoveNode(dockspace_id);
+            ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+            ImGuiID dock_left, dock_right;
+            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.4f, &dock_left, &dock_right);
+            ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
+            ImGui::DockBuilderDockWindow("Preview", dock_right);
+
+            ImGui::DockBuilderFinish(dockspace_id);
+        }
+
+        ShowDockSpace(nullptr);
+
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_LIST_FLAGS)) {
             RenderFBContextMenu(&io);
             RenderErrorPopup(&io);
@@ -322,35 +359,11 @@ void GUI::StartRenderLoop(const char *path) {
 
         ImGui::End();
 
-        bool popupIsOpen = ImGui::IsPopupOpen(0, ImGuiPopupFlags_AnyPopupId);
-
-        if (!popupIsOpen) {
-            const bool hovered = (mouse_pos.x >= left_pan_width && mouse_pos.x <= left_pan_width + splitterWidth);
-
-            if (hovered)
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-
-            if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                resizing = true;
-            if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-                resizing = false;
-
-            if (resizing) {
-                left_pan_width += io.MouseDelta.x;
-            }
-        }
-
-        left_pan_width = std::max(minPanelSize, std::min(left_pan_width, window_size.x - minPanelSize - splitterWidth));
-        right_pan_width = window_size.x - left_pan_width - splitterWidth;
-
-        ImGui::SetNextWindowSize({right_pan_width, window_size.y});
-        ImGui::SetNextWindowPos({left_pan_width + splitterWidth, 0});
-        std::string preview_win_title = preview_win_label;
         int preview_flags;
         if (text_editor__unsaved_changes) preview_flags = FILE_PREVIEW_FLAGS | ImGuiWindowFlags_UnsavedDocument;
         else preview_flags = FILE_PREVIEW_FLAGS;
-        preview_win_title += "###Preview";
-        if(ImGui::Begin(preview_win_title.c_str(), NULL, preview_flags)) {
+
+        if(ImGui::Begin("Preview", NULL, preview_flags)) {
             PreviewContextMenu();
             if (preview_state.contents.size > 0) {
                 PreviewWindow::RenderPreviewFor(preview_state.contents.type);
@@ -389,33 +402,12 @@ void GUI::StartRenderLoop(const char *path) {
             ImGui::End();
         }
 
-
-
-        // #ifdef DEBUG
-        // constexpr float DISTANCE = 8.0f;
-        // const ImVec2 window_pos = {
-        //     DISTANCE,
-        //     window_size.y - DISTANCE
-        // };
-        // const constexpr ImVec2 window_pos_pivot = {0.0f, 1.0f};
-
-        // ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-        // ImGui::SetNextWindowBgAlpha(0.55f);
-
-        // if (ImGui::Begin("FPS Overlay", nullptr, FPS_OVERLAY_FLAGS)) {
-        //     ImGui::Text("FPS: %.*f", 0, std::ceil(io.Framerate));
-        // }
-        // ImGui::End();
-
-
-        // #endif
-
         ImGui::Render();
 
         glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
         ImGuiStyle &style = ImGui::GetStyle();
         ImVec4 *colors = style.Colors;
-        ImVec4 clear_color = colors[ImGuiCol_Separator];
+        ImVec4 clear_color = colors[ImGuiCol_WindowBg];
 
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
