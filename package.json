@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ResourceDragon is a WIP highly extensible viewer and extractor for proprietary formats, written in ImGui, SDL3 and OpenGL.",
   "main": "emscripten-server.js",
+  "type": "module",
   "directories": {
     "test": "tests"
   },
