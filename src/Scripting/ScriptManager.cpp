@@ -1,6 +1,6 @@
 
 #include "ScriptManager.h"
-#include "SQUtils.hpp"
+#include "SQUtils.h"
 #include "squirrel.h"
 
 bool ScriptManager::LoadFile(std::string path) {
