@@ -20,6 +20,7 @@
 #include <filesystem>
 
 #include "state.h"
+
 #ifdef __linux__
 #include <unistd.h>
 #include <signal.h>

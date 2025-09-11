@@ -10,10 +10,6 @@
 namespace fs = std::filesystem;
 #endif
 
-#if DDS_CPP_20
-#include <concepts>
-#endif
-
 #include <fstream>
 #include <iostream>
 

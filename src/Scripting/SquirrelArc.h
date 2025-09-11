@@ -1,4 +1,4 @@
-#include "SQUtils.hpp"
+#include "SQUtils.h"
 #include "ArchiveFormats/ArchiveFormat.h"
 
 class SquirrelArchiveBase : public ArchiveBase {

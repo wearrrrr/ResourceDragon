@@ -1,7 +1,6 @@
 #pragma once
 
-#include "SQUtils.hpp"
-#include "squirrel_all.h"
+#include "SQUtils.h"
 #include "SquirrelArc.h"
 
 #include <cstdio>
