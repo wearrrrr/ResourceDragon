@@ -163,9 +163,12 @@ void ShowDockSpace(bool* p_open) {
     ImGui::Begin("DockSpaceHost", p_open, host_flags);
     ImGui::PopStyleVar(2);
 
+    ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoWindowMenuButton;
+
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(
         viewport->ID,
-        viewport
+        viewport,
+        dockspace_flags
     );
     ImGui::DockSpace(dockspace_id, ImVec2(0,0), ImGuiDockNodeFlags_PassthruCentralNode);
 
@@ -333,7 +336,8 @@ void GUI::StartRenderLoop(const char *path) {
             ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
             ImGuiID dock_left, dock_right;
-            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.4f, &dock_left, &dock_right);
+            ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &dock_left, &dock_right);
+            ImGui::DockBuilderGetNode(left)->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
             ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
             ImGui::DockBuilderDockWindow("Preview", dock_right);
 
