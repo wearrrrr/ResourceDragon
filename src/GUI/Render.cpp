@@ -143,14 +143,14 @@ void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVe
     }
 }
 
-void ShowDockSpace(bool* p_open) {
+void ConfigureDockSpace(bool* p_open) {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
-    ImGui::SetNextWindowViewport(viewport->ID);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
     ImGuiWindowFlags host_flags = ImGuiWindowFlags_NoTitleBar |
                                   ImGuiWindowFlags_NoCollapse |
@@ -158,22 +158,36 @@ void ShowDockSpace(bool* p_open) {
                                   ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoNavFocus |
                                   ImGuiWindowFlags_NoBackground |
-                                  ImGuiWindowFlags_NoInputs;
+                                  ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     ImGui::Begin("DockSpaceHost", p_open, host_flags);
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(3);
 
+    ImGuiID root_id = ImGui::GetID("RootDockspace");
     ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoWindowMenuButton;
+    ImGui::DockSpace(root_id, ImVec2(0,0), dockspace_flags);
 
-    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(
-        viewport->ID,
-        viewport,
-        dockspace_flags
-    );
-    ImGui::DockSpace(dockspace_id, ImVec2(0,0), ImGuiDockNodeFlags_PassthruCentralNode);
+    static bool first_time = true;
+    if (first_time) {
+        first_time = false;
+
+        ImGui::DockBuilderRemoveNode(root_id);
+        ImGui::DockBuilderAddNode(root_id, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(root_id, viewport->Size);
+
+        ImGuiID dock_left, dock_right;
+        ImGui::DockBuilderSplitNode(root_id, ImGuiDir_Left, 0.5f, &dock_left, &dock_right);
+        ImGui::DockBuilderGetNode(dock_left)->LocalFlags |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDocking;
+
+        ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
+        ImGui::DockBuilderDockWindow("Preview", dock_right);
+
+        ImGui::DockBuilderFinish(root_id);
+    }
 
     ImGui::End();
 }
+
 
 SDL_Window* window;
 
@@ -324,27 +338,7 @@ void GUI::StartRenderLoop(const char *path) {
 
         // ImGui::ShowDemoWindow(&running);
 
-        static bool first_time = true;
-        if (first_time) {
-            first_time = false;
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-            ImGuiID dockspace_id = viewport->ID;
-
-            ImGui::DockBuilderRemoveNode(dockspace_id);
-            ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-            ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
-
-            ImGuiID dock_left, dock_right;
-            ImGuiID left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, &dock_left, &dock_right);
-            ImGui::DockBuilderGetNode(left)->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-            ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
-            ImGui::DockBuilderDockWindow("Preview", dock_right);
-
-            ImGui::DockBuilderFinish(dockspace_id);
-        }
-
-        ShowDockSpace(nullptr);
+        ConfigureDockSpace(nullptr);
 
         if (ImGui::Begin("Directory Tree", NULL, DIRECTORY_LIST_FLAGS)) {
             RenderFBContextMenu(&io);

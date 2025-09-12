@@ -5,6 +5,9 @@ void ThemeManager::AdjustmentStyles() {
     ImGuiStyle &style = ImGui::GetStyle();
 
     style.FrameRounding = 8.0f;
+    style.TabRounding = style.FrameRounding + 4.0f;
+    style.TabBorderSize = 0.0f;
+    style.SeparatorTextAlign = ImVec2(0.5f, 0.5f);
     style.ScrollbarRounding = 6.0f;
     style.GrabRounding = 4.0f;
     style.ChildRounding = 4.0f;
@@ -66,6 +69,8 @@ void ThemeManager::Dark() {
     colors[ImGuiCol_TabActive]          = ImVec4(0.32f, 0.42f, 0.52f, 1.00f); // added
     colors[ImGuiCol_TabUnfocused]       = ImVec4(0.20f, 0.22f, 0.24f, 1.00f); // added
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.22f, 0.24f, 0.26f, 1.00f); // added
+    colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
     colors[ImGuiCol_PlotLines]          = ImVec4(0.46f, 0.56f, 0.66f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered]   = ImVec4(0.46f, 0.56f, 0.66f, 1.00f);
     colors[ImGuiCol_PlotHistogram]      = ImVec4(0.36f, 0.46f, 0.56f, 1.00f);
@@ -81,6 +86,8 @@ void ThemeManager::Dark() {
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg]  = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg]   = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+    colors[ImGuiCol_DockingPreview]  = ImVec4(0.46f, 0.56f, 0.66f, 0.70f);
+    colors[ImGuiCol_DockingEmptyBg]  = ImVec4(0.14f, 0.14f, 0.16f, 1.00f);
 }
 
 void ThemeManager::CatpuccinMocha() {
@@ -124,6 +131,8 @@ void ThemeManager::CatpuccinMocha() {
     colors[ImGuiCol_TabActive] = ImVec4(0.76f, 0.46f, 0.58f, 1.00f);            // Pink
     colors[ImGuiCol_TabUnfocused] = ImVec4(0.18f, 0.16f, 0.22f, 1.00f);         // Mantle
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.21f, 0.18f, 0.25f, 1.00f);   // Crust
+    colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);// Transparent
+    colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);      // Transparent
     colors[ImGuiCol_PlotLines] = ImVec4(0.82f, 0.61f, 0.85f, 1.00f);            // Lavender
     colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.89f, 0.54f, 0.79f, 1.00f);     // Pink
     colors[ImGuiCol_PlotHistogram] = ImVec4(0.82f, 0.61f, 0.85f, 1.00f);        // Lavender
@@ -139,4 +148,6 @@ void ThemeManager::CatpuccinMocha() {
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+    colors[ImGuiCol_DockingPreview] = ImVec4(0.82f, 0.61f, 0.85f, 0.35f); // Lavender
+    colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f); // Mantle
 }
