@@ -234,10 +234,9 @@ bool GUI::InitRendering() {
     range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
     range.AddRanges(io.Fonts->GetGlyphRangesKorean());
     range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-    // These characters aren't in any of the above glyph ranges, but are common in CJK text.
-    range.AddChar(0x203B);
-    range.AddChar(0x25A0);
-    range.AddChar(0x25CB);
+    // General Punctuation to Miscellaneous Symbols and Arrows
+    const constexpr ImWchar custom_ranges[] = {0x2000, 0x2BFF};
+    range.AddRanges(custom_ranges);
 
     range.BuildRanges(&gr);
 
