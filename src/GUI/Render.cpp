@@ -6,6 +6,7 @@
 #include <UIError.h>
 #include "SDL3/SDL_video.h"
 #include "imgui.h"
+#include "imgui/misc/freetype/imgui_freetype.h"
 #include "imgui_internal.h"
 #include "state.h"
 #include <util/Logger.h>
@@ -129,13 +130,13 @@ void RenderErrorPopup(ImGuiIO *io) {
     #define FONT_PATH_BASE fs::path("fonts")
 #endif
 
-void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges) {
-    ImFontConfig config;
-    config.OversampleH = 2;
-    config.OversampleV = 2;
-
+void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges, ImFontConfig *cfg = nullptr) {
+    if (cfg) {
+        cfg->OversampleH = 2;
+        cfg->OversampleV = 2;
+    }
     if (fs::exists(font_path)) {
-        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, nullptr, ranges.Data);
+        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, cfg, ranges.Data);
         if (!font) {
             Logger::warn("Failed to load main font!");
         }
@@ -231,11 +232,7 @@ bool GUI::InitRendering() {
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> gr;
 
-    range.AddRanges(io.Fonts->GetGlyphRangesJapanese());
-    range.AddRanges(io.Fonts->GetGlyphRangesKorean());
-    range.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-    // General Punctuation to Miscellaneous Symbols and Arrows
-    const constexpr ImWchar custom_ranges[] = {0x2000, 0x2BFF};
+    const constexpr ImWchar custom_ranges[] = { 0x1, 0x1FFFF, 0 };;
     range.AddRanges(custom_ranges);
 
     range.BuildRanges(&gr);
@@ -246,12 +243,33 @@ bool GUI::InitRendering() {
     const constexpr ImWchar icon_ranges[] = { 0xe800, 0xe809 };
 
     auto noto_font_path = FONT_PATH_BASE / "NotoSansCJK-Medium.otf";
+#ifdef __linux__
+    const char *linux_font_path = "/usr/share/fonts/noto-cjk/NotoSansCJK-Medium.ttc";
+    if (fs::exists(linux_font_path)) {
+        noto_font_path = fs::path(linux_font_path);
+    };
+    LoadFont(io, noto_font_path, "UIFont", gr);
+#else
+    LoadFont(io, noto_font_path, "UIFont", gr);
+#endif
+
+    ImFontConfig emojiConfig;
+    emojiConfig.MergeMode = true;
+    emojiConfig.GlyphMinAdvanceX = 18.0f;
+    emojiConfig.GlyphOffset.y = 1.0f;
+    emojiConfig.FontLoaderFlags = ImGuiFreeTypeLoaderFlags_LoadColor;
+
+    io.Fonts->AddFontFromFileTTF(
+        "fonts/twemoji.ttf",
+        24.0f,
+        &emojiConfig,
+        gr.Data
+    );
+
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
-
     // For some reason, things break if I change the order in which these are loaded.. very cool.
-    LoadFont(io, noto_font_path, "UIFont", gr);
     if (fs::exists(icon_font_path)) {
         auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {
@@ -262,6 +280,8 @@ bool GUI::InitRendering() {
     }
 
     LoadFont(io, mono_font_path, "MonoFont", gr);
+
+
 
     io.Fonts->Build();
 

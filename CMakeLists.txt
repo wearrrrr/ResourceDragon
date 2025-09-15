@@ -75,6 +75,17 @@ if (NOT EMSCRIPTEN)
     set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
     add_compile_definitions(CPPTRACE_ENABLED)
 endif()
+if (LINUX)
+    FetchContent_Declare(
+        lunasvg
+        GIT_REPOSITORY https://github.com/sammycage/lunasvg
+        GIT_TAG        v3.5.0
+    )
+    FetchContent_MakeAvailable(lunasvg)
+    set(LUNASVG_INCLUDE_DIR ${lunasvg_SOURCE_DIR}/include)
+    set(LUNASVG_LIBRARY lunasvg CACHE STRING "" FORCE)
+    set(LUNASVG_LIBRARIES lunasvg CACHE STRING "" FORCE)
+endif()
 
 FetchContent_Declare(
     fmt
@@ -148,6 +159,9 @@ if (CPPTRACE_LIBRARIES)
 endif()
 if (FMT_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
+endif()
+if (LUNASVG_LIBRARIES)
+    target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
