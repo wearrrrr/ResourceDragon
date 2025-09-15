@@ -103,7 +103,7 @@ void PreviewWindow::RenderGifPreview() {
 
     elapsed += (now - texture->last_frame_time);
 
-    float progress = static_cast<float>(elapsed) / anim.total_duration_ms;
+    float progress = (float)elapsed / anim.total_duration_ms;
 
     float total_duration_ms = anim.total_duration_ms;
     float time_elapsed_ms = progress * total_duration_ms;

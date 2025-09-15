@@ -315,15 +315,13 @@ void GUI::StartRenderLoop(const char *path) {
 
             if (event.type == SDL_EVENT_DROP_FILE) {
                 const char *dropped_filedir = event.drop.data;
-                // Preview the dropped file
                 auto dropped_path = fs::path(dropped_filedir);
                 auto dropped_path_dir = dropped_path.parent_path();
                 if (fs::exists(dropped_path)) {
                     if (fs::is_directory(dropped_path)) {
                         dropped_path_dir = dropped_path;
                     }
-                    DirectoryNode::Node *newNode = DirectoryNode::CreateTreeFromPath(dropped_path_dir.string());
-                    rootNode = newNode;
+                    rootNode = DirectoryNode::CreateTreeFromPath(dropped_path_dir.string());
                     DirectoryNode::Node *itemNode = new DirectoryNode::Node {
                         .FullPath = dropped_path.string(),
                         .FileName = dropped_path.filename().string(),

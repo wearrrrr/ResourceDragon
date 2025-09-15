@@ -22,7 +22,6 @@
 #include "ArchiveFormats/ElfFile.h"
 #include "GUI/Image.h"
 #include "ExtractorManager.h"
-#include "vec2.h"
 
 #include <TextEditor/TextEditor.h>
 #include <HexEditor/imgui_hex_editor.h>

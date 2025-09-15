@@ -180,7 +180,7 @@ inline bool ValidateGlobals() {
 bool VirtualArc::ExtractEntry(const fs::path &basePath, Entry *entry, fs::path outputPath) {
     if (!ValidateGlobals()) return false;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(EMSCRIPTEN)
     std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
 #endif
 
@@ -299,10 +299,9 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
             for (const auto &entry : entries) {
                 // Still not entirely sure if this is necessary?
-#ifdef __linux__
+#if defined(__linux__) || defined(EMSCRIPTEN)
                 std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
 #endif
-
                 fs::path entryPath(entry.second->name);
                 Node *current = node;
 
@@ -318,7 +317,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
                     if (found == current->Children.end()) {
                         Node *newNode = new Node {
-                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + static_cast<char>(fs::path::preferred_separator) + part),
+                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + fs::path::preferred_separator + part),
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
@@ -683,9 +682,9 @@ void DirectoryNode::ProcessPendingFileLoads() {
 }
 
 inline bool CanReadDirectory(const std::string& path) {
-    #if defined(__linux__) || defined(EMSCRIPTEN)
+#if defined(__linux__) || defined(EMSCRIPTEN)
     return access(path.data(), R_OK | X_OK) == 0;
-    #else
+#else
     // mhm yup go ahead bro
     return true;
 #endif
@@ -718,7 +717,7 @@ void DirectoryNode::Display(Node *node) {
         if (rootNode->FullPath.ends_with("/")) {
             SetFilePath(rootNode->FullPath);
         } else {
-            SetFilePath(rootNode->FullPath + static_cast<char>(fs::path::preferred_separator));
+            SetFilePath(rootNode->FullPath + fs::path::preferred_separator);
         }
 
     }
@@ -758,7 +757,7 @@ void AddDirectoryNodeChild(std::string name, std::function<void()> cb = {}) {
 static char *file_path_buf = (char*)calloc(sizeof(char), 1024);
 
 void SetFilePath(const std::string& file_path) {
-    char sep = static_cast<char>(fs::path::preferred_separator);
+    char sep = fs::path::preferred_separator;
 
     bool ends_with_sep = false;
     if (!file_path.empty()) {

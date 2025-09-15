@@ -43,7 +43,7 @@ std::string Utils::GetFileSize(const fs::path& path)
 
             static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
             int unitIndex = 0;
-            double decimal_size = static_cast<double>(size);
+            double decimal_size = (double)size;
 
             while (decimal_size >= 1024.0 && unitIndex < 4) {
                 decimal_size /= 1024.0;
@@ -52,7 +52,7 @@ std::string Utils::GetFileSize(const fs::path& path)
 
             char buffer[64];
             if (unitIndex == 0) {
-                std::snprintf(buffer, sizeof(buffer), "%ju %s", static_cast<uintmax_t>(size), units[unitIndex]);
+                std::snprintf(buffer, sizeof(buffer), "%ju %s", size, units[unitIndex]);
             } else {
                 std::snprintf(buffer, sizeof(buffer), "%.2f %s", decimal_size, units[unitIndex]);
             }
@@ -69,7 +69,7 @@ std::string Utils::GetFileSize(const fs::path& path)
 std::string Utils::GetFileSize(u64 size) {
     static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
     int unitIndex = 0;
-    double decimal_size = static_cast<double>(size);
+    double decimal_size = (double)size;
 
     while (decimal_size >= 1024.0 && unitIndex < 4) {
         decimal_size /= 1024.0;
@@ -78,7 +78,7 @@ std::string Utils::GetFileSize(u64 size) {
 
     char buffer[64];
     if (unitIndex == 0) {
-        std::snprintf(buffer, sizeof(buffer), "%llu %s", static_cast<unsigned long long>(size), units[unitIndex]);
+        std::snprintf(buffer, sizeof(buffer), "%ju %s", size, units[unitIndex]);
     } else {
         std::snprintf(buffer, sizeof(buffer), "%.2f %s", decimal_size, units[unitIndex]);
     }
