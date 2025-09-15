@@ -11,7 +11,7 @@
 #include <windows.h>
 #endif
 #include <gl3.h>
-#include <vec2.h>
+#include <util/vec.h>
 #include <util/int.h>
 
 struct GifAnimation {
