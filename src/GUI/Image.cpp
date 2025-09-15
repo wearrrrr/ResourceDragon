@@ -7,7 +7,6 @@
 #include <algorithm>
 
 #include <ResourceFormats/DDS/DDS.h>
-using dds::ReadResult;
 
 bool Image::LoadGifAnimation(void* data, size_t data_size, GifAnimation* out_animation)
 {
@@ -112,14 +111,14 @@ GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
 bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<int*> out_size, u32 mode) {
     dds::Image image;
     auto result = dds::readImage((u8*)data, data_size, &image);
-    if (result == ReadResult::Success) {
+    if (result == dds::ReadResult::Success) {
         auto id = Image::LoadTex(image.mipmaps[0].data(), image.width, image.height);
         *out_texture = id;
         *out_size.x = image.width;
         *out_size.y = image.height;
 
         return true;
-    } else if (result != ReadResult::InvalidMagic) {
+    } else if (result != dds::ReadResult::InvalidMagic) {
         Logger::log("Failed to load DDS into memory!");
         Logger::log("Error: {}", dds::DecodeReadResult(result).c_str());
     }
