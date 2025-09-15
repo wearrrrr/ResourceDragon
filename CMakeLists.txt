@@ -75,7 +75,7 @@ if (NOT EMSCRIPTEN)
     set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
     add_compile_definitions(CPPTRACE_ENABLED)
 endif()
-if (LINUX)
+if (LINUX OR EMSCRIPTEN)
     FetchContent_Declare(
         lunasvg
         GIT_REPOSITORY https://github.com/sammycage/lunasvg

@@ -15,7 +15,7 @@
 #include <Utils.h>
 
 #include "SDL3_mixer/SDL_mixer.h"
-#include "UIError.h"
+#include <UIError.h>
 #include <imgui.h>
 #ifdef _WIN32
 #ifndef __MINGW32__
@@ -281,10 +281,8 @@ inline void DirectoryNode::SortChildrenAlphabetical(Node *node, bool sortAscendi
         std::string nameA = Utils::ToLower(a->FileName);
         std::string nameB = Utils::ToLower(b->FileName);
 
-        if (sortAscending)
-            return nameA < nameB;
-        else
-            return nameA > nameB;
+        if (sortAscending) return nameA < nameB;
+        else return nameA > nameB;
     });
 }
 
