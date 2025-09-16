@@ -88,7 +88,7 @@ void Image::UnloadAnimation(GifAnimation* animation)
     return;
 }
 
-GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
+GLuint Image::LoadTex(const u8* data, Vec2<int> size, u32 mode) {
     GLuint image_texture;
     glGenTextures(1, &image_texture);
     glBindTexture(GL_TEXTURE_2D, image_texture);
@@ -100,7 +100,7 @@ GLuint Image::LoadTex(const u8* data, int width, int height, u32 mode) {
 
     // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         Logger::log("OpenGL error uploading texture: 0x{}", err);
@@ -112,7 +112,8 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
     dds::Image image;
     auto result = dds::readImage((u8*)data, data_size, &image);
     if (result == dds::ReadResult::Success) {
-        auto id = Image::LoadTex(image.mipmaps[0].data(), image.width, image.height);
+        Vec2<int> img_size(image.width, image.height);
+        auto id = Image::LoadTex(image.mipmaps[0].data(), img_size);
         *out_texture = id;
         *out_size.x = image.width;
         *out_size.y = image.height;
@@ -146,17 +147,16 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
         return false;
     }
 
-    image_width = converted_surface->w;
-    image_height = converted_surface->h;
+    Vec2<int> img_size(converted_surface->w, converted_surface->h);
     image_data = (u8*)(converted_surface->pixels);
 
-    GLuint image_texture = LoadTex(image_data, image_width, image_height, mode);
+    GLuint image_texture = LoadTex(image_data, img_size, mode);
 
     SDL_DestroySurface(converted_surface);
 
     *out_texture = image_texture;
-    *out_size.x = image_width;
-    *out_size.y = image_height;
+    *out_size.x = img_size.x;
+    *out_size.y = img_size.y;
 
     return true;
 }
