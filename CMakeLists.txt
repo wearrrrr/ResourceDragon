@@ -154,6 +154,9 @@ if (FMT_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
 endif()
 
+add_subdirectory(SDK)
+target_link_libraries(ResourceDragon PRIVATE ResourceDragon_SDK)
+
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
