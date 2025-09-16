@@ -130,6 +130,7 @@ add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
     src/state.cpp
+    src/Plugins/plugins.cpp
 )
 
 target_include_directories(ResourceDragon PRIVATE

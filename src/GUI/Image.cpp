@@ -124,8 +124,6 @@ bool Image::LoadImage(void* data, size_t data_size, GLuint *out_texture, Vec2<in
         Logger::log("Error: {}", dds::DecodeReadResult(result).c_str());
     }
 
-    int image_width = 0;
-    int image_height = 0;
     u8 *image_data;
 
     SDL_IOStream *stream = SDL_IOFromMem(data, data_size);

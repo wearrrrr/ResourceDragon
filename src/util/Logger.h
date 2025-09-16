@@ -41,9 +41,9 @@ static std::string get_type_name(const T& obj) {
     const char* mangled = typeid(obj).name();
 #ifdef HAS_CXXABI
     int status = 0;
-    std::unique_ptr<char[], decltype(&std::free)> demangled(
+    std::unique_ptr<char[], decltype(&free)> demangled(
         abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
-        &std::free
+        &free
     );
     return (status == 0 && demangled) ? std::string(demangled.get()) : std::string(mangled);
 #else

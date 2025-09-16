@@ -15,6 +15,7 @@
 #include <GUI/PreviewWindow.h>
 #include <GUI/UIError.h>
 #include <Scripting/ScriptManager.h>
+#include <Plugins/plugins.h>
 
 #include <thread>
 #include <filesystem>
@@ -94,6 +95,8 @@ int main(int argc, char *argv[]) {
     } catch (const fs::filesystem_error &err) {
         Logger::error("Failed to start scripting! Error: {}", err.what());
     }
+
+    Plugins::LoadPlugins("plugins/");
 
 #ifdef __linux__
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
