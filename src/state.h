@@ -1,5 +1,7 @@
 #pragma once
 
+#define APPLICATION_VERSION "0.1"
+
 #include "Themes.h"
 #include "imgui.h"
 #include <SDL3/SDL.h>

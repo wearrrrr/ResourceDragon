@@ -6,5 +6,5 @@
 
 namespace GUI {
     bool InitRendering();
-    void StartRenderLoop(const char *path);
+    void StartRenderLoop();
 }

@@ -189,7 +189,6 @@ void ConfigureDockSpace(bool* p_open) {
     ImGui::End();
 }
 
-
 SDL_Window* window;
 
 bool running = true;
@@ -295,11 +294,7 @@ bool GUI::InitRendering() {
     return true;
 }
 
-void GUI::StartRenderLoop(const char *path) {
-    auto canonical_path = fs::canonical(path).string();
-
-    SetFilePath(canonical_path);
-    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
+void GUI::StartRenderLoop() {
     ImGuiIO &io = ImGui::GetIO();
 
     while (running) {

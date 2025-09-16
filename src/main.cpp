@@ -59,9 +59,6 @@ static void install_handler() {
 }
 #endif
 
-
-
-
 template <class T>
 inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
@@ -88,7 +85,9 @@ int main(int argc, char *argv[]) {
             if (entry_path.extension() == ".nut") {
                 if (scriptManager->LoadFile(entry_path.string())) {
                     auto fmt = scriptManager->Register();
-                    if (fmt) extractor_manager->RegisterFormat(std::unique_ptr<SquirrelArchiveFormat>(fmt));
+                    if (fmt) {
+                        extractor_manager->RegisterFormat(std::unique_ptr<SquirrelArchiveFormat>(fmt));
+                    }
                 }
             }
         }
@@ -106,7 +105,7 @@ int main(int argc, char *argv[]) {
         path = ".";
     } else {
         if (strcmp(argv[1], "--version") == 0) {
-            printf("ResourceDragon %s\n", "0.0.1");
+            printf("ResourceDragon %s\n", APPLICATION_VERSION);
             return 0;
         }
         path = argv[1];
@@ -147,7 +146,10 @@ int main(int argc, char *argv[]) {
     inotify_thread.detach();
 #endif
 
+    // I know this hint only does anything on linux anyways, but i'm not going to have a repeat of the QT experience.
+#ifdef __linux__
     SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "1");
+#endif
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         Logger::error("Error: SDL_Init(): {}", SDL_GetError());
@@ -155,8 +157,13 @@ int main(int argc, char *argv[]) {
 
     Audio::InitAudioSystem();
 
+    auto canonical_path = fs::canonical(path).string();
+
+    SetFilePath(canonical_path);
+    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
+
     if (GUI::InitRendering()) {
-        GUI::StartRenderLoop(path);
+        GUI::StartRenderLoop();
     }
 
     DirectoryNode::Unload(rootNode);
