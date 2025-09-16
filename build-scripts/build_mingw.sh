@@ -19,6 +19,8 @@ cp vendored/SDL_mixer/SDL3_mixer.dll ./Win32/
 cp _deps/freetype-build/libfreetype.dll ./Win32/
 cp _deps/cpptrace-build/libcpptrace.dll ./Win32/
 cp _deps/fmt-build/bin/libfmt.dll ./Win32/
+cp vendored/lunasvg/liblunasvg.dll ./Win32/
+cp vendored/lunasvg/plutovg/libplutovg.dll ./Win32/
 cd Win32
 cp /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libstdc++-6.dll ./

@@ -75,17 +75,6 @@ if (NOT EMSCRIPTEN)
     set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
     add_compile_definitions(CPPTRACE_ENABLED)
 endif()
-if (LINUX OR EMSCRIPTEN)
-    FetchContent_Declare(
-        lunasvg
-        GIT_REPOSITORY https://github.com/sammycage/lunasvg
-        GIT_TAG        v3.5.0
-    )
-    FetchContent_MakeAvailable(lunasvg)
-    set(LUNASVG_INCLUDE_DIR ${lunasvg_SOURCE_DIR}/include)
-    set(LUNASVG_LIBRARY lunasvg CACHE STRING "" FORCE)
-    set(LUNASVG_LIBRARIES lunasvg CACHE STRING "" FORCE)
-endif()
 
 FetchContent_Declare(
     fmt
@@ -106,6 +95,8 @@ set(DISABLE_DYNAMIC)
 
 add_subdirectory(vendored/thlib)
 
+add_subdirectory(vendored/lunasvg)
+
 # silence squirrel compiler warnings, not my code, not my problem :)
 target_compile_options(squirrel_static BEFORE PRIVATE -w)
 
@@ -124,6 +115,7 @@ include_directories(vendored/imgui/)
 include_directories(vendored/imgui/backends/)
 include_directories(vendored/gles3/)
 include_directories(vendored/squirrel/include/)
+include_directories(vendored/lunasvg/include/)
 include_directories(${FMT_INCLUDE_DIR})
 include_directories(${CPPTRACE_INCLUDE_DIR})
 
@@ -160,11 +152,8 @@ endif()
 if (FMT_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
 endif()
-if (LUNASVG_LIBRARIES)
-    target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
-endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)

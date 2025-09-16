@@ -13,3 +13,6 @@
 [submodule "vendored/thlib"]
 	path = vendored/thlib
 	url = https://github.com/wearrrrr/thlib
+[submodule "vendored/lunasvg"]
+	path = vendored/lunasvg
+	url = https://github.com/sammycage/lunasvg

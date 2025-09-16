@@ -301,9 +301,6 @@ void GUI::StartRenderLoop(const char *path) {
     SetFilePath(canonical_path);
     rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
     ImGuiIO &io = ImGui::GetIO();
-    const constexpr float splitterWidth = 10.0f;
-    const constexpr float minPanelSize = 400.0f;
-    bool resizing = false;
 
     while (running) {
         SDL_Event event;

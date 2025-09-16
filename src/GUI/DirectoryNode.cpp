@@ -315,7 +315,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
                     if (found == current->Children.end()) {
                         Node *newNode = new Node {
-                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + fs::path::preferred_separator + part),
+                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + (char)fs::path::preferred_separator + part),
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
@@ -715,7 +715,7 @@ void DirectoryNode::Display(Node *node) {
         if (rootNode->FullPath.ends_with("/")) {
             SetFilePath(rootNode->FullPath);
         } else {
-            SetFilePath(rootNode->FullPath + fs::path::preferred_separator);
+            SetFilePath(rootNode->FullPath + (char)fs::path::preferred_separator);
         }
 
     }
