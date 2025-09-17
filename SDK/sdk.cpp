@@ -1,10 +1,23 @@
 #include "sdk.h"
+#include "ArchiveFormatWrapper.h"
 #include <util/Logger.h>
 
 struct sdk_ctx {
     int version;
     Logger* logger;
+    ArchiveFormatWrapper *archiveFormat;
 };
+
+ArchiveFormatWrapper *AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable) {
+    if (ctx) {
+        ctx->logger->log("Adding archive format {}", vtable->GetTag(ctx));
+        ArchiveFormatWrapper* wrapper = new ArchiveFormatWrapper(vtable, ctx);
+        ctx->archiveFormat = wrapper;
+        return wrapper;
+    }
+    ctx->logger->log("Failed to add archive format");
+    return nullptr;
+}
 
 extern "C" {
 

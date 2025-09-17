@@ -1,6 +1,7 @@
 #include "plugins.h"
+#include "state.h"
 #include <util/Logger.h>
-
+#include "../SDK/sdk.h"
 
 #include <string>
 #include <filesystem>
@@ -12,6 +13,12 @@ using namespace Plugins;
 #ifdef __linux__
 
 #include <dlfcn.h>
+
+struct sdk_ctx {
+    int version;
+    Logger* logger;
+    ArchiveFormatWrapper *archiveFormat;
+};
 
 // bad solution but i'll fix it later, ideally we will read the elf header to check.
 bool is_shared_library(const fs::path &p) {
@@ -56,9 +63,29 @@ void Plugins::LoadPlugins(const char *path) {
                 dlclose(handle);
                 continue;
             }
-            plugins.push_back({*name, entry.path().string(), init, shutdown});
+
+            RD_GetArchiveFormat getArchiveFormat = (RD_GetArchiveFormat)dlsym(handle, "RD_GetArchiveFormat");
+            if (!getArchiveFormat) {
+                Logger::error("Failed to find RD_GetArchiveFormat symbol in plugin");
+                dlclose(handle);
+                continue;
+            }
+
+            plugins.push_back({*name, entry.path().string(), init, shutdown, getArchiveFormat});
             printf("Plugin %s (v%s) loaded\n", *name, *version);
-            init();
+            sdk_ctx *sdk_ctx = init();
+            const ArchiveFormatVTable* vtable = getArchiveFormat(sdk_ctx);
+            if (vtable) {
+                ArchiveFormatWrapper* wrapper = AddArchiveFormat(sdk_ctx, vtable);
+                if (wrapper) {
+                    extractor_manager->RegisterFormat(std::unique_ptr<ArchiveFormatWrapper>(wrapper));
+                } else {
+                    Logger::error("Failed to create archive format wrapper!");
+                }
+            } else {
+                Logger::error("Failed to get archive format vtable from plugin!");
+            }
+
         }
     }
 }

@@ -1,9 +1,13 @@
 #include <string>
 #include <vector>
 
+#include "../SDK/ArchiveFormatWrapper.h"
+#include "../SDK/sdk.h"
+
 namespace Plugins {
 
-    typedef void (*RD_PluginInit)();
+    typedef const ArchiveFormatVTable* (*RD_GetArchiveFormat)(struct sdk_ctx* ctx);
+    typedef sdk_ctx* (*RD_PluginInit)();
     typedef void (*RD_PluginShutdown)();
 
     struct Plugin {
@@ -11,6 +15,7 @@ namespace Plugins {
         std::string path;
         RD_PluginInit init;
         RD_PluginShutdown shutdown;
+        RD_GetArchiveFormat getArchiveFormat;
     };
 
     static std::vector<Plugin> plugins;
