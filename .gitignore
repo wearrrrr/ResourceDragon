@@ -4,6 +4,7 @@ build/
 build-mingw/
 build-emscripten/
 extracted/
+plugins/
 .vscode
 imgui.ini
 node_modules

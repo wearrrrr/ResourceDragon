@@ -15,6 +15,7 @@ find_package(Threads REQUIRED)
 if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     if (DEBUG)
         set(CMAKE_CXX_FLAGS "-g")
+        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
         add_compile_definitions(DEBUG)
     else()
         set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
@@ -131,6 +132,8 @@ add_executable(ResourceDragon
     src/main.cpp
     src/state.cpp
     src/Plugins/plugins.cpp
+
+    SDK/sdk.cpp
 )
 
 target_include_directories(ResourceDragon PRIVATE
@@ -153,9 +156,6 @@ endif()
 if (FMT_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
 endif()
-
-add_subdirectory(SDK)
-target_link_libraries(ResourceDragon PRIVATE ResourceDragon_SDK)
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})
 

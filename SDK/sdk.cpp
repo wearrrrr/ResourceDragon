@@ -1,20 +1,32 @@
 #include "sdk.h"
-#include <cstdio>
+#include <util/Logger.h>
 
-#ifdef __cplusplus
+struct sdk_ctx {
+    int version;
+    Logger* logger;
+};
+
 extern "C" {
-#endif
 
-void sdk_init(struct sdk_ctx *ctx) {
-    ctx->version = 1;
-    ctx->logger = Logger();
-    ctx->logger.log("Initializing SDK...");
+void sdk_init(struct sdk_ctx** ctx) {
+    *ctx = new sdk_ctx();
+    (*ctx)->version = 1;
+    (*ctx)->logger = new Logger();
+    (*ctx)->logger->log("SDK initialized");
 }
 
-void sdk_deinit(struct sdk_ctx *ctx) {
-    printf("Deiniting SDK...");
+void sdk_deinit(struct sdk_ctx* ctx) {
+    if (ctx) {
+        ctx->logger->log("SDK shutting down");
+        delete ctx->logger;
+        delete ctx;
+    }
 }
 
-#ifdef __cplusplus
+void sdk_log(struct sdk_ctx* ctx, const char* msg) {
+    if (ctx) {
+        ctx->logger->warn(msg);
+    }
 }
-#endif
+
+}

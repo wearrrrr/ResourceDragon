@@ -56,9 +56,16 @@ void Plugins::LoadPlugins(const char *path) {
                 dlclose(handle);
                 continue;
             }
+            plugins.push_back({*name, entry.path().string(), init, shutdown});
             printf("Plugin %s (v%s) loaded\n", *name, *version);
             init();
         }
+    }
+}
+
+void Plugins::Shutdown() {
+    for (auto &plugin : plugins) {
+        plugin.shutdown();
     }
 }
 

@@ -169,6 +169,8 @@ int main(int argc, char *argv[]) {
         GUI::StartRenderLoop();
     }
 
+    Plugins::Shutdown();
+
     DirectoryNode::Unload(rootNode);
 
 #ifdef linux
