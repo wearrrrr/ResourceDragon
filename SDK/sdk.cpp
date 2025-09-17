@@ -23,9 +23,19 @@ void sdk_deinit(struct sdk_ctx* ctx) {
     }
 }
 
-void sdk_log(struct sdk_ctx* ctx, const char* msg) {
+void Logger_log(struct sdk_ctx* ctx, const char* msg) {
+    if (ctx) {
+        ctx->logger->log(msg);
+    }
+}
+void Logger_warn(struct sdk_ctx* ctx, const char* msg) {
     if (ctx) {
         ctx->logger->warn(msg);
+    }
+}
+void Logger_error(struct sdk_ctx* ctx, const char* msg) {
+    if (ctx) {
+        ctx->logger->error(msg);
     }
 }
 
