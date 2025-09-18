@@ -2,6 +2,7 @@
 #include "state.h"
 #include <util/Logger.h>
 #include "../SDK/sdk.h"
+#include "../SDK/ArchiveFormatWrapper.h"
 
 #include <string>
 #include <filesystem>
@@ -71,9 +72,19 @@ void Plugins::LoadPlugins(const char *path) {
                 continue;
             }
 
-            plugins.push_back({*name, entry.path().string(), init, shutdown, getArchiveFormat});
-            printf("Plugin %s (v%s) loaded\n", *name, *version);
+            Plugin plugin = {
+                *name,
+                entry.path().string(),
+                init,
+                shutdown,
+                getArchiveFormat
+            };
+
             sdk_ctx *sdk_ctx = init();
+            plugin.ctx = sdk_ctx;
+            plugins.push_back(plugin);
+            printf("Plugin %s (v%s) loaded\n", *name, *version);
+
             const ArchiveFormatVTable* vtable = getArchiveFormat(sdk_ctx);
             if (vtable) {
                 ArchiveFormatWrapper* wrapper = AddArchiveFormat(sdk_ctx, vtable);
@@ -93,6 +104,7 @@ void Plugins::LoadPlugins(const char *path) {
 void Plugins::Shutdown() {
     for (auto &plugin : plugins) {
         plugin.shutdown();
+        sdk_deinit(plugin.ctx);
     }
 }
 

@@ -1,30 +1,44 @@
 #pragma once
-
 #include "util/int.h"
-
-struct sdk_ctx;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void sdk_init(struct sdk_ctx** ctx);
-void sdk_deinit(struct sdk_ctx* ctx);
+struct sdk_ctx;
 
-typedef void *ArchiveHandle;
+typedef void* ArchiveHandle;
+typedef void* ArchiveInstance;
 
+struct ArchiveBaseVTable {
+    void (*Destroy)(ArchiveInstance inst);
+    usize (*GetEntryCount)(ArchiveInstance inst);
+    const char* (*GetEntryName)(ArchiveInstance inst, usize index);
+    usize (*GetEntrySize)(ArchiveInstance inst, usize index);   // <── new
+    u8* (*OpenStream)(ArchiveInstance inst, usize index, usize* out_size);
+};
+typedef struct {
+    ArchiveInstance inst;
+    const ArchiveBaseVTable* vtable;
+} ArchiveBaseHandle;
+
+// ArchiveFormat VTable: TryOpen returns an ArchiveBaseHandle
 typedef struct ArchiveFormatVTable {
     ArchiveHandle (*New)(struct sdk_ctx* ctx);
     void (*Delete)(ArchiveHandle inst);
 
     int  (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
-    void *(*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
+    ArchiveBaseHandle (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
 
-    const char *(*GetTag)(ArchiveHandle inst);
+    const char *(*GetTag)(ArchiveHandle inst);         // pass an instance, or plugin may return tag for a nullptr
     const char *(*GetDescription)(ArchiveHandle inst);
 } ArchiveFormatVTable;
 
+// Plugin should export this
 const ArchiveFormatVTable* RD_GetArchiveFormat(struct sdk_ctx* ctx);
+
+void sdk_init(struct sdk_ctx* ctx);
+void sdk_deinit(struct sdk_ctx* ctx);
 
 void Logger_log(struct sdk_ctx* ctx, const char* msg);
 void Logger_warn(struct sdk_ctx* ctx, const char* msg);

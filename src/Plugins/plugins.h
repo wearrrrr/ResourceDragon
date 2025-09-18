@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 
-#include "../SDK/ArchiveFormatWrapper.h"
 #include "../SDK/sdk.h"
 
 namespace Plugins {
@@ -16,6 +15,7 @@ namespace Plugins {
         RD_PluginInit init;
         RD_PluginShutdown shutdown;
         RD_GetArchiveFormat getArchiveFormat;
+        sdk_ctx *ctx;
     };
 
     static std::vector<Plugin> plugins;
