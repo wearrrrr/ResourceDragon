@@ -22,7 +22,6 @@ typedef struct {
     const ArchiveBaseVTable* vtable;
 } ArchiveBaseHandle;
 
-// ArchiveFormat VTable: TryOpen returns an ArchiveBaseHandle
 typedef struct ArchiveFormatVTable {
     ArchiveHandle (*New)(struct sdk_ctx* ctx);
     void (*Delete)(ArchiveHandle inst);
@@ -30,7 +29,7 @@ typedef struct ArchiveFormatVTable {
     int  (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
     ArchiveBaseHandle (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
 
-    const char *(*GetTag)(ArchiveHandle inst);         // pass an instance, or plugin may return tag for a nullptr
+    const char *(*GetTag)(ArchiveHandle inst);
     const char *(*GetDescription)(ArchiveHandle inst);
 } ArchiveFormatVTable;
 

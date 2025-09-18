@@ -1,5 +1,6 @@
 #pragma once
 
+#include "state.h"
 #include <filesystem>
 #include <ArchiveFormats/Entry.h>
 
@@ -27,7 +28,7 @@ namespace DirectoryNode {
 
     bool AddNodes(Node *node, const fs::path &parentPath);
     void ReloadRootNode(Node *node);
-    void HandleFileClick(Node *node);
+    void HandleFileClick(Node *node, ContentType typeOverride = ContentType::UNKNOWN);
     void Display(Node *node);
     void Setup(Node *node);
     void UnloadSelectedFile();
@@ -35,7 +36,7 @@ namespace DirectoryNode {
 
     void SortChildrenAlphabetical(DirectoryNode::Node *node, bool sortAscending);
     void SortChildrenBy(DirectoryNode::Node *node, auto func);
-    void ProcessPendingFileLoads();
+    void ProcessPendingFileLoads(ContentType typeOverride = ContentType::UNKNOWN);
 }
 
 void SetFilePath(const std::string& file_path);

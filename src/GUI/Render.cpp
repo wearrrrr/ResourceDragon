@@ -20,11 +20,18 @@ namespace fs = std::filesystem;
 void RenderFBContextMenu(ImGuiIO *io) {
     if (ImGui::BeginPopupContextWindow("FBContextMenu")) {
         if (ImGui::BeginMenu("Open As...")) {
+            // Open fb__selectedItem as whatever is selected.
+            if (ImGui::MenuItem("Text")) {
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::TEXT);
+            }
             if (ImGui::MenuItem("Hex")) {
-                preview_state.contents.type = ContentType::HEX;
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::HEX);
             }
             if (ImGui::MenuItem("Image")) {
-                preview_state.contents.type = ContentType::IMAGE;
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::IMAGE);
+            }
+            if (ImGui::MenuItem("Audio")) {
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::AUDIO);
             }
             ImGui::EndMenu();
         }

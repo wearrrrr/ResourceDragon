@@ -64,6 +64,7 @@ struct FileLoadingResult {
     std::string ext;
     bool isVirtualRoot = false;
     Entry* selected_entry = nullptr;
+    ContentType typeOverride = ContentType::UNKNOWN;
 };
 
 static std::atomic<bool> file_loading_in_progress = false;
@@ -425,20 +426,78 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
     return interval;
 }
 
-void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot) {
+void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot, ContentType typeOverride = ContentType::UNKNOWN) {
+    ContentType type;
+
+    if (typeOverride != ContentType::UNKNOWN) {
+        type = typeOverride;
+        preview_state.contents.type = type;
+
+        if (type == IMAGE) {
+            Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
+            if (*preview_state.texture.size.x < 256) {
+                Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
+            }
+        } else if (type == GIF) {
+            Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
+            preview_state.texture.frame = 0;
+            preview_state.texture.last_frame_time = SDL_GetTicks();
+        } else if (type == AUDIO) {
+            if (isVirtualRoot) {
+                preview_state.audio.buffer = (u8*)malloc(size);
+                memcpy(preview_state.audio.buffer, entry_buffer, size);
+                SDL_IOStream *snd_io = SDL_IOFromMem(preview_state.audio.buffer, size);
+                preview_state.audio.music = MIX_LoadAudio_IO(preview_state.audio.mixer, snd_io, true, true);
+                if (!preview_state.audio.music) {
+                    Logger::error("Failed to load audio: {}", SDL_GetError());
+                    preview_state.audio.buffer = nullptr;
+                }
+            } else {
+                preview_state.audio.music = MIX_LoadAudio(preview_state.audio.mixer, node->FullPath.data(), true);
+            }
+
+            if (preview_state.audio.music) {
+                MIX_SetTrackAudio(preview_state.audio.track, preview_state.audio.music);
+                MIX_PlayTrack(preview_state.audio.track, 1);
+                if (!MIX_GetAudioFormat(preview_state.audio.music, &preview_state.audio.spec)) {
+                    Logger::error("Failed to get audio format: {}", SDL_GetError());
+                    MIX_DestroyAudio(preview_state.audio.music);
+                }
+                double duration_frames = MIX_GetAudioDuration(preview_state.audio.music);
+                double duration_sec = MIX_FramesToMS(preview_state.audio.spec.freq, duration_frames) / 1000.0;
+                preview_state.audio.playing = true;
+                preview_state.audio.time.total_time_min = duration_sec / 60;
+                preview_state.audio.time.total_time_sec = fmod(duration_sec, 60.0);
+                preview_state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+            }
+        } else if (type == ELF) {
+            auto *elfFile = new ElfFile(entry_buffer, size);
+            preview_state.contents.elfFile = elfFile;
+        } else if (type == TEXT || type == HEX) {
+            auto text = std::string((char*)entry_buffer, size);
+            editor.SetText(text);
+            editor.SetTextChanged(false);
+        }
+
+        return;
+    }
+
+    // Automatic detection
     if (Image::IsImageExtension(ext)) {
         Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size);
         if (*preview_state.texture.size.x < 256) {
             Image::LoadImage(entry_buffer, size, &preview_state.texture.id, preview_state.texture.size, GL_NEAREST);
         }
-        preview_state.contents.type = IMAGE;
+        type = IMAGE;
+        preview_state.contents.type = type;
     } else if (Image::IsGif(ext)) {
         Image::LoadGifAnimation(entry_buffer, size, &preview_state.texture.anim);
         preview_state.contents.type = GIF;
         preview_state.texture.frame = 0;
         preview_state.texture.last_frame_time = SDL_GetTicks();
     } else if (Audio::IsAudio(ext)) {
-        preview_state.contents.type = AUDIO;
+        type = AUDIO;
+        preview_state.contents.type = type;
         if (isVirtualRoot) {
             preview_state.audio.buffer = (u8*)malloc(size);
             memcpy(preview_state.audio.buffer, entry_buffer, size);
@@ -469,23 +528,26 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
     } else if (ElfFile::IsValid(entry_buffer)) {
         auto *elfFile = new ElfFile(entry_buffer, size);
         preview_state.contents.elfFile = elfFile;
-        preview_state.contents.type = ELF;
+        type = ELF;
+        preview_state.contents.type = type;
     } else {
         // Default to text if size is less than 3MB
         auto text = std::string((char*)entry_buffer, size);
         editor.SetText(text);
         editor.SetTextChanged(false);
         if (size < 3000000) {
-            preview_state.contents.type = TEXT;
+            type = TEXT;
+            preview_state.contents.type = type;
         } else {
-            preview_state.contents.type = HEX;
+            type = HEX;
+            preview_state.contents.type = type;
         }
     }
 
     return;
 }
 
-void ProcessFileLoadingResult(const FileLoadingResult& result) {
+void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeOverride = ContentType::UNKNOWN) {
     if (!result.success) {
         if (!result.error_message.empty()) {
             ui_error = UIError::CreateError(result.error_message.data(), "Failed to open file!");
@@ -498,9 +560,21 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
         return;
     }
 
-    // Update selected_entry if we loaded from a virtual archive
     if (result.isVirtualRoot && result.selected_entry) {
         selected_entry = result.selected_entry;
+    }
+
+    if (typeOverride != ContentType::UNKNOWN) {
+        preview_state.contents = {
+            .data = result.entry_buffer,
+            .size = result.size,
+            .path = result.node->FullPath,
+            .ext = result.ext,
+            .fileName = result.node->FileName
+        };
+
+        InitializePreviewData(result.node, result.entry_buffer, result.size, result.ext, result.isVirtualRoot, typeOverride);
+        return;
     }
 
     auto format_list = extractor_manager->GetExtractorCandidates(result.entry_buffer, result.size, result.ext);
@@ -515,7 +589,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
             .fileName = result.node->FileName
         };
 
-        InitializePreviewData(result.node, result.entry_buffer, result.size, result.ext, result.isVirtualRoot);
+        InitializePreviewData(result.node, result.entry_buffer, result.size, result.ext, result.isVirtualRoot, typeOverride);
         return;
     } else if (format_list.size() > 1) {
         Logger::warn("Multiple formats found for {}", result.node->FileName.data());
@@ -560,7 +634,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result) {
     rootNode = DirectoryNode::CreateTreeFromPath(result.node->FullPath);
 }
 
-void DirectoryNode::HandleFileClick(Node *node) {
+void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
     if (file_loading_in_progress.load()) {
         Logger::warn("File loading already in progress, ignoring request for {}", node->FileName.c_str());
         return;
@@ -576,11 +650,12 @@ void DirectoryNode::HandleFileClick(Node *node) {
     fb__loading_file_name = filename;
     file_loading_in_progress = true;
 
-    std::thread loading_thread([node, ext, isVirtualRoot]() {
+    std::thread loading_thread([node, ext, isVirtualRoot, typeOverride]() {
         FileLoadingResult result;
         result.node = node;
         result.ext = ext;
         result.isVirtualRoot = isVirtualRoot;
+        result.typeOverride = typeOverride;
 
         try {
             if (isVirtualRoot && !node->IsDirectory) {
@@ -670,12 +745,14 @@ void DirectoryNode::HandleFileClick(Node *node) {
     loading_thread.detach();
 }
 
-void DirectoryNode::ProcessPendingFileLoads() {
+void DirectoryNode::ProcessPendingFileLoads(ContentType typeOverride) {
     std::lock_guard<std::mutex> lock(file_loading_mutex);
     while (!completed_loads.empty()) {
         FileLoadingResult result = completed_loads.front();
         completed_loads.pop();
-        ProcessFileLoadingResult(result);
+        // Use the result's typeOverride if it's set, otherwise use the parameter
+        ContentType effectiveTypeOverride = (result.typeOverride != ContentType::UNKNOWN) ? result.typeOverride : typeOverride;
+        ProcessFileLoadingResult(result, effectiveTypeOverride);
     }
 }
 
