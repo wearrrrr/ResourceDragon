@@ -14,7 +14,7 @@ struct ArchiveBaseVTable {
     void (*Destroy)(ArchiveInstance inst);
     usize (*GetEntryCount)(ArchiveInstance inst);
     const char* (*GetEntryName)(ArchiveInstance inst, usize index);
-    usize (*GetEntrySize)(ArchiveInstance inst, usize index);   // <── new
+    usize (*GetEntrySize)(ArchiveInstance inst, usize index);
     u8* (*OpenStream)(ArchiveInstance inst, usize index, usize* out_size);
 };
 typedef struct {
