@@ -1,6 +1,8 @@
 #pragma once
 
-#define APPLICATION_VERSION "0.1"
+#define APP_VERSION_MAJOR "0"
+#define APP_VERSION_MINOR "1"
+#define APP_VERSION APP_VERSION_MAJOR "." APP_VERSION_MINOR
 
 #include "Themes.h"
 #include "imgui.h"

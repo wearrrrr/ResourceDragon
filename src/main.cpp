@@ -70,6 +70,22 @@ int main(int argc, char *argv[]) {
     install_handler();
 #endif
 
+    const char *path;
+    if (argc < 2) {
+        path = ".";
+    } else {
+        if (strcmp(argv[1], "--version") == 0) {
+            printf("ResourceDragon v%s\n", APP_VERSION);
+            printf("Copyright (c) 2025 wearr (https://github.com/wearrrrr)\n");
+            printf("Source Code: https://github.com/wearrrrr/ResourceDragon\n\n");
+            printf("License: MIT\n");
+            printf("https://github.com/wearrrrr/ResourceDragon/blob/master/LICENSE\n");
+
+            return 0;
+        }
+        path = argv[1];
+    }
+
     RegisterFormat<HSPArchive>();
     RegisterFormat<PFSFormat>();
     RegisterFormat<NitroPlus::NPK>();
@@ -102,17 +118,6 @@ int main(int argc, char *argv[]) {
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
     fs::remove_all("/tmp/rd/");
 #endif
-
-    const char *path;
-    if (argc < 2) {
-        path = ".";
-    } else {
-        if (strcmp(argv[1], "--version") == 0) {
-            printf("ResourceDragon %s\n", APPLICATION_VERSION);
-            return 0;
-        }
-        path = argv[1];
-    }
 
 #ifdef __linux__
     #define INOTIFY_FLAGS IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVE
