@@ -10,7 +10,6 @@ else()
     set(CMAKE_CXX_COMPILER g++)
 endif()
 
-
 set(CMAKE_CXX_STANDARD 23)
 
 project(ResourceDragon VERSION 0.1)
@@ -26,7 +25,7 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     else()
         set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter")
         if (ALPINE)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers -static-libgcc -static-libstdc++")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
         else()
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
