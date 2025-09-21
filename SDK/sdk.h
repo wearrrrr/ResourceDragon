@@ -39,9 +39,9 @@ const ArchiveFormatVTable* RD_GetArchiveFormat(struct sdk_ctx* ctx);
 void sdk_init(struct sdk_ctx* ctx);
 void sdk_deinit(struct sdk_ctx* ctx);
 
-void Logger_log(struct sdk_ctx* ctx, const char* msg);
-void Logger_warn(struct sdk_ctx* ctx, const char* msg);
-void Logger_error(struct sdk_ctx* ctx, const char* msg);
+void Logger_log(struct sdk_ctx* ctx, const char *msg, ...);
+void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...);
+void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...);
 
 #ifdef __cplusplus
 }

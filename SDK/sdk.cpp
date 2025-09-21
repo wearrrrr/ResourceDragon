@@ -1,5 +1,7 @@
 #include "sdk.h"
 #include "ArchiveFormatWrapper.h"
+#include <cstdarg>
+#include <string_view>
 #include <util/Logger.h>
 
 struct sdk_ctx {
@@ -23,7 +25,7 @@ ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatV
 
     if (ctx->logger) {
         if (tag) {
-            ctx->logger->log(std::string("Adding archive format " + std::string(tag)).c_str());
+            ctx->logger->log("Adding archive format {}", tag);
         } else {
             ctx->logger->log("Adding archive format (no tag)");
         }
@@ -47,19 +49,28 @@ void sdk_deinit(struct sdk_ctx* ctx) {
     }
 }
 
-void Logger_log(struct sdk_ctx* ctx, const char* msg) {
+extern "C" void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
-        ctx->logger->log(msg);
+        va_list args;
+        va_start(args, fmt);
+        ctx->logger->va_log(fmt, args);
+        va_end(args);
     }
 }
-void Logger_warn(struct sdk_ctx* ctx, const char* msg) {
+extern "C" void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
-        ctx->logger->warn(msg);
+        va_list args;
+        va_start(args, fmt);
+        ctx->logger->va_warn(fmt, args);
+        va_end(args);
     }
 }
-void Logger_error(struct sdk_ctx* ctx, const char* msg) {
+extern "C" void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
-        ctx->logger->error(msg);
+        va_list args;
+        va_start(args, fmt);
+        ctx->logger->va_error(fmt, args);
+        va_end(args);
     }
 }
 

@@ -47,7 +47,7 @@ static void crash_handler(int sig, siginfo_t* si, void* ucontext) {
     }
 }
 
-static void install_handler() {
+static void install_crash_handler() {
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sa.sa_sigaction = crash_handler;
@@ -67,7 +67,7 @@ inline void RegisterFormat() {
 
 int main(int argc, char** argv) {
 #if defined(__linux__) && defined(DEBUG)
-    install_handler();
+    install_crash_handler();
 #endif
 
     const char *path;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdarg>
 #include <string>
 #include <stdio.h>
 #include <stdarg.h>
@@ -145,6 +146,22 @@ struct Logger {
     static void error(const T& value) {
         printf(ERROR_PREFIX);
         LogTrait<T>::print(value);
+        puts(RESET);
+    }
+
+    static void va_log(const char *fmt, va_list args) {
+        printf(LOG_PREFIX);
+        vprintf(fmt, args);
+        puts(RESET);
+    }
+    static void va_warn(const char *fmt, va_list args) {
+        printf(WARN_PREFIX);
+        vprintf(fmt, args);
+        puts(RESET);
+    }
+    static void va_error(const char *fmt, va_list args) {
+        printf(ERROR_PREFIX);
+        vprintf(fmt, args);
         puts(RESET);
     }
 
