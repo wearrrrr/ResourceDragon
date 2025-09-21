@@ -46,7 +46,7 @@ jobs:
       # Install dependencies (from package manager)
       - name: Install dependencies (from package manager)
         run: |
-             sudo apt-get install libgl-dev libxkbcommon-x11-dev libx11-xcb-dev libzstd-dev libxcb1 libxkbcommon0 libxkbcommon-x11-0 libx11-xcb1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 cmake ninja-build pkgconf libtool libfuse2 appstream libasound2 libasound2-dev libpulse0 libpulse-dev libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev -y;
+             sudo apt-get install libgl-dev libxkbcommon-x11-dev libx11-xcb-dev libzstd-dev libxcb1 libxkbcommon0 libxkbcommon-x11-0 libx11-xcb1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 cmake ninja-build pkgconf libtool libfuse2 appstream libasound2 libasound2-dev libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev -y;
 
       # Build application
       - name: Build application

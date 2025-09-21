@@ -2,11 +2,11 @@
 
 #ifdef __linux__
 #define CURRENT_PLATFORM "Linux"
-#elifdef __APPLE__
+#elif defined(__APPLE__)
 #define CURRENT_PLATFORM "MacOS"
-#elifdef _WIN32
+#elif defined(_WIN32)
 #define CURRENT_PLATFORM "Windows"
-#elifdef EMSCRIPTEN
+#elif defined(EMSCRIPTEN)
 #define CURRENT_PLATFORM "Emscripten (Wasm)"
 #endif
 

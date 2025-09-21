@@ -26,12 +26,11 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     else()
         set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter")
         if (ALPINE)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers -static-libgcc -static-libstdc++")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
         else()
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
         endif()
-        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic -static-libgcc -static-libstdc++")
         if (EMSCRIPTEN)
             # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
@@ -76,7 +75,6 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
-
 
     if (DEBUG)
     FetchContent_Declare(
@@ -177,12 +175,6 @@ target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting f
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
-endif()
-
-if (LINUX)
-set_target_properties(ResourceDragon PROPERTIES
-    INSTALL_RPATH "$ORIGIN/lib:/lib:/usr/lib:/usr/lib64"
-)
 endif()
 
 if (EMSCRIPTEN)
