@@ -32,9 +32,6 @@ jobs:
           submodules: false
           fetch-depth: 0
 
-      - name: Compute submodule hash
-        run: git submodule status --recursive > submodules.txt
-
       # set up a reasonable clang version (thanks ubuntu!)
       - name: Install Clang from llvm.sh
         run: |
@@ -51,7 +48,6 @@ jobs:
       # Build application
       - name: Build application
         run: |
-             cmake --version
              cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G Ninja
              cmake --build build/ --config Release
 
