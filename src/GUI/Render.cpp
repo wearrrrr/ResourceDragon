@@ -259,18 +259,22 @@ bool GUI::InitRendering() {
     LoadFont(io, noto_font_path, "UIFont", gr);
 #endif
 
-    ImFontConfig emojiConfig;
-    emojiConfig.MergeMode = true;
-    emojiConfig.GlyphMinAdvanceX = 18.0f;
-    emojiConfig.GlyphOffset.y = 1.0f;
-    emojiConfig.FontLoaderFlags = ImGuiFreeTypeLoaderFlags_LoadColor;
+    auto emoji_font = "fonts/twemoji.ttf";
 
-    io.Fonts->AddFontFromFileTTF(
-        "fonts/twemoji.ttf",
-        24.0f,
-        &emojiConfig,
-        gr.Data
-    );
+    if (fs::exists(emoji_font)) {
+        ImFontConfig emojiConfig;
+        emojiConfig.MergeMode = true;
+        emojiConfig.GlyphMinAdvanceX = 18.0f;
+        emojiConfig.GlyphOffset.y = 1.0f;
+        emojiConfig.FontLoaderFlags = ImGuiFreeTypeLoaderFlags_LoadColor;
+
+        io.Fonts->AddFontFromFileTTF(
+            emoji_font,
+            24.0f,
+            &emojiConfig,
+            gr.Data
+        );
+    }
 
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
