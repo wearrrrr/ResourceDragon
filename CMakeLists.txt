@@ -2,8 +2,14 @@ include(FetchContent)
 
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+if (USE_CLANG)
+    set(CMAKE_C_COMPILER clang)
+    set(CMAKE_CXX_COMPILER clang++)
+else()
+    set(CMAKE_C_COMPILER gcc)
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -18,8 +24,14 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
         set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
         add_compile_definitions(DEBUG)
     else()
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter -Wno-missing-designated-field-initializers")
-        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
+        set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter")
+        if (ALPINE)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
+        endif()
+        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic -static-libgcc -static-libstdc++")
         if (EMSCRIPTEN)
             # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
@@ -29,7 +41,6 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
             endif()
         endif()
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 else()
     set(CMAKE_CXX_FLAGS "-mwindows -g")
 endif()
@@ -66,6 +77,8 @@ if (NOT EMSCRIPTEN)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 
+
+    if (DEBUG)
     FetchContent_Declare(
         cpptrace
         GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
@@ -75,6 +88,7 @@ if (NOT EMSCRIPTEN)
     set(CPPTRACE_INCLUDE_DIR ${cpptrace_SOURCE_DIR}/include)
     set(CPPTRACE_LIBRARIES cpptrace::cpptrace)
     add_compile_definitions(CPPTRACE_ENABLED)
+    endif()
 endif()
 
 FetchContent_Declare(
@@ -97,7 +111,6 @@ set(DISABLE_DYNAMIC)
 add_subdirectory(vendored/thlib)
 
 add_subdirectory(vendored/lunasvg)
-
 # silence squirrel compiler warnings, not my code, not my problem :)
 target_compile_options(squirrel_static BEFORE PRIVATE -w)
 
@@ -155,6 +168,9 @@ if (CPPTRACE_LIBRARIES)
 endif()
 if (FMT_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${FMT_LIBRARIES})
+endif()
+if (LUNASVG_LIBRARIES)
+    target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib ${ZLIB})

@@ -6,6 +6,8 @@ if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 DEBUG=OFF
 MINGW=OFF
 EMSCRIPTEN=OFF
+ALPINE=OFF
+USE_CLANG=ON
 
 BUILD_DIR=build
 
@@ -13,17 +15,19 @@ for arg in "$@"; do
     if [ "$arg" = "-debug" ]; then
         printf "Building as debug...\n"
         DEBUG=ON
-        break
     else if [ "$arg" = "-mingw" ]; then
         printf "Building targeting Mingw...\n"
         MINGW=ON
         BUILD_DIR=build-mingw
-        break
     else if [ "$arg" = "-emscripten" ]; then
         printf "Building targeting Emscripten...\n"
         EMSCRIPTEN=ON
         BUILD_DIR=build-emscripten
-        break
+    else if [ "$arg" = "-alpine" ]; then
+        printf "Building targeting Alpine...\n"
+        ALPINE=ON
+        BUILD_DIR=build-alpine
+    fi
     fi
     fi
     fi
@@ -36,14 +40,14 @@ else
     if [ $EMSCRIPTEN = "ON" ]; then
         emcmake cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DEMSCRIPTEN=${EMSCRIPTEN}
     else
-        cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG}
+        cmake -B ${BUILD_DIR} -G Ninja -DUSE_CLANG=${USE_CLANG} -DDEBUG=${DEBUG} -DALPINE=${ALPINE}
     fi;
 
     cd ${BUILD_DIR}
     ninja -j$NPROC
     cd ..
 
-    if [ -f build/ResourceDragon ] || [ -f build/ResourceDragon.wasm ]; then
+    if [ -f build/ResourceDragon ] || [ -f build-mingw/ResourceDragon ] || [ -f build-emscripten/ResourceDragon.wasm ]; then
         printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\x1B[0m \n"
         exit 0
     else

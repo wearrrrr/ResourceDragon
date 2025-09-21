@@ -19,9 +19,13 @@ namespace Stacktrace {
     }
     #else
 
-    static void print_stacktrace() {
+    inline static void generate_stacktrace() {
         printf("Unable to generate stacktrace! You are likely running from an unsupported platform\n");
         printf("Platform Info:\n \t%s-%s \n\t%s-%s\n", CURRENT_PLATFORM, CURRENT_ARCH, CURRENT_COMPILER, CURRENT_COMPILER_VERSION);
+    }
+
+    static void print_stacktrace() {
+        generate_stacktrace();
     }
     #endif
 }

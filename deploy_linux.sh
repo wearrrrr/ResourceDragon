@@ -83,7 +83,7 @@ if [[ $create_package = true ]] ; then
   mkdir -p bin/usr/share/applications/
   mkdir -p bin/usr/share/pixmaps/
   mkdir -p bin/usr/share/icons/hicolor/scalable/apps/
-  mv build/$APP_NAME bin/usr/bin/$APP_NAME
+  mv build-alpine/$APP_NAME bin/usr/bin/$APP_NAME
   cp assets/linux/$APP_NAME_LOWERCASE.appdata.xml bin/usr/share/appdata/$APP_NAME_LOWERCASE.appdata.xml
   cp assets/linux/$APP_NAME_LOWERCASE.desktop bin/usr/share/applications/$APP_NAME_LOWERCASE.desktop
   cp assets/linux/$APP_NAME_LOWERCASE.png bin/usr/share/pixmaps/$APP_NAME_LOWERCASE.png

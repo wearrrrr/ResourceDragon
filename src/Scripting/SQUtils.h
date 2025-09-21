@@ -141,21 +141,27 @@ struct SQUtils {
 
     #ifndef _WIN32
 
+    struct UserData {
+        SQUserPointer val_user_ptr;
+        SQUserPointer val_type_tag;
+    };
+
+    struct ClosureData {
+        const SQChar* val_string;
+        SQUnsignedInteger val_closure_params;
+        SQUnsignedInteger val_closure_free_vars;
+    };
+
     static void print_stack_top_value(std::vector<SQObjectValue>& recursion_vec, HSQUIRRELVM v, int depth) {
         union {
             SQInteger val_int;
             SQFloat val_float;
             SQBool val_bool;
             HSQOBJECT val_obj;
-            struct {
-                SQUserPointer val_user_ptr;
-                SQUserPointer val_type_tag;
-            };
-            struct {
-                const SQChar* val_string;
-                SQUnsignedInteger val_closure_params;
-                SQUnsignedInteger val_closure_free_vars;
-            };
+
+            UserData user_data;
+            ClosureData closure_data;
+
             HSQUIRRELVM val_thread;
         };
 
@@ -176,30 +182,30 @@ struct SQUtils {
                 printf(val_bool ? "true" : "false");
                 break;
             case _RT_STRING:
-                sq_getstring(v, -1, &val_string);
-                printf("\"%s\"", val_string);
+                sq_getstring(v, -1, &closure_data.val_string);
+                printf("\"%s\"", closure_data.val_string);
                 break;
             case _RT_USERDATA:
-                sq_getuserdata(v, -1, &val_user_ptr, &val_type_tag);
-                printf("UserData %p (%p type, %" _PRINT_INT_PREC "d bytes)", val_user_ptr, val_type_tag, sq_getsize(v, -1));
+                sq_getuserdata(v, -1, &user_data.val_user_ptr, &user_data.val_type_tag);
+                printf("UserData %p (%p type, %" _PRINT_INT_PREC "d bytes)", user_data.val_user_ptr, user_data.val_type_tag, sq_getsize(v, -1));
                 break;
             case _RT_CLOSURE: case _RT_NATIVECLOSURE:
-                sq_getclosureinfo(v, -1, (SQInteger*)&val_closure_params, (SQInteger*)&val_closure_free_vars);
+                sq_getclosureinfo(v, -1, (SQInteger*)&closure_data.val_closure_params, (SQInteger*)&closure_data.val_closure_free_vars);
                 sq_getclosurename(v, -1);
                 if (_RAW_TYPE(sq_gettype(v, -1)) == _RT_STRING) {
-                    sq_getstring(v, -1, &val_string);
+                    sq_getstring(v, -1, &closure_data.val_string);
                     printf(
                         val_type == _RT_CLOSURE
                             ? "Closure \"%s\" (%" _PRINT_INT_PREC "u params, %" _PRINT_INT_PREC "u free)"
                             : "NativeClosure \"%s\" (%" _PRINT_INT_PREC "u params, %" _PRINT_INT_PREC "u free)",
-                            val_string, val_closure_params, val_closure_free_vars
+                            closure_data.val_string, closure_data.val_closure_params, closure_data.val_closure_free_vars
                     );
                 } else {
                     printf(
                         val_type == _RT_CLOSURE
                             ? "Closure (%" _PRINT_INT_PREC "u params, %" _PRINT_INT_PREC "u free)"
                             : "NativeClosure (%" _PRINT_INT_PREC "u params, %" _PRINT_INT_PREC "u free)",
-                            val_closure_params, val_closure_free_vars
+                            closure_data.val_closure_params, closure_data.val_closure_free_vars
                     );
                 }
                 sq_pop(v, 1);
@@ -208,8 +214,8 @@ struct SQUtils {
                 printf("Generator");
                 break;
             case _RT_USERPOINTER:
-                sq_getuserpointer(v, -1, &val_user_ptr);
-                printf("UserPointer (%p)", val_user_ptr);
+                sq_getuserpointer(v, -1, &user_data.val_user_ptr);
+                printf("UserPointer (%p)", user_data.val_user_ptr);
                 break;
             case _RT_THREAD:
                 sq_getthread(v, -1, &val_thread);
@@ -222,8 +228,8 @@ struct SQUtils {
                 sq_getclass(v, -1);
                 sq_remove(v, -2);
             case _RT_CLASS:
-                sq_gettypetag(v, -1, &val_type_tag);
-                printf(val_type == _RT_CLASS ? "Class (%p type) " : "Instance (%p type) ", val_type_tag);
+                sq_gettypetag(v, -1, &user_data.val_type_tag);
+                printf(val_type == _RT_CLASS ? "Class (%p type) " : "Instance (%p type) ", user_data.val_type_tag);
                 goto skip_size_check;
 
             case _RT_TABLE: case _RT_ARRAY:

@@ -3,6 +3,7 @@
 #include "util/int.h"
 #include <string>
 #include <vector>
+#include <ctime>
 
 typedef class XP3Crypt XP3Crypt;
 

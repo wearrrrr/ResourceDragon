@@ -22,7 +22,7 @@
 
 #include "state.h"
 
-#ifdef __linux__
+#if defined(__linux__) && defined(DEBUG)
 #include <unistd.h>
 #include <signal.h>
 #include <util/Stacktrace.h>
@@ -65,8 +65,8 @@ inline void RegisterFormat() {
     extractor_manager->RegisterFormat(std::make_unique<T>());
 }
 
-int main(int argc, char *argv[]) {
-#ifdef __linux__
+int main(int argc, char** argv) {
+#if defined(__linux__) && defined(DEBUG)
     install_handler();
 #endif
 

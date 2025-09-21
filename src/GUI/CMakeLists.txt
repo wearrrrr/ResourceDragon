@@ -1,4 +1,4 @@
-if (WIN32)
+if (WIN32 OR ALPINE)
 set(IMGUI_SRC
         ../../vendored/imgui/backends/imgui_impl_sdl3.cpp
         ../../vendored/imgui/backends/imgui_impl_opengl3.cpp

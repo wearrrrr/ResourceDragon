@@ -1,14 +1,29 @@
 #!/bin/bash
 ./build.sh "$@"
 
+MINGW=false
+EMSCRIPTEN=false
+ALPINE=false
+
+for arg in "$@"; do
+    if [ "$arg" = "-mingw" ]; then
+        MINGW=true
+    elif [ "$arg" = "-emscripten" ]; then
+        EMSCRIPTEN=true
+    elif [ "$arg" = "-alpine" ]; then
+        ALPINE=true
+    fi
+done;
+
 if (($? == 0)); then
-    if [ "$1" = "-mingw" ]; then
+    if [ "$MINGW" = true ]; then
         echo "Running mingw build with wine..."
         wine build-mingw/Win32/ResourceDragon.exe
-    else if [ "$1" = "-emscripten" ]; then
+    elif [ "$EMSCRIPTEN" = true ]; then
         exit 0
+    elif [ "$ALPINE" = true ]; then
+        build-alpine/ResourceDragon
     else
         build/ResourceDragon
-    fi
     fi
 fi

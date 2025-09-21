@@ -3,6 +3,7 @@
 build/
 build-mingw/
 build-emscripten/
+build-alpine/
 extracted/
 plugins/
 .vscode
