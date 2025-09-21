@@ -12,6 +12,7 @@ namespace Plugins {
     struct Plugin {
         std::string name;
         std::string path;
+        void *handle;
         RD_PluginInit init;
         RD_PluginShutdown shutdown;
         RD_GetArchiveFormat getArchiveFormat;

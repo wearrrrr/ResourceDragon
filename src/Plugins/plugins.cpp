@@ -36,9 +36,12 @@ void Plugins::LoadPlugins(const char *path) {
     try {
         for (const auto& entry : fs::directory_iterator(path)) {
             if (entry.is_regular_file() && is_shared_library(entry)) {
-                void* handle = dlopen(entry.path().string().c_str(), RTLD_LAZY);
+                void* handle = dlopen(entry.path().string().c_str(), RTLD_NOW | RTLD_LOCAL);
                 if (!handle) {
-                    Logger::error("Failed to load plugin");
+                    const char* err = dlerror();
+                    Logger::error("Failed to load plugin {}", entry.path().string());
+                    Logger::error("Reason: {}", err);
+                    Logger::error("This likely means that the plugin is not compatible with the current version of ResourceDragon!");
                     continue;
                 }
                 RD_PluginInit init = (RD_PluginInit)dlsym(handle, "RD_PluginInit");
@@ -76,6 +79,7 @@ void Plugins::LoadPlugins(const char *path) {
                 Plugin plugin = {
                     *name,
                     entry.path().string(),
+                    handle,
                     init,
                     shutdown,
                     getArchiveFormat
@@ -109,6 +113,7 @@ void Plugins::Shutdown() {
     for (auto &plugin : plugins) {
         plugin.shutdown();
         sdk_deinit(plugin.ctx);
+        dlclose(plugin.handle);
     }
 }
 
