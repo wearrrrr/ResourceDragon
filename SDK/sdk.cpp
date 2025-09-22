@@ -4,14 +4,11 @@
 #include <string_view>
 #include <util/Logger.h>
 
-struct sdk_ctx {
-    int version;
-    Logger* logger;
-    ArchiveFormatWrapper* archiveFormat;
-};
-
 ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable) {
-    if (!ctx || !vtable) return nullptr;
+    if (!ctx || !vtable) {
+        Logger::error("No valid context or vtable provided!");
+        return nullptr;
+    };
 
     ArchiveHandle inst = nullptr;
     if (vtable->New) {
@@ -39,17 +36,33 @@ ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatV
 extern "C" {
 
 void sdk_init(struct sdk_ctx* ctx) {
+    if (!ctx) return;
+    
+    ctx->version = 1;
     ctx->logger = new Logger();
-    ctx->logger->log("SDK initialized");
-}
-
-void sdk_deinit(struct sdk_ctx* ctx) {
-    if (ctx) {
-        ctx->logger->log("SDK shutting down");
+    ctx->archiveFormat = nullptr;
+    
+    if (ctx->logger) {
+        ctx->logger->log("SDK initialized");
     }
 }
 
-extern "C" void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...) {
+void sdk_deinit(struct sdk_ctx* ctx) {
+    if (!ctx) return;
+    
+    if (ctx->logger) {
+        ctx->logger->log("SDK shutting down");
+        delete ctx->logger;
+        ctx->logger = nullptr;
+    }
+    
+    if (ctx->archiveFormat) {
+        delete ctx->archiveFormat;
+        ctx->archiveFormat = nullptr;
+    }
+}
+
+void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
         va_list args;
         va_start(args, fmt);
@@ -57,7 +70,8 @@ extern "C" void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...) {
         va_end(args);
     }
 }
-extern "C" void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...) {
+
+void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
         va_list args;
         va_start(args, fmt);
@@ -65,7 +79,8 @@ extern "C" void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...) {
         va_end(args);
     }
 }
-extern "C" void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...) {
+
+void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...) {
     if (ctx && ctx->logger) {
         va_list args;
         va_start(args, fmt);

@@ -1,5 +1,5 @@
 #include "plugins.h"
-#include "state.h"
+#include "../state.h"
 #include <util/Logger.h>
 #include "../SDK/sdk.h"
 #include "../SDK/ArchiveFormatWrapper.h"
@@ -11,15 +11,8 @@ namespace fs = std::filesystem;
 
 using namespace Plugins;
 
-#ifdef __linux__
-
-#include <dlfcn.h>
-
-struct sdk_ctx {
-    int version;
-    Logger* logger;
-    ArchiveFormatWrapper *archiveFormat;
-};
+// Global SDK context for plugins
+static sdk_ctx* global_ctx = nullptr;
 
 // bad solution but i'll fix it later, ideally we will read the elf header to check.
 bool is_shared_library(const fs::path &p) {
@@ -32,95 +25,136 @@ bool is_shared_library(const fs::path &p) {
     return pos + 3 == name.size() || name[pos + 3] == '.';
 }
 
-void Plugins::LoadPlugins(const char *path) {
+#ifdef _WIN32
+using LibHandle = HMODULE;
+inline LibHandle LoadLib(const char* path) {
+    return LoadLibraryA(path);
+}
+inline void* GetSym(LibHandle h, const char* sym) {
+    return reinterpret_cast<void*>(GetProcAddress(h, sym));
+}
+inline void CloseLib(LibHandle h) {
+    FreeLibrary(h);
+}
+#else
+using LibHandle = void*;
+inline LibHandle LoadLib(const char* path) {
+    return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+}
+inline void* GetSym(LibHandle h, const char* sym) {
+    return dlsym(h, sym);
+}
+inline void CloseLib(LibHandle h) {
+    dlclose(h);
+}
+#endif
+
+void Plugins::LoadPlugins(const char* path) {
+    // Initialize global SDK context if not already done
+    if (!global_ctx) {
+        global_ctx = new sdk_ctx();
+        sdk_init(global_ctx);
+    }
+
     try {
         for (const auto& entry : fs::directory_iterator(path)) {
-            if (entry.is_regular_file() && is_shared_library(entry)) {
-                void* handle = dlopen(entry.path().string().c_str(), RTLD_NOW | RTLD_LOCAL);
-                if (!handle) {
-                    const char* err = dlerror();
-                    Logger::error("Failed to load plugin {}", entry.path().string());
-                    Logger::error("Reason: {}", err);
-                    Logger::error("This likely means that the plugin is not compatible with the current version of ResourceDragon!");
-                    continue;
-                }
-                RD_PluginInit init = (RD_PluginInit)dlsym(handle, "RD_PluginInit");
-                if (!init) {
-                    Logger::error("Failed to find RD_PluginInit symbol in plugin");
-                    dlclose(handle);
-                    continue;
-                }
-                const char **name = (const char **)dlsym(handle, "RD_PluginName");
-                if (!name) {
-                    Logger::error("Failed to find RD_PluginName symbol in plugin");
-                    dlclose(handle);
-                    continue;
-                }
-                const char **version = (const char **)dlsym(handle, "RD_PluginVersion");
-                if (!version) {
-                    Logger::error("Failed to find RD_PluginVersion symbol in plugin");
-                    dlclose(handle);
-                    continue;
-                }
-                RD_PluginShutdown shutdown = (RD_PluginShutdown)dlsym(handle, "RD_PluginShutdown");
-                if (!shutdown) {
-                    Logger::error("Failed to find RD_PluginShutdown symbol in plugin");
-                    dlclose(handle);
-                    continue;
-                }
+            if (!entry.is_regular_file())
+                continue;
 
-                RD_GetArchiveFormat getArchiveFormat = (RD_GetArchiveFormat)dlsym(handle, "RD_GetArchiveFormat");
-                if (!getArchiveFormat) {
-                    Logger::error("Failed to find RD_GetArchiveFormat symbol in plugin");
-                    dlclose(handle);
-                    continue;
+#ifdef _WIN32
+            if (entry.path().extension() != ".dll") continue;
+#else
+            if (!is_shared_library(entry)) continue;
+#endif
+
+            LibHandle handle = LoadLib(entry.path().string().c_str());
+            if (!handle) {
+                Logger::error("Failed to load plugin: {}", entry.path().string());
+                continue;
+            }
+
+            auto init = reinterpret_cast<RD_PluginInit_t>(GetSym(handle, "RD_PluginInit"));
+            auto shutdown = reinterpret_cast<RD_PluginShutdown_t>(GetSym(handle, "RD_PluginShutdown"));
+            auto getArchiveFormat = reinterpret_cast<RD_GetArchiveFormat_t>(GetSym(handle, "RD_GetArchiveFormat"));
+            auto name = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginName"));
+            auto version = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginVersion"));
+
+            if (!init || !shutdown || !getArchiveFormat || !name || !version) {
+                Logger::error("Invalid plugin: {}", entry.path().string());
+                Logger::error("Has Init? {}", init != nullptr);
+                Logger::error("Has Shutdown? {}", shutdown != nullptr);
+                Logger::error("Has GetArchiveFormat? {}", getArchiveFormat != nullptr);
+                Logger::error("Has Name? {}", name != nullptr);
+                Logger::error("Has Version? {}", version != nullptr);
+                CloseLib(handle);
+                continue;
+            }
+
+            Plugin plugin = {};
+            plugin.name = *name;
+            plugin.path = entry.path().string();
+            plugin.handle = handle;
+            plugin.init = init;
+            plugin.shutdown = shutdown;
+            plugin.getArchiveFormat = getArchiveFormat;
+            plugin.ctx = global_ctx;
+
+            HostAPI host_api = {};
+            host_api.get_sdk_context = []() -> sdk_ctx* { return global_ctx; };
+            host_api.log = [](sdk_ctx* ctx, const char* msg){
+                if (ctx && ctx->logger) {
+                    ctx->logger->log(msg);
                 }
+            };
+            host_api.warn = [](sdk_ctx* ctx, const char* msg){
+                if (ctx && ctx->logger) {
+                    ctx->logger->warn(msg);
+                }
+            };
+            host_api.error = [](sdk_ctx* ctx, const char* msg){
+                if (ctx && ctx->logger) {
+                    ctx->logger->error(msg);
+                }
+            };
 
-                Plugin plugin = {
-                    *name,
-                    entry.path().string(),
-                    handle,
-                    init,
-                    shutdown,
-                    getArchiveFormat
-                };
+            if (!init(&host_api)) {
+                Logger::error("Plugin {} failed to init", entry.path().string());
+                CloseLib(handle);
+                continue;
+            }
 
-                sdk_ctx *sdk_ctx = init();
-                plugin.ctx = sdk_ctx;
-                plugins.push_back(plugin);
-                printf("Plugin %s (v%s) loaded\n", *name, *version);
+            plugins.push_back(plugin);
 
-                const ArchiveFormatVTable* vtable = getArchiveFormat(sdk_ctx);
-                if (vtable) {
-                    ArchiveFormatWrapper* wrapper = AddArchiveFormat(sdk_ctx, vtable);
-                    if (wrapper) {
-                        extractor_manager->RegisterFormat(std::unique_ptr<ArchiveFormatWrapper>(wrapper));
-                    } else {
-                        Logger::error("Failed to create archive format wrapper!");
-                    }
+            printf("Plugin %s (v%s) loaded\n", *name, *version);
+
+            const ArchiveFormatVTable* vtable = getArchiveFormat(global_ctx);
+            if (vtable) {
+                if (ArchiveFormatWrapper* wrapper = AddArchiveFormat(global_ctx, vtable)) {
+                    extractor_manager->RegisterFormat(std::unique_ptr<ArchiveFormatWrapper>(wrapper));
                 } else {
-                    Logger::error("Failed to get archive format vtable from plugin!");
+                    Logger::error("Failed to create archive format wrapper!");
                 }
-
+            } else {
+                Logger::error("Failed to get archive format vtable from plugin!");
             }
         }
-    } catch (fs::filesystem_error &e) {
+    } catch (fs::filesystem_error& e) {
         Logger::error("Failed to load plugins: {}", e.what());
     }
 }
 
 void Plugins::Shutdown() {
     for (auto &plugin : plugins) {
-        plugin.shutdown();
-        sdk_deinit(plugin.ctx);
-        dlclose(plugin.handle);
+        if (plugin.shutdown) {
+            plugin.shutdown();
+        }
+        CloseLib(plugin.handle);
+    }
+    plugins.clear();
+
+    if (global_ctx) {
+        sdk_deinit(global_ctx);
+        delete global_ctx;
+        global_ctx = nullptr;
     }
 }
-
-#else
-
-void Plugins::LoadPlugins(const char *path) {
-    Logger::error("Plugin loading currently not supported on this platform!");
-}
-
-#endif

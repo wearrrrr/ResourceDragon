@@ -5,7 +5,30 @@
 extern "C" {
 #endif
 
-struct sdk_ctx;
+#ifdef _WIN32
+#  define RD_API extern "C" __declspec(dllexport) __cdecl
+#else
+#  define RD_API extern "C"
+#endif
+
+struct sdk_ctx {
+    int version;
+    struct Logger* logger;
+    struct ArchiveFormatWrapper* archiveFormat;
+};
+
+#ifdef _WIN32
+using LogFn_t = void (__cdecl *)(struct sdk_ctx* ctx, const char *msg);
+#else
+using LogFn_t = void (*)(struct sdk_ctx* ctx, const char* fmt);
+#endif
+
+struct HostAPI {
+    sdk_ctx* (*get_sdk_context)();
+    LogFn_t log;
+    LogFn_t warn;
+    LogFn_t error;
+};
 
 typedef void* ArchiveHandle;
 typedef void* ArchiveInstance;
@@ -33,15 +56,20 @@ typedef struct ArchiveFormatVTable {
     const char *(*GetDescription)(ArchiveHandle inst);
 } ArchiveFormatVTable;
 
-// Plugin should export this
-const ArchiveFormatVTable* RD_GetArchiveFormat(struct sdk_ctx* ctx);
-
 void sdk_init(struct sdk_ctx* ctx);
 void sdk_deinit(struct sdk_ctx* ctx);
 
-void Logger_log(struct sdk_ctx* ctx, const char *msg, ...);
-void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...);
-void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...);
+struct ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable);
+
+#ifdef _WIN32
+#define RD_EXPORT extern "C" __declspec(dllexport)
+#else
+#define RD_EXPORT extern "C"
+#endif
+
+typedef bool (*RD_PluginInit_t)(HostAPI* api);
+typedef void (*RD_PluginShutdown_t)();
+typedef const ArchiveFormatVTable* (*RD_GetArchiveFormat_t)(struct sdk_ctx* ctx);
 
 #ifdef __cplusplus
 }

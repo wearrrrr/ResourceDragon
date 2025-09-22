@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ArchiveFormat.h"
+#include "../src/ArchiveFormats/ArchiveFormat.h"
 #include "sdk.h"
 #include <cstring>
 

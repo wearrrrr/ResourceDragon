@@ -1,21 +1,31 @@
 #include <string>
 #include <vector>
 
-#include "../SDK/sdk.h"
+#include "../../SDK/sdk.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 
 namespace Plugins {
 
-    typedef const ArchiveFormatVTable* (*RD_GetArchiveFormat)(struct sdk_ctx* ctx);
-    typedef sdk_ctx* (*RD_PluginInit)();
-    typedef void (*RD_PluginShutdown)();
+    typedef const ArchiveFormatVTable* (*RD_GetArchiveFormat_t)(struct sdk_ctx* ctx);
+    typedef bool (*RD_PluginInit_t)(HostAPI* api);
+    typedef void (*RD_PluginShutdown_t)();
 
     struct Plugin {
         std::string name;
         std::string path;
+#ifdef _WIN32
+        HMODULE handle;
+#else
         void *handle;
-        RD_PluginInit init;
-        RD_PluginShutdown shutdown;
-        RD_GetArchiveFormat getArchiveFormat;
+#endif
+        RD_PluginInit_t init;
+        RD_PluginShutdown_t shutdown;
+        RD_GetArchiveFormat_t getArchiveFormat;
         sdk_ctx *ctx;
     };
 
