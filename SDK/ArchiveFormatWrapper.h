@@ -8,10 +8,7 @@ class ArchiveBaseWrapper : public ArchiveBase {
 public:
     ArchiveBaseWrapper(ArchiveBaseHandle handle) : handle(handle) {}
 
-    ~ArchiveBaseWrapper() {
-        if (handle.vtable && handle.vtable->Destroy)
-            handle.vtable->Destroy(handle.inst);
-    }
+    ~ArchiveBaseWrapper() = default;
 
     EntryMapPtr GetEntries() override {
         EntryMapPtr entries;
@@ -21,7 +18,6 @@ public:
             Entry* e = new Entry();
             e->name = handle.vtable->GetEntryName(handle.inst, i);
             e->size = handle.vtable->GetEntrySize(handle.inst, i);
-            // data will be fetched later in OpenStream
             entries[e->name] = e;
         }
 
@@ -53,9 +49,7 @@ public:
     ArchiveFormatWrapper(const ArchiveFormatVTable* vtbl, sdk_ctx* ctx, ArchiveHandle inst)
       : vtbl(vtbl), ctx(ctx), inst(inst) {}
 
-    ~ArchiveFormatWrapper() override {
-        if (vtbl && vtbl->Delete && inst) vtbl->Delete(inst);
-    }
+    ~ArchiveFormatWrapper() = default;
 
     virtual bool CanHandleFile(u8* buffer, u64 size, const std::string& ext) const override {
         if (!vtbl || !vtbl->CanHandleFile) return false;

@@ -5,7 +5,8 @@ build-mingw/
 build-emscripten/
 build-alpine/
 extracted/
-plugins/
+plugins/*.so
+plugins/*.dll
 .vscode
 imgui.ini
 node_modules

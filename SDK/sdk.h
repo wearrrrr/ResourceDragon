@@ -34,7 +34,6 @@ typedef void* ArchiveHandle;
 typedef void* ArchiveInstance;
 
 struct ArchiveBaseVTable {
-    void (*Destroy)(ArchiveInstance inst);
     usize (*GetEntryCount)(ArchiveInstance inst);
     const char* (*GetEntryName)(ArchiveInstance inst, usize index);
     usize (*GetEntrySize)(ArchiveInstance inst, usize index);
@@ -47,7 +46,6 @@ typedef struct {
 
 typedef struct ArchiveFormatVTable {
     ArchiveHandle (*New)(struct sdk_ctx* ctx);
-    void (*Delete)(ArchiveHandle inst);
 
     int  (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
     ArchiveBaseHandle (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
@@ -58,6 +56,10 @@ typedef struct ArchiveFormatVTable {
 
 void sdk_init(struct sdk_ctx* ctx);
 void sdk_deinit(struct sdk_ctx* ctx);
+
+void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...);
+void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...);
+void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...);
 
 struct ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable);
 

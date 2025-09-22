@@ -64,9 +64,10 @@ The core of your plugin is the `ArchiveFormatVTable` which defines how your form
 ```cpp
 typedef struct ArchiveFormatVTable {
     ArchiveHandle (*New)(struct sdk_ctx* ctx);
-    void (*Delete)(ArchiveHandle inst);
-    int (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
+
+    int  (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
     ArchiveBaseHandle (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
+
     const char *(*GetTag)(ArchiveHandle inst);
     const char *(*GetDescription)(ArchiveHandle inst);
 } ArchiveFormatVTable;
@@ -75,7 +76,6 @@ typedef struct ArchiveFormatVTable {
 #### VTable Functions
 
 - **New**: Create a new instance of your archive handler
-- **Delete**: Clean up an archive handler instance
 - **CanHandleFile**: Return non-zero if your plugin can handle the given file
 - **TryOpen**: Attempt to open a file as your archive format
 - **GetTag**: Return a short identifier for your format (e.g., "ZIP", "TAR")
@@ -87,7 +87,6 @@ When `TryOpen` succeeds, it returns an `ArchiveBaseHandle` containing:
 
 ```cpp
 struct ArchiveBaseVTable {
-    void (*Destroy)(ArchiveInstance inst);
     usize (*GetEntryCount)(ArchiveInstance inst);
     const char* (*GetEntryName)(ArchiveInstance inst, usize index);
     usize (*GetEntrySize)(ArchiveInstance inst, usize index);
@@ -95,7 +94,6 @@ struct ArchiveBaseVTable {
 };
 ```
 
-- **Destroy**: Clean up the opened archive instance
 - **GetEntryCount**: Return the number of files in the archive
 - **GetEntryName**: Return the name of the file at the given index
 - **GetEntrySize**: Return the size of the file at the given index
@@ -144,11 +142,11 @@ set_target_properties(your_plugin PROPERTIES
 
 ### Build Process
 
-1. Create your plugin directory in `plugins/your_plugin_name/`
+1. Create your plugin directory, should be a separate project.
 2. Write your plugin implementation
 3. Create a CMakeLists.txt file
-4. Build with: `mkdir build && cd build && cmake .. && make`
-5. The resulting shared library will be placed in the `plugins/` directory
+4. Build with: `mkdir build && cd build && cmake .. -G Ninja && ninja`
+5. The resulting shared library should be placed in the `plugins/` directory
 
 ## Example Plugin
 
@@ -178,7 +176,7 @@ Plugins are automatically loaded from the `plugins/` directory when ResourceDrag
 ## Memory Management
 
 - Plugins are responsible for managing their own memory
-- Data returned by `OpenStream` should be allocated with `new[]` or `malloc`
+- Data returned by `OpenStream` should *always* be allocated with `malloc`, it will be freed by ResourceDragon itself using `free` later.
 - The caller will free the memory, so ensure it's compatible
 - Clean up all resources in the `Destroy` function
 
@@ -193,22 +191,6 @@ Plugins are automatically loaded from the `plugins/` directory when ResourceDrag
 - Use `.so` extension
 - Compile with `-fPIC`
 - Use symbol visibility controls
-
-## Debugging Tips
-
-1. Use the logging functions extensively during development
-2. Check that all required symbols are exported correctly
-3. Verify memory allocation/deallocation pairs
-4. Test with various file sizes and edge cases
-5. Use a debugger to step through plugin initialization
-
-## Common Pitfalls
-
-- Forgetting to export required symbols
-- Memory leaks in OpenStream or cleanup functions
-- Not handling edge cases in CanHandleFile
-- Incorrect VTable function signatures
-- Platform-specific compilation issues
 
 ## Support
 
