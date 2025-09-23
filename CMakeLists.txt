@@ -22,25 +22,31 @@ if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
         set(CMAKE_CXX_FLAGS "-g")
         set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
         add_compile_definitions(DEBUG)
+    if (EMSCRIPTEN)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sASSERTIONS")
+    endif()
     else()
         set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter")
-        if (ALPINE)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-        else()
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
-        endif()
-        if (EMSCRIPTEN)
-            # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
-            if (EMSCRIPTEN)
-                add_compile_options(-pthread -sUSE_ZLIB=1 -sUSE_FREETYPE=1 -sDISABLE_EXCEPTION_CATCHING=0)
-                add_link_options(-pthread -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=3 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -sASSERTIONS)
-            endif()
-        endif()
     endif()
 else()
     set(CMAKE_CXX_FLAGS "-mwindows -g")
+endif()
+
+if (ALPINE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
+endif()
+
+if (EMSCRIPTEN)
+    # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
+    if (EMSCRIPTEN)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -sUSE_PTHREADS=1")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -sUSE_PTHREADS=1 -sUSE_ZLIB=1 -sUSE_FREETYPE=1")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=5 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY")
+    endif()
 endif()
 
 if (NOT DEBUG)
@@ -137,11 +143,17 @@ add_subdirectory(src/ArchiveFormats)
 add_subdirectory(src/GUI)
 add_subdirectory(src/Scripting)
 
+set(PLUGIN_CPP "")
+if (NOT EMSCRIPTEN)
+# add src/Plugins/plugins.cpp to ResourceDragon
+set(PLUGIN_CPP "${CMAKE_CURRENT_SOURCE_DIR}/src/Plugins/plugins.cpp")
+endif()
+
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     src/main.cpp
     src/state.cpp
-    src/Plugins/plugins.cpp
+    ${PLUGIN_CPP}
 
     SDK/sdk.cpp
 )

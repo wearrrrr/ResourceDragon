@@ -14,9 +14,9 @@ app.use((req, res, next) => {
 
 app.use(express.static(buildDir));
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(buildDir, "ResourceDragon.html"));
-});
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(buildDir, "ResourceDragon.html"));
+// });
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

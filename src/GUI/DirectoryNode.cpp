@@ -3,6 +3,7 @@
 #include <Image.h>
 #include <algorithm>
 #include <cmath>
+#include <csignal>
 #include <filesystem>
 #include <string>
 #include <functional>
@@ -870,6 +871,7 @@ void DirectoryNode::Setup(Node *node) {
     InfoDialog();
 
     if (ImGui::Button(HELP_ICON, {40, 0})) {
+        raise(SIGSEGV);
         settings_open = true;
         ImGui::OpenPopup("Settings");
     };

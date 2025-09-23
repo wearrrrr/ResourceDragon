@@ -15,20 +15,27 @@
 #include <GUI/PreviewWindow.h>
 #include <GUI/UIError.h>
 #include <Scripting/ScriptManager.h>
+#ifndef EMSCRIPTEN
 #include <Plugins/plugins.h>
+#endif
 
 #include <thread>
 #include <filesystem>
 
 #include "state.h"
 
-#if defined(__linux__) && defined(DEBUG)
+#if (defined(__linux__) || defined(EMSCRIPTEN)) && defined(DEBUG)
 #include <unistd.h>
 #include <signal.h>
 #include <util/Stacktrace.h>
 
 // TODO: log crash information to a file based on user settings
 static void crash_handler(int sig, siginfo_t* si, void* ucontext) {
+    #ifdef EMSCRIPTEN
+    Logger::error("Crash detected! Dumping trace:\n");
+    Stacktrace::print_stacktrace();
+    exit(128 + sig);
+    #else
     pid_t pid = fork();
     if (pid < 0) {
         const char msg[] = "Crash: fork failed\n";
@@ -45,6 +52,10 @@ static void crash_handler(int sig, siginfo_t* si, void* ucontext) {
         write(STDERR_FILENO, trace.c_str(), trace.size());
         _exit(128 + sig);
     }
+    #endif
+
+
+
 }
 
 static void install_crash_handler() {
@@ -66,7 +77,7 @@ inline void RegisterFormat() {
 }
 
 int main(int argc, char** argv) {
-#if defined(__linux__) && defined(DEBUG)
+#if (defined(__linux__) || defined(EMSCRIPTEN)) && defined(DEBUG)
     install_crash_handler();
 #endif
 
@@ -112,7 +123,9 @@ int main(int argc, char** argv) {
         Logger::error("Failed to start scripting! Error: {}", err.what());
     }
 
+#ifndef EMSCRIPTEN
     Plugins::LoadPlugins("plugins/");
+#endif
 
 #ifdef __linux__
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
@@ -174,7 +187,9 @@ int main(int argc, char** argv) {
         GUI::StartRenderLoop();
     }
 
+#ifndef EMSCRIPTEN
     Plugins::Shutdown();
+#endif
 
     DirectoryNode::Unload(rootNode);
 
