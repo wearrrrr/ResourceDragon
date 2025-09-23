@@ -178,7 +178,6 @@ Plugins are automatically loaded from the `plugins/` directory when ResourceDrag
 - Plugins are responsible for managing their own memory
 - Data returned by `OpenStream` should *always* be allocated with `malloc`, it will be freed by ResourceDragon itself using `free` later.
 - The caller will free the memory, so ensure it's compatible
-- Clean up all resources in the `Destroy` function
 
 ## Platform Considerations
 
