@@ -21,8 +21,6 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     add_compile_options(
-        -Wall
-        -Wextra
         -Wno-unused-parameter
         -Wno-missing-field-initializers
         -Wno-missing-designated-field-initializers
