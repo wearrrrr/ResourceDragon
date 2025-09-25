@@ -1,3 +1,4 @@
+include(FetchContent)
 cmake_minimum_required(VERSION 3.10)
 project(ResourceDragon VERSION 0.1)
 
