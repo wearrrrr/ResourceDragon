@@ -15,6 +15,7 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(USING_CLANG_CL ON)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 endif()
 
 if (DEBUG)
@@ -104,9 +105,6 @@ set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
 set(FMT_LIBRARIES fmt::fmt)
 
 add_subdirectory(vendored/SDL)
-# Hack for win32 building, for some reason github actions can't find NASM despite it being installed!!
-set(AOM_TARGET_CPU generic CACHE STRING "" FORCE)
-set(SDL_IMAGE_AVIF OFF CACHE BOOL "Disable AVIF support" FORCE)
 add_subdirectory(vendored/SDL_image)
 add_subdirectory(vendored/SDL_mixer)
 
@@ -114,9 +112,13 @@ set(DISABLE_DYNAMIC ON)
 add_subdirectory(vendored/squirrel)
 set(DISABLE_DYNAMIC)
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static" FORCE)
 add_subdirectory(vendored/thlib)
-
+set_target_properties(thlib PROPERTIES
+    BUILD_SHARED_LIBS OFF
+)
 add_subdirectory(vendored/lunasvg)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared" FORCE)
 # silence squirrel compiler warnings, not my code, not my problem :)
 target_compile_options(squirrel_static BEFORE PRIVATE -w)
 
