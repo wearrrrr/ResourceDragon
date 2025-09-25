@@ -109,6 +109,8 @@ set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
 set(FMT_LIBRARIES fmt::fmt)
 
 add_subdirectory(vendored/SDL)
+# Hack for win32 building, for some reason github actions can't find NASM despite it being installed!!
+set(SDL_IMAGE_AVIF OFF CACHE BOOL "Disable AVIF support" FORCE)
 add_subdirectory(vendored/SDL_image)
 add_subdirectory(vendored/SDL_mixer)
 
