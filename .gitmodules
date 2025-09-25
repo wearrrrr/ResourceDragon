@@ -12,7 +12,7 @@
 	url = https://github.com/libsdl-org/SDL_mixer.git
 [submodule "vendored/thlib"]
 	path = vendored/thlib
-	url = https://github.com/wearrrrr/thlib
+	url = https://github.com/PieVieRo/thlib
 [submodule "vendored/lunasvg"]
 	path = vendored/lunasvg
 	url = https://github.com/sammycage/lunasvg
