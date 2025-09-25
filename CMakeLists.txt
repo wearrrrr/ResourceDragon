@@ -24,9 +24,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-unused-parameter
         -Wno-missing-field-initializers
         -Wno-missing-designated-field-initializers
+        -Wno-deprecated-declarations
     )
 elseif(MSVC OR USING_CLANG_CL)
-    add_compile_options(/W3 /permissive- -fexceptions)
+    add_compile_options(/permissive- /EHsc -Wno-deprecated-declarations)
 endif()
 
 if(DEBUG)
