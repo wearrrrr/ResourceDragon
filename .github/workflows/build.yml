@@ -48,12 +48,13 @@ jobs:
       # Build application
       - name: Build application
         run: |
-             ./build.sh
+          cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G Ninja
+          cmake --build build/ --config Release
 
       # Deploy application
       - name: Deploy application
         run: |
-             ./deploy_linux.sh -i -c -p
+          ./deploy_linux.sh -i -c -p
 
       # Upload application ZIP
       - name: Upload application ZIP
@@ -89,9 +90,6 @@ jobs:
         with:
           version: latest
           platform: x64
-
-      - name: Install NASM
-        run: choco install nasm -y
 
       - name: Build application
         run: ./build.ps1

@@ -5,7 +5,7 @@ if (-Not (Test-Path "build-win32")) {
 }
 
 cmake -B build -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" `
-      -DCMAKE_C_COMPILER="clang-cl" -DCMAKE_CXX_COMPILER="clang-cl"
+      -DCMAKE_C_COMPILER="clang-cl" -DCMAKE_CXX_COMPILER="clang-cl" -DAOM_TARGET_CPU=generic
 
 # Build
 cmake --build build-win32 --config Release
