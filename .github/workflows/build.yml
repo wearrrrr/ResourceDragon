@@ -81,17 +81,17 @@ jobs:
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      - name: Setup MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install NASM
-        run: choco install nasm -y
+      - name: Install YASM
+        run: choco install yasm -y
 
       - name: Install LLVM (clang-cl)
         uses: egor-tensin/setup-clang@v1
         with:
           version: latest
           platform: x64
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Build application
         run: ./build.ps1
