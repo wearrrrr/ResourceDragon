@@ -1,53 +1,69 @@
-include(FetchContent)
-
 cmake_minimum_required(VERSION 3.10)
+project(ResourceDragon VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-project(ResourceDragon VERSION 0.1)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if (MINGW)
-    set(CMAKE_CXX_FLAGS "-mwindows")
-endif()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+   CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(USING_CLANG_CL ON)
+    message(STATUS "Using clang-cl")
 endif()
 
-if (DEBUG)
+if(MINGW)
+    add_compile_options(-mwindows)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers
+        -Wno-missing-designated-field-initializers
+    )
+elseif(MSVC OR USING_CLANG_CL)
+    add_compile_options(/W3 /permissive-)
+endif()
+
+if(DEBUG)
     add_compile_definitions(DEBUG)
-endif()
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-designated-field-initializers -Wno-missing-field-initializers")
-if (DEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
+    if(MSVC OR USING_CLANG_CL)
+        add_compile_options(/Zi)
+    else()
+        add_compile_options(-g)
+        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
+    endif()
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    if(MSVC OR USING_CLANG_CL)
+        add_compile_options(/O2)
+    else()
+        add_compile_options(-O3)
+    endif()
 endif()
 
-if (ALPINE)
+if(ALPINE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif()
 
-if (EMSCRIPTEN)
-    # to include tests/ add --preload-file ${CMAKE_SOURCE_DIR}/tests/@/tests
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts")
-    if (EMSCRIPTEN)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -sUSE_PTHREADS=1")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -sUSE_PTHREADS=1 -sUSE_ZLIB=1 -sUSE_FREETYPE=1")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=5 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY")
-    endif()
-
-    if (DEBUG)
+if(EMSCRIPTEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -sUSE_PTHREADS=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -sUSE_PTHREADS=1 -sUSE_ZLIB=1 -sUSE_FREETYPE=1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/fonts/@/fonts --preload-file ${CMAKE_SOURCE_DIR}/scripts/@/scripts -pthread -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=5 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY")
+    if(DEBUG)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sASSERTIONS")
     endif()
 endif()
 
-if (NOT DEBUG)
+if(MSVC OR USING_CLANG_CL)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+endif()
+
+if(NOT DEBUG)
     set(LTO ON)
 endif()
 
