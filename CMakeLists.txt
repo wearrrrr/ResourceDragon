@@ -3,6 +3,7 @@ include(FetchContent)
 cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(ResourceDragon VERSION 0.1)
 
@@ -21,10 +22,7 @@ endif()
 if (DEBUG)
     add_compile_definitions(DEBUG)
 endif()
-if (USING_CLANG_CL)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-designated-field-initializers")
-endif()
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-missing-designated-field-initializers -Wno-missing-field-initializers")
 if (DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
@@ -55,7 +53,7 @@ if (NOT DEBUG)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static" FORCE)
 if (NOT EMSCRIPTEN)
     message("Downloading freetype...")
     FetchContent_Declare(
@@ -95,6 +93,7 @@ if (NOT EMSCRIPTEN)
     endif()
 endif()
 
+
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
@@ -112,7 +111,7 @@ set(DISABLE_DYNAMIC ON)
 add_subdirectory(vendored/squirrel)
 set(DISABLE_DYNAMIC)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static" FORCE)
+
 add_subdirectory(vendored/thlib)
 set_target_properties(thlib PROPERTIES
     BUILD_SHARED_LIBS OFF

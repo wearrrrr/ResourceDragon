@@ -200,8 +200,10 @@ std::vector<u8> DecryptScript(int enc_type, const std::vector<u8>& input, u32 un
 
     if (enc_type == 2) {
         // Check we have at least 16 bytes for two Int64 reads
-        if (input_size < 16)
-            throw std::runtime_error("Input too short for enc_type 2");
+        if (input_size < 16) {
+            Logger::error("Input too short for enc_type 2!");
+            return {};
+        }
         std::vector<u8> compressed_data(input.begin() + 16, input.end());
         return {};
     }
