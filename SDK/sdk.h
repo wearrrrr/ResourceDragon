@@ -14,7 +14,7 @@ extern "C" {
 struct sdk_ctx {
     int version;
     struct Logger* logger;
-    struct ArchiveFormatWrapper* archiveFormat;
+    class ArchiveFormatWrapper* archiveFormat;
 };
 
 #ifdef _WIN32
@@ -61,7 +61,7 @@ void Logger_log(struct sdk_ctx* ctx, const char *fmt, ...);
 void Logger_warn(struct sdk_ctx* ctx, const char *fmt, ...);
 void Logger_error(struct sdk_ctx* ctx, const char *fmt, ...);
 
-struct ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable);
+class ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable);
 
 #ifdef _WIN32
 #define RD_EXPORT extern "C" __declspec(dllexport)
