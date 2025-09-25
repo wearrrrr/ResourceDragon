@@ -7,8 +7,5 @@ if (-Not (Test-Path "build-win32")) {
 
 cmake -B build-win32 -DCMAKE_BUILD_TYPE=Release -G Ninja `
       -DCMAKE_C_COMPILER="clang-cl" -DCMAKE_CXX_COMPILER="clang-cl" `
-      -DCMAKE_C_FLAGS="-msse4.1 -Wno-unsafe-buffer-usage" `
-      -DCMAKE_CXX_FLAGS="-msse4.1 -Wno-unsafe-buffer-usage" `
-      -DOPUS_X86_MAY_HAVE_AVX=OFF
 
 ninja -C build-win32 -j $nproc

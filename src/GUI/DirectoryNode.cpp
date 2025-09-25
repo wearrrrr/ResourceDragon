@@ -294,7 +294,9 @@ inline void DirectoryNode::SortChildrenBy(Node *node, auto func) {
 }
 
 bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
+#ifndef _WIN32
     try {
+#endif
         if (node->IsVirtualRoot) {
             auto entries = loaded_arc_base->GetEntries();
 
@@ -353,10 +355,12 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         }
         SortChildrenAlphabetical(node, true);
         return true;
+#ifndef _WIN32
     } catch (const fs::filesystem_error &err) {
         SortChildrenAlphabetical(node, true);
         return false;
     }
+#endif
 }
 
 void UnloadArchive() {
@@ -386,7 +390,9 @@ std::filesystem::path LinuxExpandUserPath(const std::string& path) {
 }
 
 DirectoryNode::Node *DirectoryNode::CreateTreeFromPath(const std::string& rootPath, Node *parent) {
+#ifndef _WIN32
     try {
+#endif
         bool is_dir = fs::is_directory(rootPath);
         Node *newRootNode = new Node {
             .FullPath = rootPath,
@@ -404,9 +410,11 @@ DirectoryNode::Node *DirectoryNode::CreateTreeFromPath(const std::string& rootPa
         AddNodes(newRootNode, rootPath);
 
         return newRootNode;
+#ifndef _WIN32
     } catch (fs::filesystem_error err) {
         return rootNode;
     }
+#endif
 
 }
 
@@ -659,7 +667,9 @@ void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
         result.isVirtualRoot = isVirtualRoot;
         result.typeOverride = typeOverride;
 
+#ifndef _WIN32
         try {
+#endif
             if (isVirtualRoot && !node->IsDirectory) {
                 // Don't hold the mutex for the entire operation, just for the critical sections
                 Entry* entry_to_process = nullptr;
@@ -723,6 +733,7 @@ void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
                     }
                 }
             }
+#ifndef _WIN32
         } catch (const std::exception& e) {
             char error_message[512];
             snprintf(error_message, sizeof(error_message), "Exception during file loading: %s", e.what());
@@ -734,6 +745,7 @@ void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
             result.success = false;
             Logger::error("Unknown exception while loading {}", node->FileName.c_str());
         }
+#endif
 
         std::lock_guard<std::mutex> lock(file_loading_mutex);
         completed_loads.push(result);

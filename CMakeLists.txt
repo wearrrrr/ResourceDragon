@@ -23,11 +23,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     add_compile_options(
         -Wno-unused-parameter
         -Wno-missing-field-initializers
-        -Wno-missing-designated-field-initializers
         -Wno-deprecated-declarations
     )
 elseif(MSVC OR USING_CLANG_CL)
-    add_compile_options(/permissive- /EHsc -Wno-deprecated-declarations)
+    add_compile_options(-msse4.1 -Wno-deprecated-declarations -Wno-unsafe-buffer-usage -Wno-reserved-identifier)
 endif()
 
 if(DEBUG)
@@ -36,7 +35,7 @@ if(DEBUG)
         add_compile_options(/Zi)
     else()
         add_compile_options(-g)
-        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
+        add_link_options(-rdynamic)
     endif()
 else()
     if(MSVC OR USING_CLANG_CL)
@@ -47,7 +46,7 @@ else()
 endif()
 
 if(ALPINE)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    add_link_options(-static-libgcc -static-libstdc++)
 endif()
 
 if(EMSCRIPTEN)
@@ -180,6 +179,13 @@ add_executable(ResourceDragon
     ${PLUGIN_CPP}
 
     SDK/sdk.cpp
+)
+
+target_compile_options(ResourceDragon PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
+    $<$<CXX_COMPILER_FRONTEND_VARIANT:MSVC>:/EHsc>
+    $<$<CXX_COMPILER_ID:Clang>:-fexceptions>
+    $<$<CXX_COMPILER_ID:GNU>:-fexceptions>
 )
 
 target_include_directories(ResourceDragon PRIVATE
