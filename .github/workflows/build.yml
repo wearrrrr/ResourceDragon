@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .git/modules
-          key: submodules-linux-${{ hashFiles('.gitmodules') }}-${{ hashFiles('.git/HEAD') }}
+          key: submodules-linux-${{ hashFiles('.gitmodules') }}
           restore-keys: |
             submodules-linux-
 
@@ -90,7 +90,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .git/modules
-          key: submodules-windows-${{ hashFiles('.gitmodules') }}-${{ hashFiles('.git/HEAD') }}
+          key: submodules-windows-${{ hashFiles('.gitmodules') }}
           restore-keys: |
             submodules-windows-
 
