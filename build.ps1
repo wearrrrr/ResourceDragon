@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+$nproc = $env:NUMBER_OF_PROCESSORS
 
 if (-Not (Test-Path "build-win32")) {
     New-Item -ItemType Directory -Path "build-win32" | Out-Null
@@ -10,4 +11,4 @@ cmake -B build-win32 -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" -DAOM_TARGE
       -DSDL_IMAGE_AVIF=OFF
 
 # Build
-cmake --build build-win32 --config Release
+cmake --build build-win32 --config Release -- /m:$nproc
