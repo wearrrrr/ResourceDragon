@@ -26,7 +26,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-deprecated-declarations
     )
 elseif(MSVC OR USING_CLANG_CL)
-    add_compile_options(-msse4.1 -Wno-deprecated-declarations -Wno-unsafe-buffer-usage -Wno-reserved-identifier)
+    add_compile_options(-Wno-deprecated-declarations -Wno-unsafe-buffer-usage -Wno-reserved-identifier)
 endif()
 
 if(DEBUG)

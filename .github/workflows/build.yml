@@ -8,17 +8,9 @@ on:
   pull_request:
   workflow_dispatch:
 
-#-------------------------------------------------------------------------------
-# Define application name & version
-#-------------------------------------------------------------------------------
-
 env:
   APP_NAME: "ResourceDragon"
   APP_VERSION: "0.0.1"
-
-#-------------------------------------------------------------------------------
-# Workflow jobs
-#-------------------------------------------------------------------------------
 
 jobs:
   ## GNU/Linux build ###########################################################
@@ -26,61 +18,64 @@ jobs:
     name: "Linux CI build"
     runs-on: ubuntu-22.04
     steps:
-      - name: Clone repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: false
           fetch-depth: 0
 
-      # Restore submodule cache
+      # Cache submodules
       - name: Cache submodules
         uses: actions/cache@v3
         with:
           path: .git/modules
-          key: submodules-${{ github.workflow }}-${{ github.ref }}
+          key: submodules-linux-${{ hashFiles('.gitmodules') }}-${{ hashFiles('.git/HEAD') }}
           restore-keys: |
-            submodules-${{ github.workflow }}-
+            submodules-linux-
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      # set up a reasonable clang version (thanks ubuntu!)
+      # Cache build directory
+      - name: Cache build directory
+        uses: actions/cache@v3
+        with:
+          path: build/
+          key: build-linux-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-${{ github.sha }}
+          restore-keys: |
+            build-linux-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-
+            build-linux-${{ runner.os }}-
+
       - name: Install Clang from llvm.sh
         run: |
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
-      # Install dependencies (from package manager)
       - name: Install dependencies (from package manager)
         run: |
-          sudo apt-get install libgl-dev libxkbcommon-x11-dev libx11-xcb-dev \
-            libzstd-dev libxcb1 libxkbcommon0 libxkbcommon-x11-0 libx11-xcb1 \
-            libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 \
-            cmake ninja-build pkgconf libtool libfuse2 appstream libasound2 \
-            libasound2-dev libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev -y;
+          sudo apt-get install libgl-dev libxkbcommon-x11-dev libx11-xcb-dev libzstd-dev \
+          libxcb1 libxkbcommon0 libxkbcommon-x11-0 libx11-xcb1 libwayland-client0 \
+          libwayland-cursor0 libwayland-egl1 libwayland-server0 cmake ninja-build \
+          pkgconf libtool libfuse2 appstream libasound2 libasound2-dev \
+          libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev -y;
 
-      # Build application
       - name: Build application
         run: ./build.sh
 
-      # Deploy application
       - name: Deploy application
         run: ./deploy_linux.sh -i -c -p
 
-      # Upload application ZIP
       - name: Upload application ZIP
         uses: actions/upload-artifact@v4
         with:
           name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.tar.gz
           path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.tar.gz
 
-      # Upload AppImage
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
           name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
           path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
 
-  ## Windows build #############################################################
+  ## Windows build ############################################################
   build-windows:
     name: "Windows CI build"
     runs-on: windows-2022
@@ -90,17 +85,27 @@ jobs:
           submodules: false
           fetch-depth: 0
 
-      # Restore submodule cache
+      # Cache submodules
       - name: Cache submodules
         uses: actions/cache@v3
         with:
           path: .git/modules
-          key: submodules-${{ github.workflow }}-${{ github.ref }}
+          key: submodules-windows-${{ hashFiles('.gitmodules') }}-${{ hashFiles('.git/HEAD') }}
           restore-keys: |
-            submodules-${{ github.workflow }}-
+            submodules-windows-
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
+
+      # Cache build directory
+      - name: Cache build directory
+        uses: actions/cache@v3
+        with:
+          path: build-win32/
+          key: build-windows-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-${{ github.sha }}
+          restore-keys: |
+            build-windows-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-
+            build-windows-${{ runner.os }}-
 
       - name: Install YASM
         run: choco install yasm -y
