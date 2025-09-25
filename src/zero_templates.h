@@ -1,5 +1,6 @@
 /* These templates were made by zero318, all credit goes to them! :) */
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdint>
 #include <cstdio>

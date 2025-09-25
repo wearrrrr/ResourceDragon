@@ -26,7 +26,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-missing-designated-field-initializers
     )
 elseif(MSVC OR USING_CLANG_CL)
-    add_compile_options(/W3 /permissive-)
+    add_compile_options(/W3 /permissive- -fexceptions)
 endif()
 
 if(DEBUG)

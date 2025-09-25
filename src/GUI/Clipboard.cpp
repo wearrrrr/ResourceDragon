@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <Clipboard.h>
 #include <filesystem>
 namespace fs = std::filesystem;
