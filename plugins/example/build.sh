@@ -1,27 +1,35 @@
 #!/bin/bash
 
-# Build script for example plugin
+MINGW=OFF
+BUILD_DIR="build"
+
+for arg in "$@"; do
+    if [ "$arg" = "-mingw" ]; then
+        printf "Building for mingw...\n"
+        MINGW=ON
+        BUILD_DIR="build-mingw"
+    fi
+done
+
+
 
 set -e
 
 echo "Building example plugin..."
 
-# Get the directory of this script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-
 # Create build directory
-mkdir -p build
-cd build
+mkdir -p $BUILD_DIR
+cd $BUILD_DIR
 
-# Configure with CMake
-cmake ..
-
-# Build the plugin
-make -j$(nproc)
+if [ "$MINGW" = "ON" ]; then
+    x86_64-w64-mingw32-cmake .. -G Ninja
+else
+    cmake .. -G Ninja
+fi
+ninja -j$(nproc)
 
 echo "Plugin built successfully!"
-echo "Plugin location: $(find . -name "*.so" -o -name "*.dll" | head -1)"
+echo "Plugin location: $(find ../../ -name "*.so" -o -name "*.dll" | head -1)"
 
 # Check if the plugin was built
 if [ -f "../../../plugins/example_plugin.so" ] || [ -f "../../../plugins/example_plugin.dll" ]; then

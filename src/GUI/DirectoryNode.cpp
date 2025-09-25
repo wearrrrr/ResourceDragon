@@ -83,7 +83,7 @@ void InfoDialog() {
             if (ImGui::BeginTabItem("Formats")) {
                 if (ImGui::BeginTable("FormatsTable", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
                     ImGui::TableSetupColumn("Name", 200.0f);
-                    ImGui::TableSetupColumn("Tag", 300.0f);
+                    ImGui::TableSetupColumn("Description", 400.0f);
                     ImGui::TableHeadersRow();
 
                     for (const auto &pair : extractor_manager->GetFormats()) {
@@ -871,7 +871,6 @@ void DirectoryNode::Setup(Node *node) {
     InfoDialog();
 
     if (ImGui::Button(HELP_ICON, {40, 0})) {
-        raise(SIGSEGV);
         settings_open = true;
         ImGui::OpenPopup("Settings");
     };

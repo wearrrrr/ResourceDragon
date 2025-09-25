@@ -31,7 +31,7 @@ inline LibHandle LoadLib(const char* path) {
     return LoadLibraryA(path);
 }
 inline void* GetSym(LibHandle h, const char* sym) {
-    return reinterpret_cast<void*>(GetProcAddress(h, sym));
+    return (void*)GetProcAddress(h, sym);
 }
 inline void CloseLib(LibHandle h) {
     FreeLibrary(h);
