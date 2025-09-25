@@ -24,7 +24,7 @@ fi
 ## SETTINGS ####################################################################
 
 use_contribs=false
-make_install=false
+ninja_install=false
 create_package=false
 
 while [[ $# -gt 0 ]]
@@ -34,7 +34,7 @@ case $1 in
   use_contribs=true
   ;;
   -i|--install)
-  make_install=true
+  ninja_install=true
   ;;
   -p|--package)
   create_package=true
@@ -66,9 +66,9 @@ chmod a+x contribs/deploy/linuxdeploy-plugin-appimage-x86_64.AppImage
 
 ## APP INSTALL #################################################################
 
-if [[ $make_install = true ]] ; then
-  echo '---- Running make install'
-  make INSTALL_ROOT=bin/ install
+if [[ $ninja_install = true ]] ; then
+  echo '---- Running ninja install'
+  ninja INSTALL_ROOT=bin/ install
 
   #echo '---- Installation directory content recap (after make install):'
   #find bin/
@@ -83,7 +83,7 @@ if [[ $create_package = true ]] ; then
   mkdir -p bin/usr/share/applications/
   mkdir -p bin/usr/share/pixmaps/
   mkdir -p bin/usr/share/icons/hicolor/scalable/apps/
-  mv build-alpine/$APP_NAME bin/usr/bin/$APP_NAME
+  mv build/$APP_NAME bin/usr/bin/$APP_NAME
   cp assets/linux/$APP_NAME_LOWERCASE.appdata.xml bin/usr/share/appdata/$APP_NAME_LOWERCASE.appdata.xml
   cp assets/linux/$APP_NAME_LOWERCASE.desktop bin/usr/share/applications/$APP_NAME_LOWERCASE.desktop
   cp assets/linux/$APP_NAME_LOWERCASE.png bin/usr/share/pixmaps/$APP_NAME_LOWERCASE.png
