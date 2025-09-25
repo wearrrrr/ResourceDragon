@@ -90,6 +90,9 @@ jobs:
           version: latest
           platform: x64
 
+      - name: Install NASM
+        run: choco install nasm -y
+
       - name: Build application
         run: ./build.ps1
         shell: pwsh

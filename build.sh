@@ -51,7 +51,7 @@ else
     ninja -j$NPROC
     cd ..
 
-    if [ -f build/ResourceDragon ] || [ $EMSCRIPTEN = "ON" ] && [ -f build-emscripten/ResourceDragon.wasm ]; then
+    if [ -f build/ResourceDragon ] || ([ $EMSCRIPTEN = "ON" ] && [ -f build-emscripten/ResourceDragon.wasm ]); then
         printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\x1B[0m \n"
         exit 0
     else
