@@ -81,6 +81,10 @@ jobs:
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
+
+      - name: Install YASM
+        run: choco install yasm -y
+
       - name: Install NASM
         run: choco install nasm -y
 
