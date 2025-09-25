@@ -118,6 +118,11 @@ set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
 set(FMT_LIBRARIES fmt::fmt)
 
 add_subdirectory(vendored/SDL)
+set(SDLIMAGE_AVIF OFF CACHE BOOL "AVIF codec for decoding" FORCE)
+set(AVIF_CODEC_AOM OFF CACHE BOOL "Use aom codec for decoding" FORCE)
+set(AVIF_CODEC_AOM_ENCODE OFF CACHE BOOL "Enable aom encoder" FORCE)
+set(AVIF_CODEC_AOM_DECODE OFF CACHE BOOL "Enable aom decoder" FORCE)
+set(AVIF_CODEC_DAV1D OFF CACHE BOOL "Use dav1d codec for decoding" FORCE)
 add_subdirectory(vendored/SDL_image)
 add_subdirectory(vendored/SDL_mixer)
 
