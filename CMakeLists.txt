@@ -2,9 +2,6 @@ include(FetchContent)
 
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
-
 set(CMAKE_CXX_STANDARD 23)
 
 project(ResourceDragon VERSION 0.1)
@@ -12,16 +9,31 @@ project(ResourceDragon VERSION 0.1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if (MINGW)
     set(CMAKE_CXX_FLAGS "-mwindows")
 endif()
 
 if (DEBUG)
-    set(CMAKE_CXX_FLAGS "-g")
-    set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
     add_compile_definitions(DEBUG)
+endif()
+
+if (MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    # windows style flags
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /EHsc")
+    if (DEBUG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2")
+    endif()
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -Wno-unused-parameter")
+    # good compiler flags
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+    if (DEBUG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+        set(CMAKE_EXE_LINKER_FLAGS "-rdynamic")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    endif()
 endif()
 
 if (ALPINE)

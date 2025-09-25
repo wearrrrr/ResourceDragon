@@ -48,8 +48,7 @@ jobs:
       # Build application
       - name: Build application
         run: |
-             cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G Ninja
-             cmake --build build/ --config Release
+             ./build.sh
 
       # Deploy application
       - name: Deploy application
@@ -70,68 +69,27 @@ jobs:
           name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
           path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-linux64.AppImage
 
-  ## Windows build #############################################################
-  # build-windows:
-  #   name: "Windows CI build"
-  #   runs-on: windows-2022
-  #   steps:
-  #     - name: Clone repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: false
-  #         fetch-depth: 0
+  build-windows:
+    name: "Windows CI build"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
 
-  #     - name: Compute submodule hash
-  #       run: git submodule status --recursive > submodules.txt
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
-  #     - name: Restore submodule cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           .git/modules
-  #           vendored
-  #         key: submodules-${{ hashFiles('submodules.txt') }}
-  #         restore-keys: |
-  #           submodules-
-  #         enableCrossOsArchive: true
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
 
-  #     - name: Checkout submodules
-  #       run: git submodule update --init --recursive
+      - name: Install LLVM (clang-cl)
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: latest
+          platform: x64
 
-  #     - name: Setup MSVC environment (for nmake and headers/libs)
-  #       uses: ilammy/msvc-dev-cmd@v1
-
-  #     - name: Install LLVM
-  #       uses: egor-tensin/setup-clang@v1
-  #       with:
-  #         version: latest
-  #         platform: x64
-
-  #     - name: Add LLVM to PATH
-  #       run: echo "$env:ProgramFiles\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-  #     - name: Build application
-  #       run: |
-  #            cmake --version
-  #            cmake -B build/ -DCMAKE_BUILD_TYPE=Release -G "NMake Makefiles" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-  #            cd build/
-  #            nmake
-
-  #     # # Deploy application
-  #     # - name: Deploy application
-  #     #   run: |
-  #     #        sh deploy_windows.sh -c -p
-
-  #     # # Upload application ZIP
-  #     # - name: Upload application ZIP
-  #     #   uses: actions/upload-artifact@v4
-  #     #   with:
-  #     #     name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
-  #     #     path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.zip
-
-  #     # Upload NSIS installer
-  #     - name: Upload NSIS installer
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.exe
-  #         path: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64.exe
+      - name: Build application
+        run: ./build.ps1
+        shell: pwsh

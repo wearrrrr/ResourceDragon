@@ -1,7 +1,14 @@
 NPROC=$(nproc)
 if [ "$NPROC" -lt 1 ]; then NPROC=1; fi
 
-x86_64-w64-mingw32-cmake -B build-mingw -G Ninja
+DEBUG=OFF
+for arg in "$@"; do
+    if [ "$arg" = "-debug" ]; then
+        DEBUG=ON
+    fi
+done;
+
+x86_64-w64-mingw32-cmake -B build-mingw -G Ninja -DMINGW=ON -DDEBUG=${DEBUG}
 
 rm build-mingw/ResourceDragon.exe
 rm build-mingw/Win32/ResourceDragon.exe

@@ -10,6 +10,9 @@ ALPINE=OFF
 
 BUILD_DIR=build
 
+C=clang
+CXX=clang++
+
 for arg in "$@"; do
     if [ "$arg" = "-debug" ]; then
         printf "Building as debug...\n"
@@ -32,6 +35,8 @@ for arg in "$@"; do
     fi
 done
 
+rm build/ResourceDragon
+
 if [ "$MINGW" = "ON" ]; then
     build-scripts/build_mingw.sh "$@"
 else
@@ -39,14 +44,14 @@ else
     if [ $EMSCRIPTEN = "ON" ]; then
         emcmake cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DEMSCRIPTEN=${EMSCRIPTEN}
     else
-        cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DALPINE=${ALPINE}
+        cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DALPINE=${ALPINE} -DCMAKE_C_COMPILER=${C} -DCMAKE_CXX_COMPILER=${CXX}
     fi;
 
     cd ${BUILD_DIR}
     ninja -j$NPROC
     cd ..
 
-    if [ -f build/ResourceDragon ] || [ -f build-emscripten/ResourceDragon.wasm ]; then
+    if [ -f build/ResourceDragon ] || [ $EMSCRIPTEN = "ON" ] && [ -f build-emscripten/ResourceDragon.wasm ]; then
         printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\x1B[0m \n"
         exit 0
     else
