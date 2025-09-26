@@ -35,16 +35,6 @@ jobs:
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      # Cache build directory
-      - name: Cache build directory
-        uses: actions/cache@v3
-        with:
-          path: build/
-          key: build-linux-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-${{ github.sha }}
-          restore-keys: |
-            build-linux-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-
-            build-linux-${{ runner.os }}-
-
       - name: Install Clang from llvm.sh
         run: |
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
@@ -96,16 +86,6 @@ jobs:
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
-
-      # Cache build directory
-      - name: Cache build directory
-        uses: actions/cache@v3
-        with:
-          path: build-win32/
-          key: build-windows-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-${{ github.sha }}
-          restore-keys: |
-            build-windows-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-
-            build-windows-${{ runner.os }}-
 
       - name: Install NASM
         run: choco install nasm -y
