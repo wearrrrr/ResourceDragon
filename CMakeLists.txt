@@ -158,6 +158,7 @@ include_directories(vendored/squirrel/include/)
 include_directories(vendored/lunasvg/include/)
 include_directories(${FMT_INCLUDE_DIR})
 include_directories(${CPPTRACE_INCLUDE_DIR})
+include_directories(${ZLIB_INCLUDE_DIR})
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
