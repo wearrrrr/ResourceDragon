@@ -56,95 +56,92 @@ void Plugins::LoadPlugins(const char* path) {
         sdk_init(global_ctx);
     }
 
-#ifndef _WIN32
-    try {
-#endif
-        for (const auto& entry : fs::directory_iterator(path)) {
-            if (!entry.is_regular_file())
-                continue;
+    if (!fs::exists(path)) {
+        Logger::error("Plugin directory does not exist: {}", path);
+        return;
+    }
+
+    for (const auto& entry : fs::directory_iterator(path)) {
+        if (!entry.is_regular_file())
+            continue;
 
 #ifdef _WIN32
-            if (entry.path().extension() != ".dll") continue;
+        if (entry.path().extension() != ".dll") continue;
 #else
-            if (!is_shared_library(entry)) continue;
+        if (!is_shared_library(entry)) continue;
 #endif
 
-            LibHandle handle = LoadLib(entry.path().string().c_str());
-            if (!handle) {
-                Logger::error("Failed to load plugin: {}", entry.path().string());
-                continue;
-            }
-
-            auto init = reinterpret_cast<RD_PluginInit_t>(GetSym(handle, "RD_PluginInit"));
-            auto shutdown = reinterpret_cast<RD_PluginShutdown_t>(GetSym(handle, "RD_PluginShutdown"));
-            auto getArchiveFormat = reinterpret_cast<RD_GetArchiveFormat_t>(GetSym(handle, "RD_GetArchiveFormat"));
-            auto name = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginName"));
-            auto version = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginVersion"));
-
-            if (!init || !shutdown || !getArchiveFormat || !name || !version) {
-                Logger::error("Invalid plugin: {}", entry.path().string());
-                Logger::error("Has Init? {}", init != nullptr);
-                Logger::error("Has Shutdown? {}", shutdown != nullptr);
-                Logger::error("Has GetArchiveFormat? {}", getArchiveFormat != nullptr);
-                Logger::error("Has Name? {}", name != nullptr);
-                Logger::error("Has Version? {}", version != nullptr);
-                CloseLib(handle);
-                continue;
-            }
-
-            Plugin plugin = {};
-            plugin.name = *name;
-            plugin.path = entry.path().string();
-            plugin.handle = handle;
-            plugin.init = init;
-            plugin.shutdown = shutdown;
-            plugin.getArchiveFormat = getArchiveFormat;
-            plugin.ctx = global_ctx;
-
-            HostAPI host_api = {};
-            host_api.get_sdk_context = []() -> sdk_ctx* { return global_ctx; };
-            host_api.log = [](sdk_ctx* ctx, const char* msg){
-                if (ctx && ctx->logger) {
-                    ctx->logger->log(msg);
-                }
-            };
-            host_api.warn = [](sdk_ctx* ctx, const char* msg){
-                if (ctx && ctx->logger) {
-                    ctx->logger->warn(msg);
-                }
-            };
-            host_api.error = [](sdk_ctx* ctx, const char* msg){
-                if (ctx && ctx->logger) {
-                    ctx->logger->error(msg);
-                }
-            };
-
-            if (!init(&host_api)) {
-                Logger::error("Plugin {} failed to init", entry.path().string());
-                CloseLib(handle);
-                continue;
-            }
-
-            plugins.push_back(plugin);
-
-            printf("Plugin %s (v%s) loaded\n", *name, *version);
-
-            const ArchiveFormatVTable* vtable = getArchiveFormat(global_ctx);
-            if (vtable) {
-                if (ArchiveFormatWrapper* wrapper = AddArchiveFormat(global_ctx, vtable)) {
-                    extractor_manager->RegisterFormat(std::unique_ptr<ArchiveFormatWrapper>(wrapper));
-                } else {
-                    Logger::error("Failed to create archive format wrapper!");
-                }
-            } else {
-                Logger::error("Failed to get archive format vtable from plugin!");
-            }
+        LibHandle handle = LoadLib(entry.path().string().c_str());
+        if (!handle) {
+            Logger::error("Failed to load plugin: {}", entry.path().string());
+            continue;
         }
-#ifndef _WIN32
-    } catch (fs::filesystem_error& e) {
-        Logger::error("Failed to load plugins: {}", e.what());
+
+        auto init = reinterpret_cast<RD_PluginInit_t>(GetSym(handle, "RD_PluginInit"));
+        auto shutdown = reinterpret_cast<RD_PluginShutdown_t>(GetSym(handle, "RD_PluginShutdown"));
+        auto getArchiveFormat = reinterpret_cast<RD_GetArchiveFormat_t>(GetSym(handle, "RD_GetArchiveFormat"));
+        auto name = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginName"));
+        auto version = reinterpret_cast<const char**>(GetSym(handle, "RD_PluginVersion"));
+
+        if (!init || !shutdown || !getArchiveFormat || !name || !version) {
+            Logger::error("Invalid plugin: {}", entry.path().string());
+            Logger::error("Has Init? {}", init != nullptr);
+            Logger::error("Has Shutdown? {}", shutdown != nullptr);
+            Logger::error("Has GetArchiveFormat? {}", getArchiveFormat != nullptr);
+            Logger::error("Has Name? {}", name != nullptr);
+            Logger::error("Has Version? {}", version != nullptr);
+            CloseLib(handle);
+            continue;
+        }
+
+        Plugin plugin = {};
+        plugin.name = *name;
+        plugin.path = entry.path().string();
+        plugin.handle = handle;
+        plugin.init = init;
+        plugin.shutdown = shutdown;
+        plugin.getArchiveFormat = getArchiveFormat;
+        plugin.ctx = global_ctx;
+
+        HostAPI host_api = {};
+        host_api.get_sdk_context = []() -> sdk_ctx* { return global_ctx; };
+        host_api.log = [](sdk_ctx* ctx, const char* msg){
+            if (ctx && ctx->logger) {
+                ctx->logger->log(msg);
+            }
+        };
+        host_api.warn = [](sdk_ctx* ctx, const char* msg){
+            if (ctx && ctx->logger) {
+                ctx->logger->warn(msg);
+            }
+        };
+        host_api.error = [](sdk_ctx* ctx, const char* msg){
+            if (ctx && ctx->logger) {
+                ctx->logger->error(msg);
+            }
+        };
+
+        if (!init(&host_api)) {
+            Logger::error("Plugin {} failed to init", entry.path().string());
+            CloseLib(handle);
+            continue;
+        }
+
+        plugins.push_back(plugin);
+
+        printf("Plugin %s (v%s) loaded\n", *name, *version);
+
+        const ArchiveFormatVTable* vtable = getArchiveFormat(global_ctx);
+        if (vtable) {
+            if (ArchiveFormatWrapper* wrapper = AddArchiveFormat(global_ctx, vtable)) {
+                extractor_manager->RegisterFormat(std::unique_ptr<ArchiveFormatWrapper>(wrapper));
+            } else {
+                Logger::error("Failed to create archive format wrapper!");
+            }
+        } else {
+            Logger::error("Failed to get archive format vtable from plugin!");
+        }
     }
-#endif
 }
 
 void Plugins::Shutdown() {

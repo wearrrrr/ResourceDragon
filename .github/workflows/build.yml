@@ -103,6 +103,10 @@ jobs:
         run: ./build.ps1
         shell: pwsh
 
+      - name: Prepare Windows artifact bundle
+        run: |
+          cp build-win32/ResourceDragon.exe ./
+
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -110,5 +114,4 @@ jobs:
           path: |
             fonts/
             scripts/
-            build-win32/ResourceDragon.exe
-            build-win32/vendored/SDL/SDL3.dll
+            ResourceDragon.exe
