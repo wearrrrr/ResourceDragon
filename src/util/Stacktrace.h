@@ -38,8 +38,10 @@ namespace Stacktrace {
         inline static std::string generate_stacktrace() {
             char buffer[4096];
 
-            sprintf(buffer, "Unable to generate stacktrace! You are likely running from an unsupported platform\n");
-            sprintf(buffer, "Platform Info:\n \t%s-%s \n\t%s-%s\n", CURRENT_PLATFORM, CURRENT_ARCH, CURRENT_COMPILER, CURRENT_COMPILER_VERSION);
+            snprintf(buffer, sizeof(buffer),
+                "Unable to generate stacktrace! You are likely running from an unsupported platform\n Platform Info:\n \t%s-%s \n\t%s-%s\n",
+                CURRENT_PLATFORM, CURRENT_ARCH, CURRENT_COMPILER, CURRENT_COMPILER_VERSION
+            );
 
             return std::string(buffer);
         }

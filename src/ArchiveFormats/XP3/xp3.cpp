@@ -40,9 +40,6 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
         header_stream.resize(header_size);
         memcpy(header_stream.data(), buffer + dir_offset + 0x9, (u32)header_size);
     } else {
-#ifdef NO_ZLIB
-        return nullptr;
-#else
         int64_t packed_size = Read<int64_t>(buffer, dir_offset + 0x1);
         if ((u64)packed_size > UINT64_MAX) {
             Logger::error("XP3: Packed size is invalid!");
@@ -61,7 +58,6 @@ ArchiveBase *XP3Format::TryOpen(u8 *buffer, u64 size, std::string file_name) {
             Logger::error("XP3: Decompressed size does not match header size!");
             return nullptr;
         }
-#endif
     }
 
     EntryMap dir;
@@ -269,16 +265,12 @@ u8* XP3Archive::OpenStream(const Entry *entry, u8 *buffer) {
 
     if (entry->segments.size() == 1 && !entry->isEncrypted) {
         if (segment.IsCompressed) {
-#ifdef NO_ZLIB
-            return {};
-#else
             uLongf decompressed_size = entry->size;
             uLongf compressed_size = entry->packedSize;
             if (uncompress(stream.data(), &decompressed_size, buffer + entry->offset, compressed_size) != Z_OK) {
                 Logger::error("XP3: Failed to decompress entry!");
                 return {};
             }
-#endif
         } else {
             memcpy(stream.data(), buffer + entry->offset, entry->size);
         }

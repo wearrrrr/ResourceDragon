@@ -397,25 +397,22 @@ void GUI::StartRenderLoop() {
 
 
         ImGui::SetNextWindowPos(
-            ImVec2(0, window_size.y),
+            ImVec2(window_size.x - 280.0f, window_size.y),
             ImGuiCond_Always,
             ImVec2(0.0f, 1.0f)
         );
-        ImGui::SetNextWindowSize({260.0f, 0});
 
         if (fb__loading_arc) {
             if (ImGui::Begin("Bottom Bar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
-                std::string loading_text = "Loading";
-                if (!fb__loading_file_name.empty()) {
-                    loading_text += ": " + fb__loading_file_name;
-                    // Truncate long filenames for display
-                    if (loading_text.length() > 50) {
-                        loading_text = loading_text.substr(0, 47) + "...";
-                    }
-                }
-                loading_text += "...";
+                char loading_text[50];
+                snprintf(loading_text, sizeof(loading_text), "Loading: %s", fb__loading_file_name.c_str());
 
-                ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {250.0f, 30.0f}, loading_text.c_str());
+                if (strlen(loading_text) >= sizeof(loading_text) - 4) {
+                    loading_text[sizeof(loading_text) - 4] = '\0';
+                    strcat(loading_text, "...");
+                }
+
+                ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {250.0f, 30.0f}, loading_text);
             }
             ImGui::End();
         }
