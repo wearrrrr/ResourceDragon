@@ -5,7 +5,8 @@ ResourceDragon is a WIP highly extensible viewer and extractor for proprietary f
 ## Features
 - Preview images, gifs, audio, and archives entirely from within ResourceDragon
 - Support for parsing both ELF and PE files to extract information.
-- Lua support for creating custom formats (WIP!)
+- Squirrel support for creating custom formats!
+- Ability to load native plugins (.dll, .so)!
 
 ## Supported archive formats
 
