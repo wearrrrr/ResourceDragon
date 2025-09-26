@@ -12,7 +12,8 @@ static int findPbg3Entry(ThArchive *dat, const char *entry) {
 class THDAT : public ArchiveFormat {
     std::string tag = "Touhou.PGB3";
     std::string description = "Archive format for mainline Touhou games";
-    u32 sig = PackUInt32('P', 'B', 'G', '3');
+    u32 pbg3_sig = PackUInt32('P', 'B', 'G', '3');
+    u32 pbg4_sig = PackUInt32('P', 'B', 'G', '4');
 
     std::vector<std::string> extensions = {".dat", ".DAT"};
 
@@ -21,7 +22,7 @@ class THDAT : public ArchiveFormat {
 
     bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override {
         if (ext == "dat" || ext == "DAT")
-            return Read<u32>(buffer, 0) == sig;
+            return Read<u32>(buffer, 0) == pbg3_sig || Read<u32>(buffer, 0) == pbg4_sig;
 
         return false;
     };
