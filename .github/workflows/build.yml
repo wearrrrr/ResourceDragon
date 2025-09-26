@@ -125,3 +125,13 @@ jobs:
       - name: Build application
         run: ./build.ps1
         shell: pwsh
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64
+          path: |
+            fonts/
+            scripts/
+            build-win32/ResourceDragon.exe
+            build-win32/vendored/SDL/SDL3.dll
