@@ -107,9 +107,6 @@ jobs:
             build-windows-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}-
             build-windows-${{ runner.os }}-
 
-      - name: Install YASM
-        run: choco install yasm -y
-
       - name: Install NASM
         run: choco install nasm -y
 
