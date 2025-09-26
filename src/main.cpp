@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
 
     ScriptManager *scriptManager = new ScriptManager();
 
-    try {
+    if (fs::exists("scripts/")) {
         for (const auto &entry : fs::directory_iterator("scripts/")) {
             const fs::path entry_path = entry.path();
             if (entry_path.extension() == ".nut") {
@@ -119,9 +119,10 @@ int main(int argc, char** argv) {
                 }
             }
         }
-    } catch (const fs::filesystem_error &err) {
-        Logger::error("Failed to start scripting! Error: {}", err.what());
+    } else {
+        Logger::error("scripts/ directory does not exist!");
     }
+
 
 #ifndef EMSCRIPTEN
     Plugins::LoadPlugins("plugins/");

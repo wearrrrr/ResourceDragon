@@ -15,7 +15,9 @@ std::string Utils::ToLower(const std::string& str)
 
 std::string Utils::GetLastModifiedTime(const std::string& path)
 {
+#ifndef _WIN32
     try {
+#endif
         auto ftime = fs::last_write_time(path);
         auto sctp = chrono::time_point_cast<chrono::system_clock::duration>(
             ftime - fs::file_time_type::clock::now() + chrono::system_clock::now()
@@ -28,16 +30,20 @@ std::string Utils::GetLastModifiedTime(const std::string& path)
         if (std::strftime(buffer, sizeof(buffer), "%m/%d/%y at %I:%M %p", lt)) {
             return std::string(buffer);
         }
+#ifndef _WIN32
     } catch (const fs::filesystem_error& err) {
         return "N/A";
     }
+#endif
     return "N/A";
 }
 
 
 std::string Utils::GetFileSize(const fs::path& path)
 {
+#ifndef _WIN32
     try {
+#endif
         if (fs::exists(path) && fs::is_regular_file(path)) {
             uintmax_t size = fs::file_size(path);
 
@@ -59,9 +65,11 @@ std::string Utils::GetFileSize(const fs::path& path)
 
             return std::string(buffer);
         }
+#ifndef _WIN32
     } catch (const fs::filesystem_error& err) {
         Logger::error("Error getting file size for {}: {}", path.string().c_str(), err.what());
     }
+#endif
 
     return "--";
 }

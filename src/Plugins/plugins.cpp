@@ -56,7 +56,9 @@ void Plugins::LoadPlugins(const char* path) {
         sdk_init(global_ctx);
     }
 
+#ifndef _WIN32
     try {
+#endif
         for (const auto& entry : fs::directory_iterator(path)) {
             if (!entry.is_regular_file())
                 continue;
@@ -138,9 +140,11 @@ void Plugins::LoadPlugins(const char* path) {
                 Logger::error("Failed to get archive format vtable from plugin!");
             }
         }
+#ifndef _WIN32
     } catch (fs::filesystem_error& e) {
         Logger::error("Failed to load plugins: {}", e.what());
     }
+#endif
 }
 
 void Plugins::Shutdown() {
