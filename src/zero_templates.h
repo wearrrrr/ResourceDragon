@@ -2,6 +2,9 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 
+#define _MACRO_STR(arg) #arg
+#define MACRO_STR(arg) _MACRO_STR(arg)
+
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>

@@ -395,24 +395,26 @@ void GUI::StartRenderLoop() {
         }
         ImGui::End();
 
-
         ImGui::SetNextWindowPos(
-            ImVec2(window_size.x - 280.0f, window_size.y),
+            ImVec2(window_size.x - 375.0f, window_size.y),
             ImGuiCond_Always,
             ImVec2(0.0f, 1.0f)
         );
 
         if (fb__loading_arc) {
             if (ImGui::Begin("Bottom Bar", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
-                char loading_text[50];
-                snprintf(loading_text, sizeof(loading_text), "Loading: %s", fb__loading_file_name.c_str());
+                #define MAX_LENGTH_WITH_TRUNCATE 25
+                // annoying but necessary
+                    char loading_text[MAX_LENGTH_WITH_TRUNCATE + sizeof("Loading: ...")];
+                    sprintf(
+                        loading_text,
+                        fb__loading_file_name.length() <= MAX_LENGTH_WITH_TRUNCATE + 3
+                            ? "Loading: %s"
+                            : "Loading: %." MACRO_STR(MAX_LENGTH_WITH_TRUNCATE) "s..."
+                        , fb__loading_file_name.c_str()
+                    );
 
-                if (strlen(loading_text) >= sizeof(loading_text) - 4) {
-                    loading_text[sizeof(loading_text) - 4] = '\0';
-                    strcat(loading_text, "...");
-                }
-
-                ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {250.0f, 30.0f}, loading_text);
+                ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), {350.0f, 30.0f}, loading_text);
             }
             ImGui::End();
         }
