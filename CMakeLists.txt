@@ -87,10 +87,10 @@ if (NOT EMSCRIPTEN)
         GIT_TAG        v1.3.1
     )
     FetchContent_MakeAvailable(zlib)
-    set(ZLIB_INCLUDE_DIR ${zlib_BINARY_DIR})
+    set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
     set(ZLIB_LIBRARY zlib)
 
-    set(ZLIB_INCLUDE_DIR "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
+    set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
     set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
     set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
 
