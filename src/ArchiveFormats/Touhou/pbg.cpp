@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 
-ArchiveBase *THDAT::TryOpenTH06(u8 *buffer, u64 size, std::string file_name) {
+ArchiveBase *PBGFormat::TryOpenTH06(u8 *buffer, u64 size, std::string file_name) {
     ThArchive archive = {};
     std::unordered_map<std::string, ThEntry> entries;
 
@@ -24,9 +24,9 @@ ArchiveBase *THDAT::TryOpenTH06(u8 *buffer, u64 size, std::string file_name) {
     // Free the temporary file
     remove("pbg_temp_file.dat");
 
-    return new THDATArchive(archive, entries);
+    return new PBGArchive(archive, entries);
 }
 
-ArchiveBase *THDAT::TryOpen(u8 *buffer, u64 size, std::string file_name) {
+ArchiveBase *PBGFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
     return TryOpenTH06(buffer, size, file_name);
 }

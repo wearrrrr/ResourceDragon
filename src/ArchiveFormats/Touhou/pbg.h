@@ -9,8 +9,8 @@ static int findPbg3Entry(ThArchive *dat, const char *entry) {
     return -1;
 }
 
-class THDAT : public ArchiveFormat {
-    std::string tag = "Touhou.PGB3";
+class PBGFormat : public ArchiveFormat {
+    std::string tag = "Touhou.PBG";
     std::string description = "Archive format for mainline Touhou games";
     u32 pbg3_sig = PackUInt32('P', 'B', 'G', '3');
     u32 pbg4_sig = PackUInt32('P', 'B', 'G', '4');
@@ -34,12 +34,12 @@ class THDAT : public ArchiveFormat {
     }
 };
 
-class THDATArchive : public ArchiveBase {
+class PBGArchive : public ArchiveBase {
     public:
     ThArchive dat;
     std::unordered_map<std::string, ThEntry> entries;
 
-    THDATArchive(const ThArchive &dat, std::unordered_map<std::string, ThEntry> entries) {
+    PBGArchive(const ThArchive &dat, std::unordered_map<std::string, ThEntry> entries) {
         this->dat = dat;
         this->entries = entries;
     }
