@@ -2,6 +2,7 @@
 
 #include "SQUtils.h"
 #include "SquirrelArc.h"
+#include "RDSquirrelLib.h"
 
 #include <cstdio>
 #include <util/Logger.h>
@@ -64,9 +65,7 @@ public:
     sq_setprintfunc(vm, squirrel_print, nullptr);
     sq_pushroottable(vm);
 
-    sq_pushstring(vm, SC("read_bytes"), -1);
-    sq_newclosure(vm, SQUtils::read_bytes, 0);
-    sq_newslot(vm, -3, SQFalse);
+    RDSquirrelLib::RegisterAllFuncs(vm);
 
     sqstd_register_iolib(vm);
     sqstd_register_mathlib(vm);

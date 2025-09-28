@@ -32,22 +32,6 @@ struct SQUtils {
             Logger::error("Function '{}' not found.", name);
         }
     }
-    static inline SQInteger read_bytes(HSQUIRRELVM vm) {
-        SQUserPointer ptr;
-        SQInteger offset, length;
-
-        if (SQ_FAILED(sq_getuserpointer(vm, 2, &ptr))) return sq_throwerror(vm, "Expected userpointer as first argument");
-        sq_getinteger(vm, 3, &offset);
-        sq_getinteger(vm, 4, &length);
-
-        u8* data = (u8*)ptr;
-        sq_newarray(vm, 0);
-        for (SQInteger i = 0; i < length; ++i) {
-            sq_pushinteger(vm, data[offset + i]);
-            sq_arrayappend(vm, -2);
-        }
-        return 1;
-    }
 
     static inline void push_all(HSQUIRRELVM) {
         // No arguments.
