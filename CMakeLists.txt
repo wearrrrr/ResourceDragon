@@ -79,21 +79,6 @@ if (NOT EMSCRIPTEN)
     set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
     set(FREETYPE_LIBRARIES freetype)
 
-    message("Downloading zlib...")
-    include(FetchContent)
-    FetchContent_Declare(
-        zlib
-        GIT_REPOSITORY https://github.com/madler/zlib.git
-        GIT_TAG        v1.3.1
-    )
-    FetchContent_MakeAvailable(zlib)
-    set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-    set(ZLIB_LIBRARY zlib)
-
-    set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
-    set(ZLIB_LIBRARY zlib CACHE STRING "" FORCE)
-    set(ZLIB_LIBRARIES zlib CACHE STRING "" FORCE)
-
     if (DEBUG)
     FetchContent_Declare(
         cpptrace
@@ -107,6 +92,16 @@ if (NOT EMSCRIPTEN)
     endif()
 endif()
 
+message("Downloading zlib...")
+include(FetchContent)
+FetchContent_Declare(
+    zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG        v1.3.1
+)
+FetchContent_MakeAvailable(zlib)
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
 
 FetchContent_Declare(
     fmt
@@ -209,7 +204,7 @@ if (LUNASVG_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib z)
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
