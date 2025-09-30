@@ -93,7 +93,7 @@ if (NOT EMSCRIPTEN)
 endif()
 
 message("Downloading zlib...")
-set(ZLIB_USE_STATIC_LIBS "ON" CACHE BOOL "Use static zlib library" FORCE)
+set(ZLIB_BUILD_STATIC "ON" CACHE BOOL "Use static zlib library" FORCE)
 FetchContent_Declare(
     zlib
     GIT_REPOSITORY https://github.com/madler/zlib.git
