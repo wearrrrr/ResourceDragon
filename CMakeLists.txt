@@ -92,6 +92,7 @@ if (NOT EMSCRIPTEN)
     endif()
 endif()
 
+if (NOT EMSCRIPTEN)
 message("Downloading zlib...")
 set(ZLIB_BUILD_STATIC "ON" CACHE BOOL "Use static zlib library" FORCE)
 FetchContent_Declare(
@@ -102,6 +103,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(zlib)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+endif()
 
 FetchContent_Declare(
     fmt

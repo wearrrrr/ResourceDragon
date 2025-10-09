@@ -16,7 +16,11 @@ target_include_directories(ArchiveFormats PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(ArchiveFormats PRIVATE thlib util zlibstatic)
+if (NOT EMSCRIPTEN)
+target_link_libraries(ArchiveFormats PRIVATE zlibstatic)
+endif()
+
+target_link_libraries(ArchiveFormats PRIVATE thlib util)
 
 install(TARGETS ArchiveFormats
     LIBRARY DESTINATION lib
