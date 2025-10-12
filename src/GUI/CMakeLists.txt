@@ -40,6 +40,7 @@ if (WIN32)
 endif()
 
 if (MD4C_LIBRARIES)
+    target_include_directories(GUI PRIVATE ${MD4C_INCLUDE_DIR})
     target_link_libraries(GUI PRIVATE ${MD4C_LIBRARIES})
 endif()
 
