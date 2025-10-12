@@ -66,6 +66,7 @@ enum ContentType {
     ELF,
     HEX,
     TEXT,
+    MARKDOWN,
     UNKNOWN
 };
 

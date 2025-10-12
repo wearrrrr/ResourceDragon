@@ -137,18 +137,22 @@ void RenderErrorPopup(ImGuiIO *io) {
     #define FONT_PATH_BASE fs::path("fonts")
 #endif
 
-void LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges, ImFontConfig *cfg = nullptr) {
-    if (cfg) {
+ImFont* LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges, ImFontConfig *cfg = nullptr) {
+    if (!cfg) {
+        cfg = new ImFontConfig();
         cfg->OversampleH = 2;
         cfg->OversampleV = 2;
+        cfg->SizePixels = 26;
     }
     if (fs::exists(font_path)) {
-        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 26, cfg, ranges.Data);
+        auto font = io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), cfg->SizePixels, cfg, ranges.Data);
         if (!font) {
             Logger::warn("Failed to load main font!");
         }
         font_registry[font_name] = font;
+        return font;
     }
+    return nullptr;
 }
 
 void ConfigureDockSpace(bool* p_open) {
@@ -251,13 +255,19 @@ bool GUI::InitRendering() {
     auto noto_font_path = FONT_PATH_BASE / "NotoSansCJK-Medium.otf";
 #ifdef __linux__
     const char *linux_font_path = "/usr/share/fonts/noto-cjk/NotoSansCJK-Medium.ttc";
+    const char *noto_path_bold = "/usr/share/fonts/noto-cjk/NotoSansCJK-Bold.ttc";
+    if (fs::exists(noto_path_bold)) {
+        ImFontConfig boldCfg;
+        boldCfg.SizePixels = 36;
+        auto bold_font = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldCfg);
+    };
     if (fs::exists(linux_font_path)) {
         noto_font_path = fs::path(linux_font_path);
     };
-    LoadFont(io, noto_font_path, "UIFont", gr);
-#else
-    LoadFont(io, noto_font_path, "UIFont", gr);
+
 #endif
+    auto ui_font = LoadFont(io, noto_font_path, "UIFont", gr);
+    io.FontDefault = ui_font;
 
     auto emoji_font = "fonts/twemoji.ttf";
 
@@ -291,8 +301,6 @@ bool GUI::InitRendering() {
 
     LoadFont(io, mono_font_path, "MonoFont", gr);
 
-
-
     io.Fonts->Build();
 
     theme_manager.LoadThemes();
@@ -307,6 +315,8 @@ bool GUI::InitRendering() {
 
 void GUI::StartRenderLoop() {
     ImGuiIO &io = ImGui::GetIO();
+
+    ImGui::PushFont(font_registry.find("UIFont")->second);
 
     while (running) {
         SDL_Event event;

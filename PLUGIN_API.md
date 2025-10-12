@@ -2,32 +2,30 @@
 
 This document describes the plugin API for ResourceDragon, which allows you to create custom archive format handlers as dynamically loaded plugins.
 
-## Overview
+# Overview
 
 The plugin system allows you to extend ResourceDragon with support for custom archive formats without modifying the core application. Plugins are compiled as shared libraries (.so on Linux, .dll on Windows) and loaded at runtime.
 
-## Plugin Structure
+# Plugin Structure
 
 A plugin must export the following symbols:
 
-### Required Exports
-
 1. **Plugin Metadata**
-   ```cpp
+```cpp
    extern "C" const char* RD_PluginName = "Your Plugin Name";
    extern "C" const char* RD_PluginVersion = "1.0.0";
-   ```
+```
 
 2. **Plugin Functions**
-   ```cpp
+```cpp
    RD_EXPORT bool RD_PluginInit(HostAPI* api);
    RD_EXPORT void RD_PluginShutdown();
    RD_EXPORT const ArchiveFormatVTable* RD_GetArchiveFormat(struct sdk_ctx* ctx);
-   ```
+```
 
-## API Reference
+# API Reference
 
-### HostAPI Structure
+## HostAPI Structure
 
 The `HostAPI` structure provides access to host application functions:
 
@@ -45,7 +43,7 @@ struct HostAPI {
 - `warn(ctx, msg, ...)`: Log a warning message
 - `error(ctx, msg, ...)`: Log an error message
 
-### SDK Context
+## SDK Context
 
 The `sdk_ctx` structure contains plugin runtime information:
 
@@ -57,7 +55,7 @@ struct sdk_ctx {
 };
 ```
 
-### Archive Format VTable
+## Archive Format VTable
 
 The core of your plugin is the `ArchiveFormatVTable` which defines how your format behaves:
 
@@ -73,7 +71,7 @@ typedef struct ArchiveFormatVTable {
 } ArchiveFormatVTable;
 ```
 
-#### VTable Functions
+### VTable Functions
 
 - **New**: Create a new instance of your archive handler
 - **CanHandleFile**: Return non-zero if your plugin can handle the given file
@@ -81,7 +79,7 @@ typedef struct ArchiveFormatVTable {
 - **GetTag**: Return a short identifier for your format (e.g., "ZIP", "TAR")
 - **GetDescription**: Return a human-readable description
 
-### Archive Base VTable
+## Archive Base VTable
 
 When `TryOpen` succeeds, it returns an `ArchiveBaseHandle` containing:
 
@@ -99,9 +97,9 @@ struct ArchiveBaseVTable {
 - **GetEntrySize**: Return the size of the file at the given index
 - **OpenStream**: Extract and return the data for the file at the given index
 
-## Building a Plugin
+# Building a Plugin
 
-### CMakeLists.txt Example
+## CMakeLists.txt Example
 
 ```cmake
 cmake_minimum_required(VERSION 3.10)
@@ -140,7 +138,7 @@ set_target_properties(your_plugin PROPERTIES
 )
 ```
 
-### Build Process
+## Build Process
 
 1. Create your plugin directory, should be a separate project.
 2. Write your plugin implementation
@@ -150,14 +148,9 @@ set_target_properties(your_plugin PROPERTIES
 
 ## Example Plugin
 
-See `plugins/example/example_plugin.cpp` for a complete working example that demonstrates:
+See `plugins/example/example_plugin.cpp` for a complete working example
 
-- Plugin initialization and shutdown
-- File format detection based on extension
-- Virtual archive creation with mock entries
-- Memory management for extracted data
-
-## Plugin Loading
+# Plugin Loading
 
 Plugins are automatically loaded from the `plugins/` directory when ResourceDragon starts. The application will:
 
@@ -166,31 +159,25 @@ Plugins are automatically loaded from the `plugins/` directory when ResourceDrag
 3. Initialize plugins that pass validation
 4. Register their archive formats with the main application
 
-## Error Handling
+# Error Handling
 
 - Use the logging functions provided in the HostAPI for debugging
 - Return `false` from `RD_PluginInit` if initialization fails
 - Ensure proper cleanup in `RD_PluginShutdown`
 - Handle null pointers and invalid parameters gracefully
 
-## Memory Management
+# Memory
 
-- Plugins are responsible for managing their own memory
 - Data returned by `OpenStream` should *always* be allocated with `malloc`, it will be freed by ResourceDragon itself using `free` later.
 - The caller will free the memory, so ensure it's compatible
 
 ## Platform Considerations
 
-### Windows
+## Windows
 - Use `.dll` extension
 - Export functions with `__declspec(dllexport)`
 - Consider calling conventions (`__cdecl`)
 
-### Linux
+## Linux
 - Use `.so` extension
 - Compile with `-fPIC`
-- Use symbol visibility controls
-
-## Support
-
-For questions about the plugin API or help with implementation, please refer to the ResourceDragon documentation or open an issue on the project repository.

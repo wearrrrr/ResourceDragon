@@ -19,7 +19,7 @@ add_library(GUI STATIC
     Clipboard.cpp
     DirectoryNode.cpp
     Image.cpp
-    ImVec2Util.h
+    Markdown.cpp
     PreviewWindow.cpp
     Render.cpp
     TextEditor/TextEditor.cpp

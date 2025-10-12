@@ -3,6 +3,7 @@
 #include <Audio.h>
 #include <DirectoryNode.h>
 #include <ImVec2Util.h>
+#include <Markdown.h>
 #include <SDL3/SDL_audio.h>
 #include <util/Text.h>
 #include <imgui.h>
@@ -312,6 +313,11 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
         text_viewer_override = false;
     }
     ImGui::SameLine();
+    if (ImGui::Button("Markdown")) {
+        preview_state.contents.type = MARKDOWN;
+        text_viewer_override = false;
+    }
+    ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
     ImGui::Text("Content Encoding");
     ImGui::SameLine();
@@ -364,4 +370,15 @@ void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
     ImGui::PushFont(font);
     hex_editor.DrawContents(preview_state.contents.data, preview_state.contents.size);
     ImGui::PopFont();
+}
+
+void PreviewWindow::RenderMarkdownEditor(ImGuiIO &io) {
+    if (ImGui::Button("Text View")) {
+        preview_state.contents.type = ContentType::TEXT;
+        // don't like that I have to do this here, but whatever
+        editor.SetText(std::string((char*)preview_state.contents.data, preview_state.contents.size));
+        editor.SetTextChanged(false);
+        text_viewer_override = true;
+    }
+    markdown((const char*)preview_state.contents.data, (const char*)preview_state.contents.data + preview_state.contents.size);
 }

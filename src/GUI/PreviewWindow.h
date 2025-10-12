@@ -13,6 +13,7 @@ namespace PreviewWindow {
     void RenderElfPreview();
     void RenderTextViewer(ImGuiIO &io);
     void RenderHexEditor(ImGuiIO &io);
+    void RenderMarkdownEditor(ImGuiIO &io);
 
     inline void RenderPreviewFor(ContentType content_type) {
         switch (content_type) {
@@ -36,6 +37,9 @@ namespace PreviewWindow {
                     RenderHexEditor(ImGui::GetIO());
                 else
                     RenderTextViewer(ImGui::GetIO());
+                break;
+            case MARKDOWN:
+                RenderMarkdownEditor(ImGui::GetIO());
                 break;
             default:
                 RenderHexEditor(ImGui::GetIO());
