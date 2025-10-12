@@ -156,6 +156,14 @@ ImFont* LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const I
     return nullptr;
 }
 
+ImFont *LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const ImVector<ImWchar>& ranges, float font_size) {
+    ImFontConfig cfg;
+    cfg.OversampleH = 2;
+    cfg.OversampleV = 2;
+    cfg.SizePixels = font_size;
+    return LoadFont(io, font_path, font_name, ranges, &cfg);
+}
+
 void ConfigureDockSpace(bool* p_open) {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
@@ -258,21 +266,9 @@ bool GUI::InitRendering() {
     const char *linux_font_path = "/usr/share/fonts/noto-cjk/NotoSansCJK-Medium.ttc";
     const char *noto_path_bold = "/usr/share/fonts/noto-cjk/NotoSansCJK-Bold.ttc";
     if (fs::exists(noto_path_bold)) {
-        ImFontConfig boldLargeCfg;
-        boldLargeCfg.SizePixels = 36;
-        auto bold_font_large = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldLargeCfg);
-
-        ImFontConfig boldMediumCfg;
-        boldMediumCfg.SizePixels = 30;
-        auto bold_font_medium = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldMediumCfg);
-
-        ImFontConfig boldCfg;
-        boldCfg.SizePixels = 24;
-        auto bold_font = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldCfg);
-
-        md_font_bold = bold_font;
-        md_font_bold_large = bold_font_large;
-        md_font_bold_medium = bold_font_medium;
+        md_font_bold_large = LoadFont(io, noto_path_bold, "UIFontBoldLarge", gr, 36);
+        md_font_bold_medium = LoadFont(io, noto_path_bold, "UIFontBoldMedium", gr, 30);
+        md_font_bold = LoadFont(io, noto_path_bold, "UIFontBold", gr, 24);
     };
     if (fs::exists(linux_font_path)) {
         noto_font_path = fs::path(linux_font_path);
@@ -303,7 +299,8 @@ bool GUI::InitRendering() {
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
-    // For some reason, things break if I change the order in which these are loaded.. very cool.
+    LoadFont(io, mono_font_path, "MonoFont", gr);
+
     if (fs::exists(icon_font_path)) {
         auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {
@@ -312,8 +309,6 @@ bool GUI::InitRendering() {
     } else {
         Logger::warn("Failed to find icons.ttf, icons will not properly render...");
     }
-
-    LoadFont(io, mono_font_path, "MonoFont", gr);
 
     io.Fonts->Build();
 
