@@ -1,41 +1,41 @@
 #include <Markdown.h>
-
+#include "../../vendored/imgui_md/imgui_md.h"
+#include "SDL3/SDL_misc.h"
 #include "util/Logger.h"
 
 //Fonts and images (ImTextureID) must be loaded in other place
 //see https://github.com/ocornut/imgui/blob/master/docs/FONTS.md
-ImFont* g_font_regular = font_registry.find("UIFont")->second;
-ImFont* g_font_bold = font_registry.find("UIFontBold")->second;
-ImFont* g_font_bold_large = font_registry.find("UIFontBold")->second;
+
+ImFont* md_font_regular;
+ImFont* md_font_bold;
+ImFont* md_font_bold_large;
+ImFont* md_font_bold_medium;
 
 struct rd_markdown : public imgui_md
 {
 	ImFont* get_font() const override
 	{
 		if (m_is_table_header) {
-			return g_font_bold;
+			return md_font_bold;
 		}
-
 		switch (m_hlevel)
 		{
 		case 0:
-			return m_is_strong ? g_font_bold : g_font_regular;
+			return m_is_strong ? md_font_bold : md_font_regular;
 		case 1:
-			return g_font_bold_large;
+			return md_font_bold_large;
+		case 2:
+			return md_font_bold_medium;
 		default:
-			return g_font_bold;
+			return md_font_bold;
 		}
 	};
 
-	void open_url() const override
-	{
-		//platform dependent code
-		Logger::log("Would open URL: {}", m_href);
-		// SDL_OpenURL(m_href.c_str());
+	void open_url() const override {
+		SDL_OpenURL(m_href.c_str());
 	}
 
-	bool get_image(image_info& nfo) const override
-	{
+	bool get_image(image_info& nfo) const override {
 		//use m_href to identify images
 		// nfo.texture_id = g_texture1;
 		// nfo.size = {40,20};
@@ -44,6 +44,7 @@ struct rd_markdown : public imgui_md
 		// nfo.col_tint = { 1,1,1,1 };
 		// nfo.col_border = { 0,0,0,0 };
 		// return true;
+		Logger::log("Image loading doesn't work yet!");
 		return false;
 	}
 

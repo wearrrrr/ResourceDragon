@@ -1,6 +1,7 @@
 #include "Render.h"
 #include <Clipboard.h>
 #include <DirectoryNode.h>
+#include <Markdown.h>
 #include <PreviewWindow.h>
 #include <Themes.h>
 #include <UIError.h>
@@ -257,9 +258,21 @@ bool GUI::InitRendering() {
     const char *linux_font_path = "/usr/share/fonts/noto-cjk/NotoSansCJK-Medium.ttc";
     const char *noto_path_bold = "/usr/share/fonts/noto-cjk/NotoSansCJK-Bold.ttc";
     if (fs::exists(noto_path_bold)) {
+        ImFontConfig boldLargeCfg;
+        boldLargeCfg.SizePixels = 36;
+        auto bold_font_large = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldLargeCfg);
+
+        ImFontConfig boldMediumCfg;
+        boldMediumCfg.SizePixels = 30;
+        auto bold_font_medium = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldMediumCfg);
+
         ImFontConfig boldCfg;
-        boldCfg.SizePixels = 36;
+        boldCfg.SizePixels = 24;
         auto bold_font = LoadFont(io, noto_path_bold, "UIFontBold", gr, &boldCfg);
+
+        md_font_bold = bold_font;
+        md_font_bold_large = bold_font_large;
+        md_font_bold_medium = bold_font_medium;
     };
     if (fs::exists(linux_font_path)) {
         noto_font_path = fs::path(linux_font_path);
@@ -268,6 +281,7 @@ bool GUI::InitRendering() {
 #endif
     auto ui_font = LoadFont(io, noto_font_path, "UIFont", gr);
     io.FontDefault = ui_font;
+    md_font_regular = ui_font;
 
     auto emoji_font = "fonts/twemoji.ttf";
 

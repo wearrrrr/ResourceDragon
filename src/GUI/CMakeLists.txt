@@ -39,6 +39,10 @@ if (WIN32)
     set(OPENGL opengl32)
 endif()
 
+if (MD4C_LIBRARIES)
+    target_link_libraries(GUI PRIVATE ${MD4C_LIBRARIES})
+endif()
+
 target_link_libraries(GUI PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util ${OPENGL})
 
 install(TARGETS GUI
