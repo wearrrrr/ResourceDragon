@@ -299,8 +299,6 @@ bool GUI::InitRendering() {
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
     auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
-    LoadFont(io, mono_font_path, "MonoFont", gr);
-
     if (fs::exists(icon_font_path)) {
         auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
         if (!icons) {
@@ -309,6 +307,8 @@ bool GUI::InitRendering() {
     } else {
         Logger::warn("Failed to find icons.ttf, icons will not properly render...");
     }
+
+    LoadFont(io, mono_font_path, "MonoFont", gr);
 
     io.Fonts->Build();
 

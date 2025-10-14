@@ -103,6 +103,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(zlib)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+find_package(CURL REQUIRED)
 endif()
 
 FetchContent_Declare(
@@ -166,6 +167,7 @@ include_directories(${FMT_INCLUDE_DIR})
 include_directories(${CPPTRACE_INCLUDE_DIR})
 include_directories(${zlib_BINARY_DIR})
 include_directories(${zlib_SOURCE_DIR})
+include_directories(${CURLCPP_INCLUDE_DIR})
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -185,8 +187,8 @@ add_executable(ResourceDragon
     vendored/imgui_md/imgui_md.cpp
     src/main.cpp
     src/state.cpp
+    src/Net.cpp
     ${PLUGIN_CPP}
-
     SDK/sdk.cpp
 )
 
@@ -217,6 +219,10 @@ if (MD4C_LIBRARIES)
 endif()
 if (LUNASVG_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
+endif()
+
+if (NOT EMSCRIPTEN)
+    target_link_libraries(ResourceDragon PRIVATE CURL::libcurl)
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)

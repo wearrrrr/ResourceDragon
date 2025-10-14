@@ -113,7 +113,7 @@ protected:
 	////////////////////////////////////////////////////////////////////////////
 
 	//current state
-	std::string m_href;//empty if no link/image
+	std::string m_href; //empty if no link/image
 
 	bool m_is_underline=false;
 	bool m_is_strikethrough = false;
@@ -123,7 +123,7 @@ protected:
 	bool m_is_table_body = false;
 	bool m_is_image = false;
 	bool m_is_code = false;
-	unsigned m_hlevel=0;//0 - no heading
+	unsigned m_hlevel = 0; //0 - no heading
 
 private:
 

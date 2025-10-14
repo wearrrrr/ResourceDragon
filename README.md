@@ -1,4 +1,5 @@
 # ResourceDragon
+[![Build Status](https://github.com/wearrrrr/ResourceDragon/actions/workflows/build.yml/badge.svg)](https://github.com/wearrrrr/ResourceDragon/actions/workflows/build.yml/badge.svg)
 
 ResourceDragon is a WIP highly extensible viewer and extractor for proprietary formats, written in ImGui, SDL3 and OpenGL.
 
