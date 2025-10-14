@@ -119,6 +119,29 @@ if (NOT CURL_FOUND)
         GIT_REPOSITORY https://github.com/curl/curl.git
         GIT_TAG        curl-8_16_0
     )
+
+    set(BUILD_TESTING OFF CACHE BOOL "Disable curl tests" FORCE)
+    set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable curl-specific tests" FORCE)
+
+    set(CURL_DISABLE_FTP ON CACHE BOOL "Disable FTP support" FORCE)
+    set(CURL_DISABLE_LDAP ON CACHE BOOL "Disable LDAP support" FORCE)
+    set(CURL_DISABLE_DICT ON CACHE BOOL "Disable DICT support" FORCE)
+    set(CURL_DISABLE_TELNET ON CACHE BOOL "Disable TELNET support" FORCE)
+    set(CURL_DISABLE_RTSP ON CACHE BOOL "Disable RTSP support" FORCE)
+    set(CURL_DISABLE_SMTP ON CACHE BOOL "Disable SMTP support" FORCE)
+    set(CURL_DISABLE_IMAP ON CACHE BOOL "Disable IMAP support" FORCE)
+    set(CURL_DISABLE_POP3 ON CACHE BOOL "Disable POP3 support" FORCE)
+    set(CURL_DISABLE_MQTT ON CACHE BOOL "Disable MQTT support" FORCE)
+    set(CURL_DISABLE_SMB ON CACHE BOOL "Disable SMB support" FORCE)
+    set(CURL_DISABLE_LDAPS ON CACHE BOOL "Disable LDAPS support" FORCE)
+
+    if(WIN32)
+        # https://github.com/curl/curl/issues/16486 .-.
+        set(CURL_DISABLE_LIBPSL ON CACHE BOOL "Disable libpsl usage" FORCE)
+
+        set(CURL_USE_SCHANNEL ON CACHE BOOL "Use Windows native SSL backend" FORCE)
+    endif()
+
     FetchContent_MakeAvailable(curl)
     set(CURL_INCLUDE_DIR ${curl_SOURCE_DIR}/include)
 endif()
@@ -147,6 +170,12 @@ FetchContent_MakeAvailable(md4c)
 set(MD4C_INCLUDE_DIR ${md4c_SOURCE_DIR}/src/)
 set(MD4C_LIBRARIES md4c)
 
+set(SDL_CAMERA OFF)
+set(SDL_JOYSTICK OFF)
+set(SDL_HAPTIC OFF)
+set(SDL_POWER OFF)
+set(SDL_SENSOR OFF)
+set(SDL_TRAY OFF)
 add_subdirectory(vendored/SDL)
 set(SDLIMAGE_AVIF OFF CACHE BOOL "AVIF codec for decoding" FORCE)
 set(AVIF_CODEC_AOM OFF CACHE BOOL "Use aom codec for decoding" FORCE)
