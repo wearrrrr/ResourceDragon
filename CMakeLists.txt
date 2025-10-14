@@ -116,8 +116,8 @@ if (NOT ZLIB_FOUND)
     set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
 endif()
 
-
-if (WIN32)
+find_package(CURL QUIET)
+if (NOT CURL_FOUND)
     FetchContent_Declare(
         curl
         GIT_REPOSITORY https://github.com/curl/curl.git
@@ -125,11 +125,9 @@ if (WIN32)
     )
     FetchContent_MakeAvailable(curl)
     set(CURL_INCLUDE_DIR ${curl_SOURCE_DIR}/include)
-    set(CURL_LIBRARIES CURL::libcurl)
-else()
-find_package(CURL REQUIRED)
-set(CURL_LIBRARIES CURL::libcurl)
 endif()
+
+set(CURL_LIBRARIES CURL::libcurl)
 
 endif()
 
@@ -193,7 +191,8 @@ include_directories(${FMT_INCLUDE_DIR})
 include_directories(${CPPTRACE_INCLUDE_DIR})
 include_directories(${zlib_BINARY_DIR})
 include_directories(${zlib_SOURCE_DIR})
-include_directories(${CURLCPP_INCLUDE_DIR})
+include_directories(${CURL_INCLUDE_DIR})
+include_directories(${MD4C_INCLUDE_DIR})
 
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
