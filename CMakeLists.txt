@@ -69,15 +69,22 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static" FORCE)
 if (NOT EMSCRIPTEN)
+
+    find_package(Freetype QUIET)
+
+    if (NOT FREETYPE_FOUND)
     message("Downloading freetype...")
     FetchContent_Declare(
         freetype
         GIT_REPOSITORY https://github.com/freetype/freetype.git
-        GIT_TAG        aa2ee67b3d95585a0bfc56a834544a502853f584
+        GIT_TAG        4334f009e7d20789cc7ee1224290ea1e22a17b5b
     )
     FetchContent_MakeAvailable(freetype)
     set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
     set(FREETYPE_LIBRARIES freetype)
+    else()
+    include_directories(${FREETYPE_INCLUDE_DIRS})
+    endif()
 
     if (DEBUG)
     FetchContent_Declare(
@@ -93,17 +100,36 @@ if (NOT EMSCRIPTEN)
 endif()
 
 if (NOT EMSCRIPTEN)
-message("Downloading zlib...")
-set(ZLIB_BUILD_STATIC "ON" CACHE BOOL "Use static zlib library" FORCE)
-FetchContent_Declare(
-    zlib
-    GIT_REPOSITORY https://github.com/madler/zlib.git
-    GIT_TAG        v1.3.1
-)
-FetchContent_MakeAvailable(zlib)
-set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+find_package(zlib QUIET)
+
+if (NOT ZLIB_FOUND)
+    message("Downloading zlib...")
+    set(ZLIB_BUILD_STATIC "ON" CACHE BOOL "Use static zlib library" FORCE)
+    FetchContent_Declare(
+        zlib
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG        v1.3.1
+    )
+    FetchContent_MakeAvailable(zlib)
+    set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+    set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" CACHE PATH "" FORCE)
+endif()
+
+
+if (WIN32)
+    FetchContent_Declare(
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_TAG        8.16.0
+    )
+    FetchContent_MakeAvailable(curl)
+    set(CURL_INCLUDE_DIR ${curl_SOURCE_DIR}/include)
+    set(CURL_LIBRARIES CURL::libcurl)
+else()
 find_package(CURL REQUIRED)
+set(CURL_LIBRARIES CURL::libcurl)
+endif()
+
 endif()
 
 FetchContent_Declare(
@@ -221,8 +247,8 @@ if (LUNASVG_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${LUNASVG_LIBRARIES})
 endif()
 
-if (NOT EMSCRIPTEN)
-    target_link_libraries(ResourceDragon PRIVATE CURL::libcurl)
+if (CURL_LIBRARIES)
+    target_link_libraries(ResourceDragon PRIVATE ${CURL_LIBRARIES})
 endif()
 
 target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
