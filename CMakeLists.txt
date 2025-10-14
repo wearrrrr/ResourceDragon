@@ -150,7 +150,7 @@ FetchContent_Declare(
     GIT_TAG        481fbfbdf72daab2912380d62bb5f2187d438408
 )
 FetchContent_MakeAvailable(md4c)
-set(MD4C_INCLUDE_DIR ${md4c_SOURCE_DIR}/include/)
+set(MD4C_INCLUDE_DIR ${md4c_SOURCE_DIR}/src/)
 set(MD4C_LIBRARIES md4c)
 
 add_subdirectory(vendored/SDL)
