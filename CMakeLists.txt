@@ -81,10 +81,11 @@ if (NOT EMSCRIPTEN)
     )
     FetchContent_MakeAvailable(freetype)
     set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
-    set(FREETYPE_LIBRARIES freetype)
     else()
     include_directories(${FREETYPE_INCLUDE_DIRS})
     endif()
+
+    set(FREETYPE_LIBRARIES freetype)
 
     if (DEBUG)
     FetchContent_Declare(
@@ -169,9 +170,8 @@ set_target_properties(thlib PROPERTIES
     BUILD_SHARED_LIBS OFF
 )
 add_subdirectory(vendored/lunasvg)
+set(LUNASVG_LIBRARIES lunasvg)
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared" FORCE)
-# silence squirrel compiler warnings, not my code, not my problem :)
-target_compile_options(squirrel_static BEFORE PRIVATE -w)
 
 set(IMGUI_SRC
         vendored/imgui/backends/imgui_impl_sdl3.cpp
@@ -234,6 +234,9 @@ if (WIN32)
     set(OPENGL opengl32)
 endif()
 
+if (FREETYPE_LIBRARIES)
+    target_link_libraries(ResourceDragon PRIVATE ${FREETYPE_LIBRARIES})
+endif()
 if (CPPTRACE_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CPPTRACE_LIBRARIES})
 endif()
@@ -251,7 +254,7 @@ if (CURL_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CURL_LIBRARIES})
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting freetype lunasvg squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)

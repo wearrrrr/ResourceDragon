@@ -45,7 +45,7 @@ jobs:
           libxcb1 libxkbcommon0 libxkbcommon-x11-0 libx11-xcb1 libwayland-client0 \
           libwayland-cursor0 libwayland-egl1 libwayland-server0 cmake ninja-build \
           pkgconf libtool libfuse2 appstream libasound2 libasound2-dev \
-          libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev libcurl4-openssl-devw -y;
+          libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev libcurl4-openssl-dev -y;
 
       - name: Build application
         run: ./build.sh
