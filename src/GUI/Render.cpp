@@ -186,7 +186,9 @@ void ConfigureDockSpace(bool* p_open) {
 
     ImGuiID root_id = ImGui::GetID("RootDockspace");
     ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoWindowMenuButton;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 2));
     ImGui::DockSpace(root_id, ImVec2(0,0), dockspace_flags);
+    ImGui::PopStyleVar(1);
 
     static bool first_time = true;
     if (first_time) {
@@ -202,6 +204,7 @@ void ConfigureDockSpace(bool* p_open) {
 
         ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
         ImGui::DockBuilderDockWindow("Preview", dock_right);
+
 
         ImGui::DockBuilderFinish(root_id);
     }
@@ -266,9 +269,9 @@ bool GUI::InitRendering() {
     const char *linux_font_path = "/usr/share/fonts/noto-cjk/NotoSansCJK-Medium.ttc";
     const char *noto_path_bold = "/usr/share/fonts/noto-cjk/NotoSansCJK-Bold.ttc";
     if (fs::exists(noto_path_bold)) {
-        md_font_bold_large = LoadFont(io, noto_path_bold, "UIFontBoldLarge", gr, 36);
-        md_font_bold_medium = LoadFont(io, noto_path_bold, "UIFontBoldMedium", gr, 30);
-        md_font_bold = LoadFont(io, noto_path_bold, "UIFontBold", gr, 24);
+        md_font_bold_large = LoadFont(io, noto_path_bold, "UIFontBoldLarge", gr, 32 * 1.5);
+        md_font_bold_medium = LoadFont(io, noto_path_bold, "UIFontBoldMedium", gr, 24 * 1.5);
+        md_font_bold = LoadFont(io, noto_path_bold, "UIFontBold", gr, 20 * 1.5);
     };
     if (fs::exists(linux_font_path)) {
         noto_font_path = fs::path(linux_font_path);
