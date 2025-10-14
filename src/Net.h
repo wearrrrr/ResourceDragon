@@ -1,3 +1,4 @@
+#include "util/Logger.h"
 #include <string>
 #include <optional>
 #include <cstring>
@@ -15,13 +16,11 @@ class NetManager {
 public:
     NetManager() {
         curl = curl_easy_init();
-        if (!curl)
-            throw std::runtime_error("Failed to initialize CURL");
+        if (!curl) Logger::error("Failed to initialize CURL");
     }
 
     ~NetManager() {
-        if (curl)
-            curl_easy_cleanup(curl);
+        if (curl) curl_easy_cleanup(curl);
     }
 
     struct Result {
@@ -43,14 +42,13 @@ public:
 
         CURLcode res = curl_easy_perform(curl);
         if (res != CURLE_OK)
-            throw std::runtime_error(std::string("CURL error: ") + curl_easy_strerror(res));
+            Logger::error("CURL error: {}", curl_easy_strerror(res));
 
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &result.status);
 
         char* content_type = nullptr;
         curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
-        if (content_type)
-            result.content_type = content_type;
+        if (content_type) result.content_type = content_type;
 
         result.body = std::move(buffer);
         return result;

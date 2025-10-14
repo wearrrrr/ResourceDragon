@@ -25,7 +25,8 @@ static std::map<std::string, std::string> image_cache;
 std::vector<unsigned char> render_svg_to_rgba(const std::string& svg_data, int& out_width, int& out_height) {
     auto document = lunasvg::Document::loadFromData(svg_data);
     if (!document) {
-        throw std::runtime_error("Failed to load SVG");
+        Logger::error("Failed to load SVG");
+        return {};
     }
 
     out_width = static_cast<int>(document->width());
@@ -74,39 +75,35 @@ struct rd_markdown : public imgui_md {
         // Check if cached
         auto it = image_cache.find(m_href);
         if (it == image_cache.end()) {
-            try {
-                NetManager req;
-                auto result = req.Get(m_href.c_str());
+            NetManager req;
+            auto result = req.Get(m_href.c_str());
 
+            if (result.ok()) {
                 image_cache[m_href] = result.body;
                 it = image_cache.find(m_href);
-            } catch (const std::exception& e) {
-                Logger::error("Error fetching {}: {}", m_href, e.what());
-                return false;
+            } else {
+                Logger::error("Failed to fetch image from {}\nHTTP Status: {}", m_href, result.status);
             }
         }
 
         // TODO: Render things other than SVGs.
-        try {
-            int w, h;
-            auto rgba = render_svg_to_rgba(it->second, w, h);
-            ImTextureID tex = create_texture_from_rgba(rgba.data(), w, h);
-            if (!tex) {
-                Logger::error("Failed to create texture for {}", m_href);
-                return false;
-            }
-
-            nfo.texture_id = tex;
-            nfo.size = ImVec2((float)w, (float)h);
-            nfo.uv0 = ImVec2(0, 0);
-            nfo.uv1 = ImVec2(1, 1);
-            nfo.col_tint = ImVec4(1, 1, 1, 1);
-            nfo.col_border = ImVec4(0, 0, 0, 0);
-            return true;
-        } catch (const std::exception& e) {
-            Logger::error("SVG render failed for {}: {}", m_href, e.what());
+        int w, h;
+        auto rgba = render_svg_to_rgba(it->second, w, h);
+        if (rgba.empty())
+            return false;
+        ImTextureID tex = create_texture_from_rgba(rgba.data(), w, h);
+        if (!tex) {
+            Logger::error("Failed to create texture for {}", m_href);
             return false;
         }
+
+        nfo.texture_id = tex;
+        nfo.size = ImVec2((float)w, (float)h);
+        nfo.uv0 = ImVec2(0, 0);
+        nfo.uv1 = ImVec2(1, 1);
+        nfo.col_tint = ImVec4(1, 1, 1, 1);
+        nfo.col_border = ImVec4(0, 0, 0, 0);
+        return true;
     }
 
     void html_div(const std::string& dclass, bool e) override {
