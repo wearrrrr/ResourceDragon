@@ -27,6 +27,7 @@ cp /usr/x86_64-w64-mingw32/bin/libssp-0.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll ./
 cp /usr/x86_64-w64-mingw32/bin/libbz2-1.dll ./
 cp /usr/x86_64-w64-mingw32/bin/zlib1.dll ./
+cp /usr/x86_64-w64-mingw32/bin/libzstd.dll ./
 
 cd ../../
 

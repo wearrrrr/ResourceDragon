@@ -137,7 +137,7 @@ if (NOT CURL_FOUND)
 
     if(WIN32)
         # https://github.com/curl/curl/issues/16486 .-.
-        set(CURL_USE_LIBPSL ON CACHE BOOL "Disable libpsl usage" FORCE)
+        set(CURL_USE_LIBPSL OFF CACHE BOOL "Disable libpsl usage" FORCE)
 
         set(CURL_USE_SCHANNEL ON CACHE BOOL "Use Windows native SSL backend" FORCE)
     endif()

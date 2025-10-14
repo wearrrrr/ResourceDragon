@@ -44,6 +44,16 @@ if (MD4C_LIBRARIES)
     target_link_libraries(GUI PRIVATE ${MD4C_LIBRARIES})
 endif()
 
+if (LUNASVG_LIBRARIES)
+    target_include_directories(GUI PRIVATE ${LUNASVG_INCLUDE_DIR})
+    target_link_libraries(GUI PRIVATE ${LUNASVG_LIBRARIES})
+endif()
+
+if (CURL_LIBRARIES)
+    target_include_directories(GUI PRIVATE ${CURL_INCLUDE_DIR})
+    target_link_libraries(GUI PRIVATE ${CURL_LIBRARIES})
+endif()
+
 target_link_libraries(GUI PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util ${OPENGL})
 
 install(TARGETS GUI
