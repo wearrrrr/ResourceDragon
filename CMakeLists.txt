@@ -70,9 +70,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static" FORCE)
 if (NOT EMSCRIPTEN)
 
-    find_package(Freetype QUIET)
-
-    if (NOT FREETYPE_FOUND)
     message("Downloading freetype...")
     FetchContent_Declare(
         freetype
@@ -80,10 +77,7 @@ if (NOT EMSCRIPTEN)
         GIT_TAG        4334f009e7d20789cc7ee1224290ea1e22a17b5b
     )
     FetchContent_MakeAvailable(freetype)
-    set(FREETYPE_INCLUDE_DIRS ${freetype_SOURCE_DIR}/include)
-    else()
-    include_directories(${FREETYPE_INCLUDE_DIRS})
-    endif()
+    include_directories(${freetype_SOURCE_DIR}/include)
 
     set(FREETYPE_LIBRARIES freetype)
 
