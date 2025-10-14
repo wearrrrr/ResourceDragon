@@ -88,6 +88,7 @@ if (NOT EMSCRIPTEN)
     set(FREETYPE_LIBRARIES freetype)
 
     if (DEBUG)
+    message("Downloading cpptrace...")
     FetchContent_Declare(
         cpptrace
         GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
@@ -118,10 +119,11 @@ endif()
 
 find_package(CURL QUIET)
 if (NOT CURL_FOUND)
+    message("Downloading curl...")
     FetchContent_Declare(
         curl
         GIT_REPOSITORY https://github.com/curl/curl.git
-        GIT_TAG        8.16.0
+        GIT_TAG        curl-8_16_0
     )
     FetchContent_MakeAvailable(curl)
     set(CURL_INCLUDE_DIR ${curl_SOURCE_DIR}/include)
@@ -131,6 +133,7 @@ set(CURL_LIBRARIES CURL::libcurl)
 
 endif()
 
+message("Downloading fmt...")
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
@@ -140,6 +143,7 @@ FetchContent_MakeAvailable(fmt)
 set(FMT_INCLUDE_DIR ${fmt_SOURCE_DIR}/include/)
 set(FMT_LIBRARIES fmt::fmt)
 
+message("Downloading md4c...")
 FetchContent_Declare(
     md4c
     GIT_REPOSITORY https://github.com/mity/md4c.git
