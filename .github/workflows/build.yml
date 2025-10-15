@@ -88,7 +88,11 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: Install NASM
-        run: choco install nasm -y
+        run: |
+          curl -L -o nasm.zip https://www.nasm.us/pub/nasm/releasebuilds/3.01/win64/nasm-3.01-win64.zip
+          tar -xf nasm.zip
+          echo "${{ github.workspace }}\nasm-3.01" | Out-File -Append $env:GITHUB_PATH
+
 
       - name: Install LLVM (clang-cl)
         uses: egor-tensin/setup-clang@v1
@@ -105,13 +109,14 @@ jobs:
 
       - name: Prepare Windows artifact bundle
         run: |
-          cp build-win32/ResourceDragon.exe ./
+          mkdir -p RD
+          cp build-win32/ResourceDragon.exe ./RD/
+          cp -r fonts/ ./RD/
+          cp -r scripts/ ./RD/
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{env.APP_NAME}}-${{env.APP_VERSION}}-win64
           path: |
-            fonts/
-            scripts/
-            ResourceDragon.exe
+            RD/
