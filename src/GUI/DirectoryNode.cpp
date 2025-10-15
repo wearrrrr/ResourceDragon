@@ -300,17 +300,17 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
         if (node->IsVirtualRoot) {
             auto entries = loaded_arc_base->GetEntries();
 
-            for (const auto &entry : entries) {
+            for (const auto& [_, entry] : entries) {
                 // Still not entirely sure if this is necessary?
 #if defined(__linux__) || defined(EMSCRIPTEN)
-                std::replace(entry.second->name.begin(), entry.second->name.end(), '\\', '/');
+                std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
 #endif
-                fs::path entryPath(entry.second->name);
+                fs::path entryPath(entry->name);
                 Node *current = node;
 
                 for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
                     std::string part = it->string();
-                    bool isLast = (std::next(it) == entryPath.end());
+                    bool isLast = std::next(it) == entryPath.end();
 
                     auto found = std::find_if(current->Children.begin(), current->Children.end(),
                         [&part](const Node* child) {
@@ -319,10 +319,11 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                     );
 
                     if (found == current->Children.end()) {
+                        const std::string fullPath = current->FullPath.empty() ? part : current->FullPath + fs::path::preferred_separator + part;
                         Node *newNode = new Node {
                             .FullPath = (current->FullPath.empty() ? part : current->FullPath + (char)fs::path::preferred_separator + part),
                             .FileName = part,
-                            .FileSize = isLast ? Utils::GetFileSize(entry.second->size) : "--",
+                            .FileSize = isLast ? Utils::GetFileSize(entry->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",
                             .Children = {},
                             .IsDirectory = !isLast
@@ -335,8 +336,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                 }
             }
         } else {
-            fs::directory_iterator directoryIterator(parentPath);
-            for (const auto &entry : directoryIterator) {
+            for (const auto &entry : fs::directory_iterator(parentPath)) {
                 fs::path path = entry.path();
                 std::string fileName = path.filename().string();
 
