@@ -22,16 +22,8 @@ class SAPakFormat : public ArchiveFormat {
 
 class SAPakArchive : public ArchiveBase {
     public:
-        EntryMap entries;
-        SAPakArchive(const EntryMap &entries) {
-            this->entries = entries;
-        };
-        EntryMapPtr GetEntries() override {
-            EntryMapPtr entries;
-            for (auto& entry : this->entries)
-                entries[entry.first] = &entry.second;
-            return entries;
-        }
+        SAPakArchive(const EntryMap &entries) : ArchiveBase(entries) {}
+
         u8* OpenStream(const Entry *entry, u8 *buffer) override;
         ~SAPakArchive() {
             this->entries.clear();

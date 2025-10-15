@@ -68,7 +68,6 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
     if (version != 8 && version != 9 && version != 4 && version != 5)
         return new PFSArchive(entries);
 
-    // auto key = Hash::sha1(index_buf, index_size);
     SHA1_CTX sha_ctx;
     u8 key_arr[20];
     SHA1Init(&sha_ctx);

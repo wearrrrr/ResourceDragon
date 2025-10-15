@@ -18,7 +18,7 @@ ArchiveBase *PBGFormat::TryOpenTH06(u8 *buffer, u64 size, std::string file_name)
     thOpenArchive(&archive, "pbg_temp_file.dat");
 
     for (unsigned idx = 0; idx < archive.entries_count; ++idx) {
-        entries.emplace(std::string(archive.entries[idx].name), archive.entries[idx]);
+        entries[archive.entries[idx].name] = archive.entries[idx];
     }
 
     // Free the temporary file

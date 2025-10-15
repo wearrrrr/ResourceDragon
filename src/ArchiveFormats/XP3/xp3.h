@@ -41,16 +41,7 @@ class XP3Format : public ArchiveFormat {
 
 class XP3Archive : public ArchiveBase {
     public:
-        EntryMap entries;
-        XP3Archive(EntryMap entries) {
-            this->entries = entries;
-        };
-        EntryMapPtr GetEntries() override {
-            EntryMapPtr entries;
-            for (auto& entry : this->entries)
-                entries[entry.first] = &entry.second;
-            return entries;
-        }
+        XP3Archive(EntryMap entries) : ArchiveBase(entries) {};
+
         u8* OpenStream(const Entry *entry, u8 *buffer) override;
-        ~XP3Archive() = default;
 };

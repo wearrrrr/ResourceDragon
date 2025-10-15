@@ -15,7 +15,7 @@ ArchiveBase *MPKFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
     u16 MajorVersion;
     char name[MPKMaxPath];
 
-    std::unordered_map<std::string, MPKEntry> entries;
+    EntryMap entries;
 
     MinorVersion = Read<u16>(buffer);
     MajorVersion = Read<u16>(buffer);
@@ -37,17 +37,18 @@ ArchiveBase *MPKFormat::TryOpen(u8 *buffer, u64 size, std::string file_name)
             continue;
         }
 
-        MPKEntry entry;
+        Entry entry {
+            .name = "",
+            .offset = Read<u64>(buffer),
+            .size = Read<u64>(buffer),
+            .packedSize = Read<u64>(buffer),
+            .isPacked = compression == 1,
+        };
 
-        entry.Id = id;
-        entry.Compressed = compression;
-        entry.Offset = Read<u64>(buffer);
-        entry.CompressedSize = Read<u64>(buffer);
-        entry.size = Read<u64>(buffer);
         Read(name, buffer, MPKMaxPath);
         name[MPKMaxPath - 1] = '\0';
         entry.name = name;
-        entries.insert({entry.name, entry});
+        entries[name] = entry;
     }
 
     return new MPKArchive(entries);
@@ -64,11 +65,9 @@ bool MPKFormat::CanHandleFile(u8 *buffer, u64 size, const std::string &ext) cons
 
 u8* MPKArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
-    MPKEntry *mpkEntry = (MPKEntry*)entry;
+    unsigned char *entry_offset = buffer + entry->offset;
 
-    unsigned char *entry_offset = buffer + mpkEntry->Offset;
-
-    u8* data = (u8*)malloc(mpkEntry->size);
-    memcpy(data, entry_offset, mpkEntry->size);
+    u8* data = (u8*)malloc(entry->size);
+    memcpy(data, entry_offset, entry->size);
     return data;
 }

@@ -14,8 +14,17 @@ typedef std::unordered_map<std::string, Entry*> EntryMapPtr;
 
 class ArchiveBase {
     public:
+        EntryMap entries;
+        ArchiveBase() {};
+        ArchiveBase(const EntryMap &entries) : entries(entries) {};
+
         virtual u8* OpenStream(const Entry *entry, u8 *buffer) = 0;
-        virtual EntryMapPtr GetEntries() = 0;
+        virtual EntryMapPtr GetEntries() {
+            EntryMapPtr entries;
+            for (auto& [name, entry] : this->entries)
+                entries[name] = &entry;
+            return entries;
+        }
         virtual ~ArchiveBase() = default;
 };
 

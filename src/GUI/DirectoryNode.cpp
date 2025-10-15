@@ -87,12 +87,12 @@ void InfoDialog() {
                     ImGui::TableSetupColumn("Description", 400.0f);
                     ImGui::TableHeadersRow();
 
-                    for (const auto &pair : extractor_manager->GetFormats()) {
+                    for (const auto &[name, format] : extractor_manager->GetFormats()) {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::Text(pair.first);
+                        ImGui::Text(name);
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text(pair.second->GetDescription());
+                        ImGui::Text(format->GetDescription());
                     }
 
                     ImGui::EndTable();
@@ -138,13 +138,13 @@ void InfoDialog() {
 
 Entry* FindEntryByNode(const EntryMapPtr &entries, const DirectoryNode::Node *node) {
     const std::string &fullPath = node->FullPath;
-    for (const auto &entry : entries) {
-        const std::string &name = entry.second->name;
+    for (const auto &[_, entry] : entries) {
+        const std::string &name = entry->name;
 
         if (fullPath.size() >= name.size() && fullPath.compare(fullPath.size() - name.size(), name.size(), name) == 0) {
             u8 lastChar = fullPath[fullPath.size() - name.size() - 1];
             if (fullPath.size() == name.size() || lastChar == '/' || lastChar == '\\') {
-                return entry.second;
+                return entry;
             }
         }
     }
@@ -214,9 +214,9 @@ void VirtualArc::ExtractAll() {
     std::string basePath = "extracted/" + fileName;
     fs::create_directories(basePath);
 
-    for (auto &entry : entries) {
-        if (!VirtualArc::ExtractEntry(basePath, entry.second)) {
-            Logger::error("Failed to extract: {}", entry.second->name.data());
+    for (auto &[_, entry] : entries) {
+        if (!VirtualArc::ExtractEntry(basePath, entry)) {
+            Logger::error("Failed to extract: {}", entry->name.data());
         }
     }
 }
@@ -268,7 +268,7 @@ void DirectoryNode::UnloadSelectedFile() {
 }
 
 void DirectoryNode::Unload(Node *node) {
-    for (Node* child : node->Children) {
+    for (Node *child : node->Children) {
         Unload(child);
         delete child;
     }
@@ -319,9 +319,9 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
                     );
 
                     if (found == current->Children.end()) {
-                        const std::string fullPath = current->FullPath.empty() ? part : current->FullPath + fs::path::preferred_separator + part;
+                        const std::string fullPath = current->FullPath.empty() ? part : current->FullPath + (char)fs::path::preferred_separator + part;
                         Node *newNode = new Node {
-                            .FullPath = (current->FullPath.empty() ? part : current->FullPath + (char)fs::path::preferred_separator + part),
+                            .FullPath = fullPath,
                             .FileName = part,
                             .FileSize = isLast ? Utils::GetFileSize(entry->size) : "--",
                             .LastModified = isLast ? "Unknown" : "N/A",

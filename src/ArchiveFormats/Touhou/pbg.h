@@ -59,7 +59,7 @@ class PBGArchive : public ArchiveBase {
                 .size = datEntry.uncompressed_size,
                 .packedSize = datEntry.compressed_size
             };
-            entry_map.emplace(name, rdEntry);
+            entry_map[name] = rdEntry;
         }
 
         return entry_map;

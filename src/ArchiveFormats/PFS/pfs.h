@@ -22,22 +22,12 @@ class PFSFormat : public ArchiveFormat {
 
 class PFSArchive : public ArchiveBase {
     PFSFormat *pfs_fmt;
-    EntryMap entries;
     std::vector<u8> key;
     public:
-        PFSArchive(const EntryMap &entries) {
-            this->entries = entries;
-        }
-        PFSArchive(PFSFormat *arc_fmt, const EntryMap &entries, std::vector<u8> key) {
+        PFSArchive(const EntryMap &entries) : ArchiveBase(entries) {};
+        PFSArchive(PFSFormat *arc_fmt, const EntryMap &entries, std::vector<u8> key) : ArchiveBase(entries) {
             this->pfs_fmt = arc_fmt;
-            this->entries = entries;
             this->key = key;
-        }
-        EntryMapPtr GetEntries() override {
-            EntryMapPtr entries;
-            for (auto& entry : this->entries)
-                entries[entry.first] = &entry.second;
-            return entries;
         }
         u8* OpenStream(const Entry *entry, u8 *buffer) override;
 };
