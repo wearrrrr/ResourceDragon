@@ -10,8 +10,11 @@ static int findPbg3Entry(ThArchive *dat, const char *entry) {
 }
 
 class PBGFormat : public ArchiveFormat {
-    std::string tag = "Touhou.PBG";
-    std::string description = "Archive format for mainline Touhou games";
+public:
+    PBGFormat() {
+        this->tag = "Touhou.PBG";
+        this->description = "Archive format for mainline Touhou games";
+    }
     u32 pbg3_sig = PackUInt32('P', 'B', 'G', '3');
     u32 pbg4_sig = PackUInt32('P', 'B', 'G', '4');
 
@@ -26,12 +29,6 @@ class PBGFormat : public ArchiveFormat {
 
         return false;
     };
-    std::string GetTag() const override {
-        return this->tag;
-    };
-    std::string GetDescription() const override {
-        return this->description;
-    }
 };
 
 class PBGArchive : public ArchiveBase {

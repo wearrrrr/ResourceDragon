@@ -27,21 +27,31 @@ class SquirrelArchiveFormat : public ArchiveFormat {
   HSQOBJECT archive_format_table;
 
 public:
+
+    char *tag;
+    char *description;
+
   SquirrelArchiveFormat(HSQUIRRELVM vm, const HSQOBJECT &table) : vm(vm) {
     sq_resetobject(&archive_format_table);
     archive_format_table = table;
+    this->tag = (char*)malloc(128);
+    this->description = (char*)malloc(512);
   }
 
   ~SquirrelArchiveFormat() {
       sq_release(vm, &archive_format_table);
+      free(this->tag);
+      free(this->description);
   }
 
-  std::string GetTag() const override {
-    return GetStringField("tag", "GETTAG_FAIL");
+  const char* GetTag() const override {
+      snprintf(this->tag, 128, "%s", GetStringField("tag", "TAG_FAIL").c_str());
+      return (const char*)tag;
   }
 
-  std::string GetDescription() const override {
-    return GetStringField("description", "GETDESC_FAIL");
+  const char* GetDescription() const override {
+    snprintf(this->description, 512, "%s", GetStringField("description", "GETDESC_FAIL").c_str());
+    return (const char*)description;
   }
 
   bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;

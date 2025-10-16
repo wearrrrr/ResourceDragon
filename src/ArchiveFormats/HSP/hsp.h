@@ -4,25 +4,22 @@
 #include <Entry.h>
 
 class HSPArchive : public ArchiveFormat {
-    public:
-        std::string tag = "HSP";
-        std::string description = "Hot Soup Processor 3 Resource Archive";
-        u32 sig = PackUInt('D', 'P', 'M', 'X');
+public:
+    HSPArchive() {
+        this->tag = "HSP";
+        this->description = "Hot Soup Processor 3 Resource Archive";
+    }
 
-        u32 DefaultKey = 0xAC52AE58;
+    u32 sig = PackUInt('D', 'P', 'M', 'X');
 
-        std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
+    u32 DefaultKey = 0xAC52AE58;
 
-        u32 FindExeKey(ExeFile *exe, u32 dpmx_offset);
+    std::vector<std::string> extensions = {"exe", "dpm", "bin", "dat"};
 
-        ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
-        bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;
-        std::string GetTag() const override {
-            return this->tag;
-        }
-        std::string GetDescription() const override {
-            return this->description;
-        }
+    u32 FindExeKey(ExeFile *exe, u32 dpmx_offset);
+
+    ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) override;
+    bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const override;
 };
 
 class DPMArchive : public ArchiveBase {

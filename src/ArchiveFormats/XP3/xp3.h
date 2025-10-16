@@ -13,30 +13,25 @@ enum XP3HeaderType {
 };
 
 class XP3Format : public ArchiveFormat {
-    public:
-        std::string tag = "XP3";
-        std::string description = "XP3 Archive Format";
+public:
+    XP3Format() {
+        this->tag = "XP3";
+        this->description = "XP3 Archive Format";
+    };
 
-        u32 sig = 0x0d335058; // "XP3\0D"
+    u32 sig = 0x0d335058; // "XP3\0D"
 
-        std::vector<std::string> extensions = {"xp3", "exe"};
+    std::vector<std::string> extensions = {"xp3", "exe"};
 
-        static constexpr u8 xp3_header[] = {
-            0x58, 0x50, 0x33, 0x0d, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01
-        };
+    static constexpr u8 xp3_header[] = {
+        0x58, 0x50, 0x33, 0x0d, 0x0A, 0x20, 0x0A, 0x1A, 0x8B, 0x67, 0x01
+    };
 
-        ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override;
+    ArchiveBase *TryOpen(u8 *buffer, u64 size, std::string file_name) override;
 
-        bool CanHandleFile(u8 *buffer, u64 size, const std::string &_ext) const override {
-            return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
-        };
-
-        std::string GetTag() const override {
-            return this->tag;
-        };
-        std::string GetDescription() const override {
-            return this->description;
-        }
+    bool CanHandleFile(u8 *buffer, u64 size, const std::string &_ext) const override {
+        return (size > 0x10 && memcmp(buffer, xp3_header, sizeof(xp3_header)) == 0);
+    };
 };
 
 class XP3Archive : public ArchiveBase {

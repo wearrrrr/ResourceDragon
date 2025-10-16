@@ -92,7 +92,7 @@ void InfoDialog() {
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text(name);
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text(format->GetDescription());
+                        ImGui::Text("%s", format->GetDescription());
                     }
 
                     ImGui::EndTable();
@@ -605,16 +605,16 @@ void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeO
         Logger::warn("Multiple formats found for {}", result.node->FileName.data());
         Logger::warn("All formats detected as compatible: ");
         for (auto& format : format_list) {
-            printf("\t%s\n", format->GetTag().data());
+            printf("\t%s\n", format->GetTag());
         }
     }
 
     auto format = format_list[0];
     auto arc = format->TryOpen(result.entry_buffer, result.size, result.node->FileName);
     if (arc == nullptr) {
-        Logger::error("Failed to open archive: {}! Attempted to open as: {}", result.node->FileName.data(), format->GetTag().data());
+        Logger::error("Failed to open archive: {}! Attempted to open as: {}", result.node->FileName.data(), format->GetTag());
         char message_buffer[512];
-        snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", result.node->FileName.data(), format->GetTag().data());
+        snprintf(message_buffer, sizeof(message_buffer), "Failed to open archive: '%s'!\nAttempted to open as %s\n", result.node->FileName.data(), format->GetTag());
         ui_error = UIError::CreateError(message_buffer, "Failed to open archive!");
         free(result.entry_buffer);
         return;

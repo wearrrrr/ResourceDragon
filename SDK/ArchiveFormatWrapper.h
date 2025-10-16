@@ -64,16 +64,16 @@ public:
         return new ArchiveBaseWrapper(h);
     }
 
-    virtual std::string GetTag() const override {
+    virtual const char* GetTag() const override {
         if (!vtbl || !vtbl->GetTag) return "??";
         const char* t = vtbl->GetTag(inst);
-        return t ? std::string(t) : std::string("??");
+        return t ? t : "??";
     }
 
-    virtual std::string GetDescription() const override {
+    virtual const char* GetDescription() const override {
         if (!vtbl || !vtbl->GetDescription) return "??";
         const char* d = vtbl->GetDescription(inst);
-        return d ? std::string(d) : std::string("??");
+        return d ? d : "??";
     }
 private:
     const ArchiveFormatVTable* vtbl;

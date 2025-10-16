@@ -30,6 +30,9 @@ class ArchiveBase {
 
 class ArchiveFormat {
     public:
+        const char *tag = "?????";
+        const char *description = "????? Resource Archive";
+
         u32 sig = 0x00000000;
         size_t buffer_position = 0;
 
@@ -103,10 +106,10 @@ class ArchiveFormat {
 
         virtual bool CanHandleFile(u8 *buffer, u64 size, const std::string &ext) const = 0;
         virtual ArchiveBase* TryOpen(u8 *buffer, u64 size, std::string file_name) = 0;
-        virtual std::string GetTag() const {
-            return "?????";
-        };
-        virtual std::string GetDescription() const {
-            return "????? Resource Archive";
+        virtual const char* GetTag() const {
+            return this->tag;
+        }
+        virtual const char* GetDescription() const {
+            return this->description;
         }
 };
