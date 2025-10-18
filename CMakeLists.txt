@@ -242,7 +242,6 @@ add_executable(ResourceDragon
     vendored/imgui_md/imgui_md.cpp
     src/main.cpp
     src/state.cpp
-    src/Net.cpp
     ${PLUGIN_CPP}
     SDK/sdk.cpp
 )

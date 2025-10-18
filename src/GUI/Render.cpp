@@ -75,7 +75,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
             ImGui::Text("This cannot be undone!");
             if (ImGui::Button("Confirm", {100, 0})) {
                 fs::remove_all(fb__selectedItem->FullPath);
-                if (fb__selectedItem->FullPath == preview_windows[0].contents.path) {
+                if (fb__selectedItem->FullPath == GetPreviewState(preview_index).contents.path) {
                     DirectoryNode::UnloadSelectedFile();
                 }
                 ReloadRootNode(rootNode);
@@ -91,13 +91,14 @@ void RenderFBContextMenu(ImGuiIO *io) {
 }
 
 void PreviewContextMenu() {
+    PreviewWinState &state = GetPreviewState(preview_index);
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
-            if (preview_windows[0].contents.size > 0) {
-                if (preview_windows[0].contents.type == ContentType::IMAGE) {
-                    Clipboard::CopyBufferToClipboard(preview_windows[0].contents.data, preview_windows[0].contents.size, preview_windows[0].contents.fileName);
+            if (state.contents.size > 0) {
+                if (state.contents.type == ContentType::IMAGE) {
+                    Clipboard::CopyBufferToClipboard(state.contents.data, state.contents.size, state.contents.fileName);
                 } else {
-                    Clipboard::CopyFilePathToClipboard(preview_windows[0].contents.path);
+                    Clipboard::CopyFilePathToClipboard(state.contents.path);
                 }
             }
         }
@@ -188,6 +189,57 @@ void ConfigureDockSpace(bool* p_open) {
     ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoCloseButton | ImGuiDockNodeFlags_NoWindowMenuButton;
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 2));
     ImGui::DockSpace(root_id, ImVec2(0,0), dockspace_flags);
+    ImGuiDockNode* node = ImGui::DockBuilderGetNode(root_id);
+    if (node) {
+        // Traverse dock nodes to find visible tab bars
+        ImGuiDockContext* ctx = &GImGui->DockContext;
+        for (int i = 0; i < ctx->Nodes.Data.Size; i++) {
+            if (ImGuiDockNode* child = (ImGuiDockNode*)ctx->Nodes.Data[i].val_p) {
+                if (child && child->TabBar && child->IsVisible) {
+                    ImRect tab_rect = child->TabBar->BarRect;
+                    ImVec2 button_size(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+                    ImVec2 button_pos(
+                        tab_rect.Max.x - button_size.x - 2,
+                        tab_rect.Min.y - 1
+                    );
+
+                    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+                    ImGui::SetCursorScreenPos(button_pos);
+
+                    ImGui::SetNextWindowPos(button_pos);
+                    ImGui::SetNextWindowBgAlpha(0.0f);
+                    ImGui::Begin("##plus_overlay", nullptr,
+                        ImGuiWindowFlags_NoDecoration |
+                        ImGuiWindowFlags_NoNav |
+                        ImGuiWindowFlags_NoFocusOnAppearing |
+                        ImGuiWindowFlags_AlwaysAutoResize);
+
+                    ImGui::SetCursorPos(ImVec2(0, 0));
+                    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,0,0,0));        // No background
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0,0,0,0)); // No background hover
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0,0,0,0));  // No background active
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0,0));
+
+                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,255,255,180));
+                    if (ImGui::Button("+", button_size)) {
+                        static int counter = 0;
+                        std::string name = "New Tab " + std::to_string(++counter);
+                        ImGui::DockBuilderDockWindow(name.c_str(), child->ID);
+                    }
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                        ImGui::PopStyleColor();
+                        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+                    }
+
+                    ImGui::PopStyleColor(4);
+                    ImGui::PopStyleVar();
+
+                    ImGui::End();
+                }
+            }
+        }
+    }
     ImGui::PopStyleVar(1);
 
     static bool first_time = true;
@@ -403,10 +455,12 @@ void GUI::StartRenderLoop() {
         if (text_editor__unsaved_changes) preview_flags = FILE_PREVIEW_FLAGS | ImGuiWindowFlags_UnsavedDocument;
         else preview_flags = FILE_PREVIEW_FLAGS;
 
-        if(ImGui::Begin("Preview", NULL, preview_flags)) {
+        if (ImGui::Begin("Preview", NULL, preview_flags)) {
+            PreviewWinState &state = GetPreviewState(preview_index);
             PreviewContextMenu();
-            if (preview_windows[0].contents.size > 0) {
-                PreviewWindow::RenderPreviewFor(preview_windows[0].contents.type);
+
+            if (state.contents.size > 0) {
+                PreviewWindow::RenderPreviewFor(state.contents.type);
 
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
@@ -459,9 +513,11 @@ void GUI::StartRenderLoop() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
 
-    MIX_DestroyAudio(preview_windows[0].audio.music);
+    PreviewWinState &state = GetPreviewState(preview_index);
+
+    MIX_DestroyAudio(state.audio.music);
 
     SDL_DestroyWindow(window);
-    SDL_RemoveTimer(preview_windows[0].audio.update_timer);
+    SDL_RemoveTimer(state.audio.update_timer);
     SDL_Quit();
 }

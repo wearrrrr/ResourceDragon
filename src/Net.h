@@ -3,7 +3,6 @@
 #include <optional>
 #include <cstring>
 #include <curl/curl.h>
-#include <stdexcept>
 
 struct ParsedURL {
     std::string scheme;
@@ -26,7 +25,7 @@ public:
     struct Result {
         long status = 0;
         std::string body;
-        std::string content_type;
+        std::string_view content_type;
         bool ok() const { return status >= 200 && status < 300; }
     };
 

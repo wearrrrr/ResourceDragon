@@ -1,5 +1,6 @@
 #include "state.h"
 #include "ExtractorManager.h"
+#include "util/int.h"
 
 std::map<std::string, ImFont*> font_registry;
 
@@ -14,7 +15,16 @@ PreviewWinState initial_preview_state = {
     },
 };
 
-std::vector<PreviewWinState> preview_windows = {initial_preview_state};
+usize preview_index = 0;
+
+std::deque<PreviewWinState> preview_windows = {initial_preview_state};
+
+PreviewWinState& GetPreviewState(usize index) {
+    if (index >= preview_windows.size())
+        return preview_windows[0];
+
+    return preview_windows[index];
+}
 
 ExtractorManager *extractor_manager = new ExtractorManager();
 

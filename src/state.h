@@ -107,7 +107,10 @@ extern std::map<std::string, ImFont*> font_registry;
 
 extern ThemeManager theme_manager;
 
-extern std::vector<PreviewWinState> preview_windows;
+extern usize preview_index;
+extern std::deque<PreviewWinState> preview_windows;
+PreviewWinState& GetPreviewState(usize index);
+
 extern ExtractorManager *extractor_manager;
 
 extern ArchiveBase *loaded_arc_base;

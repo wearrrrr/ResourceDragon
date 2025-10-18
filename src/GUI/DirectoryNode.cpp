@@ -228,43 +228,45 @@ void VirtualArc::ExtractEntry(std::string path) {
 void DirectoryNode::UnloadSelectedFile() {
     text_editor__unsaved_changes = false;
 
+    PreviewWinState &state = GetPreviewState(preview_index);
+
     if (default_to_hex_view) {
-        preview_windows[0].contents.type = HEX;
+        state.contents.type = HEX;
         text_viewer_override = false;
     }
 
-    if (preview_windows[0].contents.size > 0) {
-        preview_windows[0].contents.data = nullptr;
+    if (state.contents.size > 0) {
+        state.contents.data = nullptr;
     };
 
-    preview_windows[0].contents.encoding = UTF8;
+    state.contents.encoding = UTF8;
 
-    Image::UnloadTexture(preview_windows[0].texture.id);
-    Image::UnloadAnimation(&preview_windows[0].texture.anim);
+    Image::UnloadTexture(state.texture.id);
+    Image::UnloadAnimation(&state.texture.anim);
 
-    preview_windows[0].texture = {};
+    state.texture = {};
     image_preview.zoom = 1.0f;
     image_preview.pan = {0.0f, 0.0f};
-    preview_windows[0].contents = {};
-    preview_windows[0].contents.type = ContentType::UNKNOWN;
+    state.contents = {};
+    state.contents.type = ContentType::UNKNOWN;
 
-    preview_windows[0].audio.playing = false;
-    if (preview_windows[0].audio.music) {
-        MIX_StopAllTracks(preview_windows[0].audio.mixer, 0);
-        MIX_DestroyAudio(preview_windows[0].audio.music);
-        preview_windows[0].audio.music = nullptr;
+    state.audio.playing = false;
+    if (state.audio.music) {
+        MIX_StopAllTracks(state.audio.mixer, 0);
+        MIX_DestroyAudio(state.audio.music);
+        state.audio.music = nullptr;
     }
-    if (preview_windows[0].audio.buffer) {
-        free(preview_windows[0].audio.buffer);
-        preview_windows[0].audio.buffer = nullptr;
+    if (state.audio.buffer) {
+        free(state.audio.buffer);
+        state.audio.buffer = nullptr;
     };
-    preview_windows[0].audio.time = {};
-    preview_windows[0].audio.scrubberDragging = false;
-    if (preview_windows[0].audio.update_timer) {
-        SDL_RemoveTimer(preview_windows[0].audio.update_timer);
-        preview_windows[0].audio.update_timer = 0;
+    state.audio.time = {};
+    state.audio.scrubberDragging = false;
+    if (state.audio.update_timer) {
+        SDL_RemoveTimer(state.audio.update_timer);
+        state.audio.update_timer = 0;
     }
-    preview_windows[0].audio.music = nullptr;
+    state.audio.music = nullptr;
 }
 
 void DirectoryNode::Unload(Node *node) {
@@ -425,12 +427,13 @@ void DirectoryNode::ReloadRootNode(Node *node) {
 }
 
 Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
-    if (preview_windows[0].audio.music) {
-        double current_time = MIX_GetTrackPlaybackPosition(preview_windows[0].audio.track);
-        double current_time_sec = MIX_FramesToMS(preview_windows[0].audio.spec.freq, current_time) / 1000.0f;
-        if (!preview_windows[0].audio.scrubberDragging) {
-            preview_windows[0].audio.time.current_time_min = current_time_sec / 60;
-            preview_windows[0].audio.time.current_time_sec = fmod(current_time_sec, 60);
+    PreviewWinState &state = GetPreviewState(preview_index);
+    if (state.audio.music) {
+        double current_time = MIX_GetTrackPlaybackPosition(state.audio.track);
+        double current_time_sec = MIX_FramesToMS(state.audio.spec.freq, current_time) / 1000.0f;
+        if (!state.audio.scrubberDragging) {
+            state.audio.time.current_time_min = current_time_sec / 60;
+            state.audio.time.current_time_sec = fmod(current_time_sec, 60);
         }
     }
     return interval;
@@ -439,50 +442,52 @@ Uint32 TimerUpdateCB(void* userdata, Uint32 interval, Uint32 param) {
 void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size, const std::string &ext, bool isVirtualRoot, ContentType typeOverride = ContentType::UNKNOWN) {
     ContentType type;
 
+    PreviewWinState &state = GetPreviewState(preview_index);
+
     if (typeOverride != ContentType::UNKNOWN) {
         type = typeOverride;
-        preview_windows[0].contents.type = type;
+        state.contents.type = type;
 
         if (type == IMAGE) {
-            Image::LoadImage(entry_buffer, size, &preview_windows[0].texture.id, preview_windows[0].texture.size);
-            if (*preview_windows[0].texture.size.x < 256) {
-                Image::LoadImage(entry_buffer, size, &preview_windows[0].texture.id, preview_windows[0].texture.size, GL_NEAREST);
+            Image::LoadImage(entry_buffer, size, &state.texture.id, state.texture.size);
+            if (*state.texture.size.x < 256) {
+                Image::LoadImage(entry_buffer, size, &state.texture.id, state.texture.size, GL_NEAREST);
             }
         } else if (type == GIF) {
-            Image::LoadGifAnimation(entry_buffer, size, &preview_windows[0].texture.anim);
-            preview_windows[0].texture.frame = 0;
-            preview_windows[0].texture.last_frame_time = SDL_GetTicks();
+            Image::LoadGifAnimation(entry_buffer, size, &state.texture.anim);
+            state.texture.frame = 0;
+            state.texture.last_frame_time = SDL_GetTicks();
         } else if (type == AUDIO) {
             if (isVirtualRoot) {
-                preview_windows[0].audio.buffer = (u8*)malloc(size);
-                memcpy(preview_windows[0].audio.buffer, entry_buffer, size);
-                SDL_IOStream *snd_io = SDL_IOFromMem(preview_windows[0].audio.buffer, size);
-                preview_windows[0].audio.music = MIX_LoadAudio_IO(preview_windows[0].audio.mixer, snd_io, true, true);
-                if (!preview_windows[0].audio.music) {
+                state.audio.buffer = (u8*)malloc(size);
+                memcpy(state.audio.buffer, entry_buffer, size);
+                SDL_IOStream *snd_io = SDL_IOFromMem(state.audio.buffer, size);
+                state.audio.music = MIX_LoadAudio_IO(state.audio.mixer, snd_io, true, true);
+                if (!state.audio.music) {
                     Logger::error("Failed to load audio: {}", SDL_GetError());
-                    preview_windows[0].audio.buffer = nullptr;
+                    state.audio.buffer = nullptr;
                 }
             } else {
-                preview_windows[0].audio.music = MIX_LoadAudio(preview_windows[0].audio.mixer, node->FullPath.data(), true);
+                state.audio.music = MIX_LoadAudio(state.audio.mixer, node->FullPath.data(), true);
             }
 
-            if (preview_windows[0].audio.music) {
-                MIX_SetTrackAudio(preview_windows[0].audio.track, preview_windows[0].audio.music);
-                MIX_PlayTrack(preview_windows[0].audio.track, 1);
-                if (!MIX_GetAudioFormat(preview_windows[0].audio.music, &preview_windows[0].audio.spec)) {
+            if (state.audio.music) {
+                MIX_SetTrackAudio(state.audio.track, state.audio.music);
+                MIX_PlayTrack(state.audio.track, 1);
+                if (!MIX_GetAudioFormat(state.audio.music, &state.audio.spec)) {
                     Logger::error("Failed to get audio format: {}", SDL_GetError());
-                    MIX_DestroyAudio(preview_windows[0].audio.music);
+                    MIX_DestroyAudio(state.audio.music);
                 }
-                double duration_frames = MIX_GetAudioDuration(preview_windows[0].audio.music);
-                double duration_sec = MIX_FramesToMS(preview_windows[0].audio.spec.freq, duration_frames) / 1000.0;
-                preview_windows[0].audio.playing = true;
-                preview_windows[0].audio.time.total_time_min = duration_sec / 60;
-                preview_windows[0].audio.time.total_time_sec = fmod(duration_sec, 60.0);
-                preview_windows[0].audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+                double duration_frames = MIX_GetAudioDuration(state.audio.music);
+                double duration_sec = MIX_FramesToMS(state.audio.spec.freq, duration_frames) / 1000.0;
+                state.audio.playing = true;
+                state.audio.time.total_time_min = duration_sec / 60;
+                state.audio.time.total_time_sec = fmod(duration_sec, 60.0);
+                state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
             }
         } else if (type == ELF) {
             auto *elfFile = new ElfFile(entry_buffer, size);
-            preview_windows[0].contents.elfFile = elfFile;
+            state.contents.elfFile = elfFile;
         } else if (type == TEXT || type == HEX) {
             auto text = std::string((char*)entry_buffer, size);
             editor.SetText(text);
@@ -494,63 +499,60 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
 
     // Automatic detection
     if (Image::IsImageExtension(ext)) {
-        Image::LoadImage(entry_buffer, size, &preview_windows[0].texture.id, preview_windows[0].texture.size);
-        if (*preview_windows[0].texture.size.x < 256) {
-            Image::LoadImage(entry_buffer, size, &preview_windows[0].texture.id, preview_windows[0].texture.size, GL_NEAREST);
+        Image::LoadImage(entry_buffer, size, &state.texture.id, state.texture.size);
+        if (*state.texture.size.x < 256) {
+            Image::LoadImage(entry_buffer, size, &state.texture.id, state.texture.size, GL_NEAREST);
         }
         type = IMAGE;
-        preview_windows[0].contents.type = type;
+        state.contents.type = type;
     } else if (Image::IsGif(ext)) {
-        Image::LoadGifAnimation(entry_buffer, size, &preview_windows[0].texture.anim);
-        preview_windows[0].contents.type = GIF;
-        preview_windows[0].texture.frame = 0;
-        preview_windows[0].texture.last_frame_time = SDL_GetTicks();
+        Image::LoadGifAnimation(entry_buffer, size, &state.texture.anim);
+        state.contents.type = GIF;
+        state.texture.frame = 0;
+        state.texture.last_frame_time = SDL_GetTicks();
     } else if (Audio::IsAudio(ext)) {
         type = AUDIO;
-        preview_windows[0].contents.type = type;
+        state.contents.type = type;
         if (isVirtualRoot) {
-            preview_windows[0].audio.buffer = (u8*)malloc(size);
-            memcpy(preview_windows[0].audio.buffer, entry_buffer, size);
-            SDL_IOStream *snd_io = SDL_IOFromMem(preview_windows[0].audio.buffer, size);
-            preview_windows[0].audio.music = MIX_LoadAudio_IO(preview_windows[0].audio.mixer, snd_io, true, true);
-            if (!preview_windows[0].audio.music) {
+            state.audio.buffer = (u8*)malloc(size);
+            memcpy(state.audio.buffer, entry_buffer, size);
+            SDL_IOStream *snd_io = SDL_IOFromMem(state.audio.buffer, size);
+            state.audio.music = MIX_LoadAudio_IO(state.audio.mixer, snd_io, true, true);
+            if (!state.audio.music) {
                 Logger::error("Failed to load audio: {}", SDL_GetError());
-                preview_windows[0].audio.buffer = nullptr;
+                state.audio.buffer = nullptr;
             }
         } else {
-            preview_windows[0].audio.music = MIX_LoadAudio(preview_windows[0].audio.mixer, node->FullPath.data(), true);
+            state.audio.music = MIX_LoadAudio(state.audio.mixer, node->FullPath.data(), true);
         }
 
-        if (preview_windows[0].audio.music) {
-            MIX_SetTrackAudio(preview_windows[0].audio.track, preview_windows[0].audio.music);
-            MIX_PlayTrack(preview_windows[0].audio.track, 1);
-            if (!MIX_GetAudioFormat(preview_windows[0].audio.music, &preview_windows[0].audio.spec)) {
+        if (state.audio.music) {
+            MIX_SetTrackAudio(state.audio.track, state.audio.music);
+            MIX_PlayTrack(state.audio.track, 1);
+            if (!MIX_GetAudioFormat(state.audio.music, &state.audio.spec)) {
                 Logger::error("Failed to get audio format: {}", SDL_GetError());
-                MIX_DestroyAudio(preview_windows[0].audio.music);
+                MIX_DestroyAudio(state.audio.music);
             }
-            double duration_frames = MIX_GetAudioDuration(preview_windows[0].audio.music);
-            double duration_sec = MIX_FramesToMS(preview_windows[0].audio.spec.freq, duration_frames) / 1000.0;
-            preview_windows[0].audio.playing = true;
-            preview_windows[0].audio.time.total_time_min = duration_sec / 60;
-            preview_windows[0].audio.time.total_time_sec = fmod(duration_sec, 60.0);
-            preview_windows[0].audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
+            double duration_frames = MIX_GetAudioDuration(state.audio.music);
+            double duration_sec = MIX_FramesToMS(state.audio.spec.freq, duration_frames) / 1000.0;
+            state.audio.playing = true;
+            state.audio.time.total_time_min = duration_sec / 60;
+            state.audio.time.total_time_sec = fmod(duration_sec, 60.0);
+            state.audio.update_timer = SDL_AddTimer(1000, TimerUpdateCB, nullptr);
         }
     } else if (ElfFile::IsValid(entry_buffer)) {
         auto *elfFile = new ElfFile(entry_buffer, size);
-        preview_windows[0].contents.elfFile = elfFile;
-        type = ELF;
-        preview_windows[0].contents.type = type;
+        state.contents.elfFile = elfFile;
+        state.contents.type = ELF;
     } else {
         // Default to text if size is less than 3MB
         auto text = std::string((char*)entry_buffer, size);
         editor.SetText(text);
         editor.SetTextChanged(false);
         if (size < 3000000) {
-            type = TEXT;
-            preview_windows[0].contents.type = type;
+            state.contents.type = TEXT;
         } else {
-            type = HEX;
-            preview_windows[0].contents.type = type;
+            state.contents.type = HEX;
         }
     }
 
@@ -558,6 +560,7 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
 }
 
 void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeOverride = ContentType::UNKNOWN) {
+    PreviewWinState &state = GetPreviewState(preview_index);
     if (!result.success) {
         if (!result.error_message.empty()) {
             ui_error = UIError::CreateError(result.error_message.data(), "Failed to open file!");
@@ -575,7 +578,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeO
     }
 
     if (typeOverride != ContentType::UNKNOWN) {
-        preview_windows[0].contents = {
+        state.contents = {
             .data = result.entry_buffer,
             .size = result.size,
             .path = result.node->FullPath,
@@ -591,7 +594,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeO
 
     if (format_list.size() <= 0) {
         // This is a regular file preview (not an archive)
-        preview_windows[0].contents = {
+        state.contents = {
             .data = result.entry_buffer,
             .size = result.size,
             .path = result.node->FullPath,

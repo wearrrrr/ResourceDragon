@@ -48,7 +48,8 @@ bool PlaybackScrubber(const char *id, float *progress, float width, bool interac
 }
 
 void PreviewWindow::RenderImagePreview() {
-    PWinStateTexture *texture = &preview_windows[0].texture;
+    PreviewWinState &state = GetPreviewState(preview_index);
+    PWinStateTexture *texture = &state.texture;
     ImGui::Text("Zoom: %.2fx", image_preview.zoom);
     ImVec2 region_size = ImGui::GetContentRegionAvail();
     ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -86,7 +87,8 @@ void PreviewWindow::RenderImagePreview() {
 }
 
 void PreviewWindow::RenderGifPreview() {
-    PWinStateTexture *texture = &preview_windows[0].texture;
+    PreviewWinState &state = GetPreviewState(preview_index);
+    PWinStateTexture *texture = &state.texture;
     GifAnimation &anim = texture->anim;
     ImVec2 image_size = ImVec2(anim.width, anim.height);
     ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x - image_size.x) * 0.5f, 50));
@@ -147,24 +149,25 @@ void SelectableCopyableText(const std::string& text) {
 }
 
 void PreviewWindow::RenderAudioPlayer() {
-    if (preview_windows[0].audio.music) {
-        ImGui::Text("Playing: %s", preview_windows[0].contents.path.c_str());
-        TimeInfo time = preview_windows[0].audio.time;
-        if (preview_windows[0].audio.playing) {
+    PreviewWinState &state = GetPreviewState(preview_index);
+    if (state.audio.music) {
+        ImGui::Text("Playing: %s", state.contents.path.c_str());
+        TimeInfo time = state.audio.time;
+        if (state.audio.playing) {
             if (ImGui::Button(PAUSE_ICON, {40, 0})) {
-                MIX_PauseTrack(preview_windows[0].audio.track);
-                preview_windows[0].audio.playing = false;
+                MIX_PauseTrack(state.audio.track);
+                state.audio.playing = false;
             }
         } else {
             if (ImGui::Button(PLAY_ICON, {40, 0})) {
-                MIX_ResumeTrack(preview_windows[0].audio.track);
-                preview_windows[0].audio.playing = true;
+                MIX_ResumeTrack(state.audio.track);
+                state.audio.playing = true;
             }
         }
         ImGui::SameLine();
         ImGui::BeginGroup();
         if (ImGui::Button(RW_ICON, {40, 0})) {
-            auto track = preview_windows[0].audio.track;
+            auto track = state.audio.track;
             Sint64 curr_pos = MIX_GetTrackPlaybackPosition(track);
             if (MIX_TrackFramesToMS(track, curr_pos) < 5000) {
                 MIX_SetTrackPlaybackPosition(track, 0);
@@ -181,8 +184,8 @@ void PreviewWindow::RenderAudioPlayer() {
             time.total_time_sec
         );
         ImGui::SameLine();
-        const double current_pos = MIX_FramesToMS(preview_windows[0].audio.spec.freq, MIX_GetTrackPlaybackPosition(preview_windows[0].audio.track));
-        int total_time = MIX_FramesToMS(preview_windows[0].audio.spec.freq, MIX_GetAudioDuration(preview_windows[0].audio.music));
+        const double current_pos = MIX_FramesToMS(state.audio.spec.freq, MIX_GetTrackPlaybackPosition(state.audio.track));
+        int total_time = MIX_FramesToMS(state.audio.spec.freq, MIX_GetAudioDuration(state.audio.music));
         if (total_time > 0.0) {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
@@ -194,28 +197,28 @@ void PreviewWindow::RenderAudioPlayer() {
             bool isDragging = PlaybackScrubber("AudioScrubber", &scrubberProgress, (ImGui::GetWindowWidth() / 2.0f));
 
             if (isDragging) {
-                if (!preview_windows[0].audio.scrubberDragging)
-                    MIX_PauseTrack(preview_windows[0].audio.track);
+                if (!state.audio.scrubberDragging)
+                    MIX_PauseTrack(state.audio.track);
 
                 int new_pos_ms = scrubberProgress * total_time;
                 timeToSetOnRelease = new_pos_ms;
 
                 int new_pos_sec = new_pos_ms / 1000.0f;
-                preview_windows[0].audio.time.current_time_min = new_pos_sec / 60;
-                preview_windows[0].audio.time.current_time_sec = new_pos_sec % 60;
+                state.audio.time.current_time_min = new_pos_sec / 60;
+                state.audio.time.current_time_sec = new_pos_sec % 60;
 
-                preview_windows[0].audio.scrubberDragging = true;
+                state.audio.scrubberDragging = true;
             }
 
-            if (preview_windows[0].audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                MIX_SetTrackPlaybackPosition(preview_windows[0].audio.track, MIX_MSToFrames(preview_windows[0].audio.spec.freq, timeToSetOnRelease));
-                MIX_ResumeTrack(preview_windows[0].audio.track);
-                preview_windows[0].audio.scrubberDragging = false;
+            if (state.audio.scrubberDragging && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+                MIX_SetTrackPlaybackPosition(state.audio.track, MIX_MSToFrames(state.audio.spec.freq, timeToSetOnRelease));
+                MIX_ResumeTrack(state.audio.track);
+                state.audio.scrubberDragging = false;
             }
         }
         ImGui::SameLine(0.0f, 16.0f);
         if (ImGui::Button(FF_ICON, {40, 0})) {
-            auto track = preview_windows[0].audio.track;
+            auto track = state.audio.track;
             Sint64 curr_pos = MIX_GetTrackPlaybackPosition(track);
             curr_pos += MIX_TrackMSToFrames(track, 5000);
             MIX_SetTrackPlaybackPosition(track, curr_pos);
@@ -223,22 +226,22 @@ void PreviewWindow::RenderAudioPlayer() {
         ImGui::EndGroup();
 
         ImGui::SameLine();
-        bool looping = preview_windows[0].audio.shouldLoop;
+        bool looping = state.audio.shouldLoop;
 
         if (looping) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(117, 255, 154, 255));
         if (ImGui::Button(LOOP_ICON, {40, 0})) {
-            preview_windows[0].audio.shouldLoop = !preview_windows[0].audio.shouldLoop;
+            state.audio.shouldLoop = !state.audio.shouldLoop;
         }
         if (looping) ImGui::PopStyleColor();
 
         ImGui::SameLine();
         if (ImGui::Button(STOP_ICON, {40, 0})) {
-            MIX_DestroyTrack(preview_windows[0].audio.track);
+            MIX_DestroyTrack(state.audio.track);
             DirectoryNode::UnloadSelectedFile();
-            preview_windows[0].audio.playing = false;
-            SDL_RemoveTimer(preview_windows[0].audio.update_timer);
-            preview_windows[0].audio.update_timer = 0;
-            preview_windows[0].audio.time = {
+            state.audio.playing = false;
+            SDL_RemoveTimer(state.audio.update_timer);
+            state.audio.update_timer = 0;
+            state.audio.time = {
                 .total_time_min = 0,
                 .total_time_sec = 0,
                 .current_time_min = 0,
@@ -246,12 +249,12 @@ void PreviewWindow::RenderAudioPlayer() {
             };
         }
 
-        if (ImGui::SliderInt("Music Volume", &preview_windows[0].audio.volumePercent, 0, 100, "%d%%")) {
-            float sdlVolume = preview_windows[0].audio.volumePercent / 100.0f;
-            MIX_SetTrackGain(preview_windows[0].audio.track, sdlVolume);
+        if (ImGui::SliderInt("Music Volume", &state.audio.volumePercent, 0, 100, "%d%%")) {
+            float sdlVolume = state.audio.volumePercent / 100.0f;
+            MIX_SetTrackGain(state.audio.track, sdlVolume);
         }
 
-        auto properties = MIX_GetAudioProperties(preview_windows[0].audio.music);
+        auto properties = MIX_GetAudioProperties(state.audio.music);
 
         std::string titleTag = std::string(SDL_GetStringProperty(properties, MIX_PROP_METADATA_TITLE_STRING, "Unknown"));
         if (!Text::trim(titleTag).empty())
@@ -274,7 +277,7 @@ void PreviewWindow::RenderAudioPlayer() {
             .channels = 2,
             .freq = 44100,
         };
-        if (MIX_GetAudioFormat(preview_windows[0].audio.music, &spec)) {
+        if (MIX_GetAudioFormat(state.audio.music, &spec)) {
             ImGui::Text("Sample Rate: %d kHz", spec.freq / 1000);
             // If there are more than 2 channels, this will report as stereo
             // eventually i'll do something about this but im lazy :)
@@ -284,8 +287,9 @@ void PreviewWindow::RenderAudioPlayer() {
 }
 
 void PreviewWindow::RenderElfPreview() {
-    auto elfFile = preview_windows[0].contents.elfFile;
-    ImGui::Text("Path: %s", preview_windows[0].contents.path.c_str());
+    PreviewWinState &state = GetPreviewState(preview_index);
+    auto elfFile = state.contents.elfFile;
+    ImGui::Text("Path: %s", state.contents.path.c_str());
     ImGui::Text("ELF Class: %s", elfFile->GetElfClass().c_str());
     if (auto elfHeader = elfFile->GetElf64Header()) {
         ImGui::Text("Type: %s", elfFile->GetElfType(elfHeader->e_type).c_str());
@@ -308,26 +312,27 @@ void PreviewWindow::RenderElfPreview() {
 static const char *encodings[] = {"UTF-8", "UTF-16", "Shift-JIS"};
 
 void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
+    PreviewWinState &state = GetPreviewState(preview_index);
     if (ImGui::Button("Hex View")) {
-        preview_windows[0].contents.type = HEX;
+        state.contents.type = HEX;
         text_viewer_override = false;
     }
     ImGui::SameLine();
     if (ImGui::Button("Markdown")) {
-        preview_windows[0].contents.type = MARKDOWN;
+        state.contents.type = MARKDOWN;
         text_viewer_override = false;
     }
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
     ImGui::Text("Content Encoding");
     ImGui::SameLine();
-    int *encoding = (int*)&preview_windows[0].contents.encoding;
+    int *encoding = (int*)&state.contents.encoding;
     ImGui::Combo("##EncodingCombo", encoding, encodings, SIZEOF_ARRAY(encodings));
 
 
-    if (currentEncoding != encodings[preview_windows[0].contents.encoding]) {
-        TextConverter::SetCurrentEncoding(encodings[preview_windows[0].contents.encoding]);
-        auto text = std::string((char*)preview_windows[0].contents.data, preview_windows[0].contents.size);
+    if (currentEncoding != encodings[state.contents.encoding]) {
+        TextConverter::SetCurrentEncoding(encodings[state.contents.encoding]);
+        auto text = std::string((char*)state.contents.data, state.contents.size);
         editor.SetText(TextConverter::convert_to_utf8(text));
         editor.SetTextChanged(false);
     }
@@ -339,11 +344,17 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
         if (!text.empty() && text.back() == '\n') {
             text.pop_back();
         }
-        FILE *file = fopen(preview_windows[0].contents.path.c_str(), "wb");
-        fwrite(text.c_str(), text.size(), sizeof(u8), file);
-        fclose(file);
-        ReloadRootNode(rootNode);
-        text_editor__unsaved_changes = false;
+        FILE *file = fopen(state.contents.path.c_str(), "wb");
+        if (file) {
+            fwrite(text.c_str(), text.size(), sizeof(u8), file);
+            fclose(file);
+            ReloadRootNode(rootNode);
+            text_editor__unsaved_changes = false;
+        } else {
+            std::string error_message = "Failed to open file for writing: ";
+            error_message += state.contents.path;
+            ImGui::OpenPopup("Error");
+        }
     }
     if (editor.IsTextChanged()) {
         text_editor__unsaved_changes = true;
@@ -353,10 +364,11 @@ void PreviewWindow::RenderTextViewer(ImGuiIO &io) {
 }
 
 void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
+    PreviewWinState &state = GetPreviewState(preview_index);
     if (ImGui::Button("Text View")) {
-        preview_windows[0].contents.type = ContentType::TEXT;
+        state.contents.type = ContentType::TEXT;
         // don't like that I have to do this here, but whatever
-        editor.SetText(std::string((char*)preview_windows[0].contents.data, preview_windows[0].contents.size));
+        editor.SetText(std::string((char*)state.contents.data, state.contents.size));
         editor.SetTextChanged(false);
         text_viewer_override = true;
     }
@@ -368,17 +380,18 @@ void PreviewWindow::RenderHexEditor(ImGuiIO &io) {
         font = pos->second;
     }
     ImGui::PushFont(font);
-    hex_editor.DrawContents(preview_windows[0].contents.data, preview_windows[0].contents.size);
+    hex_editor.DrawContents(state.contents.data, state.contents.size);
     ImGui::PopFont();
 }
 
 void PreviewWindow::RenderMarkdownEditor(ImGuiIO &io) {
+    PreviewWinState &state = GetPreviewState(preview_index);
     if (ImGui::Button("Text View")) {
-        preview_windows[0].contents.type = ContentType::TEXT;
+        state.contents.type = ContentType::TEXT;
         // don't like that I have to do this here, but whatever
-        editor.SetText(std::string((char*)preview_windows[0].contents.data, preview_windows[0].contents.size));
+        editor.SetText(std::string((char*)state.contents.data, state.contents.size));
         editor.SetTextChanged(false);
         text_viewer_override = true;
     }
-    markdown((const char*)preview_windows[0].contents.data, (const char*)preview_windows[0].contents.data + preview_windows[0].contents.size);
+    markdown((const char*)state.contents.data, (const char*)state.contents.data + state.contents.size);
 }
