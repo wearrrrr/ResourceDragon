@@ -75,7 +75,7 @@ void RenderFBContextMenu(ImGuiIO *io) {
             ImGui::Text("This cannot be undone!");
             if (ImGui::Button("Confirm", {100, 0})) {
                 fs::remove_all(fb__selectedItem->FullPath);
-                if (fb__selectedItem->FullPath == preview_state.contents.path) {
+                if (fb__selectedItem->FullPath == preview_windows[0].contents.path) {
                     DirectoryNode::UnloadSelectedFile();
                 }
                 ReloadRootNode(rootNode);
@@ -93,11 +93,11 @@ void RenderFBContextMenu(ImGuiIO *io) {
 void PreviewContextMenu() {
     if (ImGui::BeginPopupContextItem("PreviewItemContextMenu")) {
         if (ImGui::MenuItem("Copy to Clipboard")) {
-            if (preview_state.contents.size > 0) {
-                if (preview_state.contents.type == ContentType::IMAGE) {
-                    Clipboard::CopyBufferToClipboard(preview_state.contents.data, preview_state.contents.size, preview_state.contents.fileName);
+            if (preview_windows[0].contents.size > 0) {
+                if (preview_windows[0].contents.type == ContentType::IMAGE) {
+                    Clipboard::CopyBufferToClipboard(preview_windows[0].contents.data, preview_windows[0].contents.size, preview_windows[0].contents.fileName);
                 } else {
-                    Clipboard::CopyFilePathToClipboard(preview_state.contents.path);
+                    Clipboard::CopyFilePathToClipboard(preview_windows[0].contents.path);
                 }
             }
         }
@@ -405,8 +405,8 @@ void GUI::StartRenderLoop() {
 
         if(ImGui::Begin("Preview", NULL, preview_flags)) {
             PreviewContextMenu();
-            if (preview_state.contents.size > 0) {
-                PreviewWindow::RenderPreviewFor(preview_state.contents.type);
+            if (preview_windows[0].contents.size > 0) {
+                PreviewWindow::RenderPreviewFor(preview_windows[0].contents.type);
 
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     ImGui::OpenPopup("PreviewItemContextMenu");
@@ -459,9 +459,9 @@ void GUI::StartRenderLoop() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
 
-    MIX_DestroyAudio(preview_state.audio.music);
+    MIX_DestroyAudio(preview_windows[0].audio.music);
 
     SDL_DestroyWindow(window);
-    SDL_RemoveTimer(preview_state.audio.update_timer);
+    SDL_RemoveTimer(preview_windows[0].audio.update_timer);
     SDL_Quit();
 }

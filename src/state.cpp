@@ -5,7 +5,7 @@ std::map<std::string, ImFont*> font_registry;
 
 ThemeManager theme_manager;
 
-PreviewWinState preview_state = {
+PreviewWinState initial_preview_state = {
     .contents {
         .type = ContentType::UNKNOWN
     },
@@ -13,6 +13,9 @@ PreviewWinState preview_state = {
         .volumePercent = 100
     },
 };
+
+std::vector<PreviewWinState> preview_windows = {initial_preview_state};
+
 ExtractorManager *extractor_manager = new ExtractorManager();
 
 ArchiveBase *loaded_arc_base = nullptr;
