@@ -67,6 +67,7 @@ struct FileLoadingResult {
     bool isVirtualRoot = false;
     Entry* selected_entry = nullptr;
     ContentType typeOverride = ContentType::UNKNOWN;
+    usize tab_index = 0;
 };
 
 static std::atomic<bool> file_loading_in_progress = false;
@@ -560,7 +561,7 @@ void InitializePreviewData(DirectoryNode::Node *node, u8 *entry_buffer, u64 size
 }
 
 void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeOverride = ContentType::UNKNOWN) {
-    PreviewWinState &state = GetPreviewState(preview_index);
+    PreviewWinState &state = GetPreviewState(result.tab_index);
     if (!result.success) {
         if (!result.error_message.empty()) {
             ui_error = UIError::CreateError(result.error_message.data(), "Failed to open file!");
@@ -647,12 +648,13 @@ void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeO
     rootNode = DirectoryNode::CreateTreeFromPath(result.node->FullPath);
 }
 
-void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
+void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride, usize tab_index) {
     if (file_loading_in_progress.load()) {
         Logger::warn("File loading already in progress, ignoring request for {}", node->FileName.c_str());
         return;
     }
 
+    preview_index = tab_index;
     UnloadSelectedFile();
 
     std::string filename = node->FileName;
@@ -663,18 +665,18 @@ void DirectoryNode::HandleFileClick(Node *node, ContentType typeOverride) {
     fb__loading_file_name = filename;
     file_loading_in_progress = true;
 
-    std::thread loading_thread([node, ext, isVirtualRoot, typeOverride]() {
+    std::thread loading_thread([node, ext, isVirtualRoot, typeOverride, tab_index]() {
         FileLoadingResult result;
         result.node = node;
         result.ext = ext;
         result.isVirtualRoot = isVirtualRoot;
         result.typeOverride = typeOverride;
+        result.tab_index = tab_index;
 
 #ifndef _WIN32
         try {
 #endif
             if (isVirtualRoot && !node->IsDirectory) {
-                // Don't hold the mutex for the entire operation, just for the critical sections
                 Entry* entry_to_process = nullptr;
                 {
                     std::lock_guard<std::mutex> lock(file_loading_mutex);
@@ -804,7 +806,7 @@ void DirectoryNode::Display(Node *node) {
                 }
             }
         } else {
-            HandleFileClick(node);
+            HandleFileClick(node, ContentType::UNKNOWN, preview_index);
         }
         if (rootNode->FullPath.ends_with("/")) {
             SetFilePath(rootNode->FullPath);

@@ -28,7 +28,7 @@ namespace DirectoryNode {
 
     bool AddNodes(Node *node, const fs::path &parentPath);
     void ReloadRootNode(Node *node);
-    void HandleFileClick(Node *node, ContentType typeOverride = ContentType::UNKNOWN);
+    void HandleFileClick(Node *node, ContentType typeOverride = ContentType::UNKNOWN, usize tab_index = preview_index);
     void Display(Node *node);
     void Setup(Node *node);
     void UnloadSelectedFile();
@@ -40,11 +40,6 @@ namespace DirectoryNode {
 }
 
 void SetFilePath(const std::string& file_path);
-
-inline DirectoryNode::Node *rootNode;
-inline DirectoryNode::Node *fb__selectedItem;
-
-
 
 namespace VirtualArc {
     bool ExtractEntry(const fs::path &path, Entry *entry, fs::path outputPath = {});

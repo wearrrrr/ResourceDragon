@@ -18,6 +18,7 @@ PreviewWinState initial_preview_state = {
 usize preview_index = 0;
 
 std::deque<PreviewWinState> preview_windows = {initial_preview_state};
+std::vector<std::string> preview_tabs = {"Preview"};
 
 PreviewWinState& GetPreviewState(usize index) {
     if (index >= preview_windows.size())
@@ -31,6 +32,9 @@ ExtractorManager *extractor_manager = new ExtractorManager();
 ArchiveBase *loaded_arc_base = nullptr;
 u8 *current_buffer = nullptr;
 Entry *selected_entry = nullptr;
+
+DirectoryNode::Node *rootNode = nullptr;
+DirectoryNode::Node *fb__selectedItem = nullptr;
 
 PImageView image_preview = {
     .zoom = 1.0f,

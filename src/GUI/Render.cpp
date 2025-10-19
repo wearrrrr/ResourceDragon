@@ -12,6 +12,9 @@
 #include "state.h"
 #include <util/Logger.h>
 
+usize last_preview_index = (usize)-1;
+std::string pending_focus_tab_name;
+
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -23,16 +26,16 @@ void RenderFBContextMenu(ImGuiIO *io) {
         if (ImGui::BeginMenu("Open As...")) {
             // Open fb__selectedItem as whatever is selected.
             if (ImGui::MenuItem("Text")) {
-                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::TEXT);
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::TEXT, preview_index);
             }
             if (ImGui::MenuItem("Hex")) {
-                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::HEX);
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::HEX, preview_index);
             }
             if (ImGui::MenuItem("Image")) {
-                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::IMAGE);
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::IMAGE, preview_index);
             }
             if (ImGui::MenuItem("Audio")) {
-                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::AUDIO);
+                DirectoryNode::HandleFileClick(fb__selectedItem, ContentType::AUDIO, preview_index);
             }
             ImGui::EndMenu();
         }
@@ -165,6 +168,8 @@ ImFont *LoadFont(ImGuiIO& io, fs::path font_path, const char *font_name, const I
     return LoadFont(io, font_path, font_name, ranges, &cfg);
 }
 
+static int tabCount = 0;
+
 void ConfigureDockSpace(bool* p_open) {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
@@ -196,11 +201,17 @@ void ConfigureDockSpace(bool* p_open) {
         for (int i = 0; i < ctx->Nodes.Data.Size; i++) {
             if (ImGuiDockNode* child = (ImGuiDockNode*)ctx->Nodes.Data[i].val_p) {
                 if (child && child->TabBar && child->IsVisible) {
-                    ImRect tab_rect = child->TabBar->BarRect;
-                    ImVec2 button_size(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+                    ImGuiTabBar* tab_bar = child->TabBar;
+                    ImRect tab_rect = tab_bar->BarRect;
+
+                    float height = tab_rect.GetHeight();
+                    ImVec2 button_size(height * 0.8f, height * 0.8f);
+                    ImGuiTabItem* last_tab = &tab_bar->Tabs.back();
+                    float last_tab_end_x = last_tab->Offset + last_tab->Width;
+
                     ImVec2 button_pos(
-                        tab_rect.Max.x - button_size.x - 2,
-                        tab_rect.Min.y - 1
+                        tab_rect.Min.x + last_tab_end_x + ImGui::GetStyle().ItemSpacing.x,
+                        tab_rect.Min.y + (height - button_size.y) * 0.5f
                     );
 
                     ImDrawList* draw_list = ImGui::GetForegroundDrawList();
@@ -215,16 +226,22 @@ void ConfigureDockSpace(bool* p_open) {
                         ImGuiWindowFlags_AlwaysAutoResize);
 
                     ImGui::SetCursorPos(ImVec2(0, 0));
-                    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,0,0,0));        // No background
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0,0,0,0)); // No background hover
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0,0,0,0));  // No background active
+                    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0,0,0,0));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0,0,0,0));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0,0,0,0));
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0,0));
 
                     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255,255,255,180));
                     if (ImGui::Button("+", button_size)) {
-                        static int counter = 0;
-                        std::string name = "New Tab " + std::to_string(++counter);
+                        std::string name = fmt::format("Preview###Preview_{}", tabCount);
                         ImGui::DockBuilderDockWindow(name.c_str(), child->ID);
+                        preview_tabs.push_back(name);
+                        preview_windows.push_back(PreviewWinState{});
+
+                        preview_index = preview_tabs.size() - 1;
+                        last_preview_index = preview_index;
+                        ImGui::DockBuilderDockWindow(name.c_str(), child->ID);
+                        pending_focus_tab_name = name;
                     }
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -256,7 +273,6 @@ void ConfigureDockSpace(bool* p_open) {
 
         ImGui::DockBuilderDockWindow("Directory Tree", dock_left);
         ImGui::DockBuilderDockWindow("Preview", dock_right);
-
 
         ImGui::DockBuilderFinish(root_id);
     }
@@ -455,21 +471,61 @@ void GUI::StartRenderLoop() {
         if (text_editor__unsaved_changes) preview_flags = FILE_PREVIEW_FLAGS | ImGuiWindowFlags_UnsavedDocument;
         else preview_flags = FILE_PREVIEW_FLAGS;
 
-        if (ImGui::Begin("Preview", NULL, preview_flags)) {
-            PreviewWinState &state = GetPreviewState(preview_index);
+        for (size_t i = 0; i < preview_tabs.size(); ) {
+            auto &tab = preview_tabs[i];
+            bool open = true;
+
+            bool is_first_tab = (i == 0);
+            if (is_first_tab)
+                ImGui::Begin(tab.c_str(), nullptr, FILE_PREVIEW_FLAGS);
+            else
+                ImGui::Begin(tab.c_str(), &open, FILE_PREVIEW_FLAGS);
+
+            if (!pending_focus_tab_name.empty() && pending_focus_tab_name == tab) {
+                ImGui::SetWindowFocus();
+                preview_index = i;
+                last_preview_index = i;
+                pending_focus_tab_name.clear();
+            }
+
+            if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+                preview_index = i;
+
+            PreviewWinState &state = GetPreviewState(i);
             PreviewContextMenu();
+
+            if (preview_index == i && last_preview_index != preview_index) {
+                if ((state.contents.type == TEXT || state.contents.type == MARKDOWN) &&
+                    state.contents.data && state.contents.size > 0) {
+                    editor.SetText(std::string((char*)state.contents.data, state.contents.size));
+                    editor.SetTextChanged(false);
+                }
+                last_preview_index = preview_index;
+            }
 
             if (state.contents.size > 0) {
                 PreviewWindow::RenderPreviewFor(state.contents.type);
-
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     ImGui::OpenPopup("PreviewItemContextMenu");
-                }
             } else {
                 ImGui::Text("No file selected.");
             }
+
+            ImGui::End();
+
+            if (!is_first_tab && !open) {
+                preview_tabs.erase(preview_tabs.begin() + i);
+                preview_windows.erase(preview_windows.begin() + i);
+
+                if (preview_index > 0 && preview_index >= i)
+                    preview_index--;
+                if (last_preview_index > 0 && last_preview_index >= i)
+                    last_preview_index--;
+            } else {
+                ++i;
+            }
         }
-        ImGui::End();
+
 
         ImGui::SetNextWindowPos(
             ImVec2(window_size.x - 375.0f, window_size.y),

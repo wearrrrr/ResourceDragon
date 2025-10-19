@@ -109,6 +109,7 @@ extern ThemeManager theme_manager;
 
 extern usize preview_index;
 extern std::deque<PreviewWinState> preview_windows;
+extern std::vector<std::string> preview_tabs;
 PreviewWinState& GetPreviewState(usize index);
 
 extern ExtractorManager *extractor_manager;
@@ -116,6 +117,12 @@ extern ExtractorManager *extractor_manager;
 extern ArchiveBase *loaded_arc_base;
 extern u8 *current_buffer;
 extern Entry *selected_entry;
+
+namespace DirectoryNode {
+    struct Node;
+}
+extern DirectoryNode::Node *rootNode;
+extern DirectoryNode::Node *fb__selectedItem;
 
 inline TextEditor editor;
 inline MemoryEditor hex_editor;
