@@ -8,7 +8,7 @@ MINGW=OFF
 EMSCRIPTEN=OFF
 ALPINE=OFF
 
-BUILD_DIR=build
+BUILD_DIR=build/release
 
 C=clang
 CXX=clang++
@@ -17,21 +17,19 @@ for arg in "$@"; do
     if [ "$arg" = "-debug" ]; then
         printf "Building as debug...\n"
         DEBUG=ON
-    else if [ "$arg" = "-mingw" ]; then
+        BUILD_DIR=build/debug
+    elif [ "$arg" = "-mingw" ]; then
         printf "Building targeting Mingw...\n"
         MINGW=ON
         BUILD_DIR=build-mingw
-    else if [ "$arg" = "-emscripten" ]; then
+    elif [ "$arg" = "-emscripten" ]; then
         printf "Building targeting Emscripten...\n"
         EMSCRIPTEN=ON
         BUILD_DIR=build-emscripten
-    else if [ "$arg" = "-alpine" ]; then
+    elif [ "$arg" = "-alpine" ]; then
         printf "Building targeting Alpine...\n"
         ALPINE=ON
         BUILD_DIR=build-alpine
-    fi
-    fi
-    fi
     fi
 done
 
@@ -49,9 +47,9 @@ else
 
     cd ${BUILD_DIR}
     ninja -j$NPROC
-    cd ..
+    cd ../../
 
-    if [ -f build/ResourceDragon ] || ([ $EMSCRIPTEN = "ON" ] && [ -f build-emscripten/ResourceDragon.wasm ]); then
+    if [ -f ${BUILD_DIR}/ResourceDragon ] || ([ $EMSCRIPTEN = "ON" ] && [ -f build-emscripten/ResourceDragon.wasm ]); then
         printf "\x1B[1;32mCompiled successfully!\nOutput files are in $PWD/build/\x1B[0m \n"
         exit 0
     else

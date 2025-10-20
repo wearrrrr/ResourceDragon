@@ -4,9 +4,12 @@
 MINGW=false
 EMSCRIPTEN=false
 ALPINE=false
+DEBUG=false
 
 for arg in "$@"; do
-    if [ "$arg" = "-mingw" ]; then
+    if [ "$arg" = "-debug" ]; then
+        DEBUG=true
+    elif [ "$arg" = "-mingw" ]; then
         MINGW=true
     elif [ "$arg" = "-emscripten" ]; then
         EMSCRIPTEN=true
@@ -23,7 +26,9 @@ if (($? == 0)); then
         exit 0
     elif [ "$ALPINE" = true ]; then
         build-alpine/ResourceDragon
+    elif [ "$DEBUG" = true ]; then
+        build/debug/ResourceDragon
     else
-        build/ResourceDragon
+        build/release/ResourceDragon
     fi
 fi
