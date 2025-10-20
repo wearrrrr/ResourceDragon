@@ -16,6 +16,7 @@
 #include <windows.h>
 #endif
 #include <gl3.h>
+#include <deque>
 #include <string>
 
 #ifdef __linux__
@@ -141,11 +142,6 @@ extern bool text_viewer_override;
 extern int inotify_fd;
 extern int inotify_wd;
 #endif
-
-template <typename T>
-inline T* malloc(size_t size) {
-    return (T*)malloc(size);
-}
 
 extern bool openDelPopup;
 extern bool quitDialog;

@@ -1,4 +1,5 @@
 #include "mpk.h"
+#include <util/memory.h>
 #include <unordered_map>
 
 static int constexpr MPKMaxPath = 224;
@@ -67,7 +68,7 @@ u8* MPKArchive::OpenStream(const Entry *entry, u8 *buffer)
 {
     unsigned char *entry_offset = buffer + entry->offset;
 
-    u8* data = (u8*)malloc(entry->size);
+    u8* data = malloc<u8>(entry->size);
     memcpy(data, entry_offset, entry->size);
     return data;
 }

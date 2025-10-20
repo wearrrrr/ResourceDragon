@@ -2,6 +2,8 @@
 
 #include <ArchiveFormat.h>
 #include <Entry.h>
+#include <cstdlib>
+#include <util/memory.h>
 
 class HSPArchive : public ArchiveFormat {
 public:
@@ -43,7 +45,7 @@ class DPMArchive : public ArchiveBase {
         };
         u8* DecryptEntry(u8 *data, u32 data_size, u32 entry_key) {
             // TODO: These values seem to swap between games? Maybe different versions of the engine..?
-            u8 *buffer = (u8*)malloc(data_size);
+            u8 *buffer = malloc<u8>(data_size);
             memcpy(buffer, data, data_size);
 
             u8 s1 = 0x55;

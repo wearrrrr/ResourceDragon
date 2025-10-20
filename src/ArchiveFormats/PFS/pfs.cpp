@@ -1,4 +1,5 @@
 #include "pfs.h"
+#include <util/memory.h>
 #include <sha1.h>
 
 ArchiveBase *PFSFormat::TryOpen(u8 *buffer, u64 size, std::string file_name) {
@@ -30,7 +31,7 @@ ArchiveBase *PFSFormat::OpenPF(u8 *buffer, u64 size, u8 version) {
         Logger::error("Index size is greater than the file size! This is invalid.");
         return nullptr;
     }
-    u8 *index_buf = (u8*)malloc(index_size);
+    u8 *index_buf = malloc<u8>(index_size);
     Seek(0x7);
 
     Read(index_buf, buffer, index_size);

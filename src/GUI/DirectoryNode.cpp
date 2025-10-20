@@ -4,7 +4,6 @@
 #include <Image.h>
 #include <algorithm>
 #include <cmath>
-#include <csignal>
 #include <filesystem>
 #include <string>
 #include <functional>
@@ -14,6 +13,7 @@
 #include <queue>
 #include <util/Text.h>
 #include <util/int.h>
+#include <util/memory.h>
 #include <Utils.h>
 
 #include "SDL3_mixer/SDL_mixer.h"
