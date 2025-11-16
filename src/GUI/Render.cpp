@@ -12,7 +12,7 @@
 #include "state.h"
 #include <util/Logger.h>
 
-usize last_preview_index = (usize)-1;
+usize last_preview_index = -1;
 std::string pending_focus_tab_name;
 
 #include <filesystem>

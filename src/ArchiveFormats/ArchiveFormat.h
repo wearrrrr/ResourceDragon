@@ -89,7 +89,7 @@ class ArchiveFormat {
             return constructed;
         }
 
-        std::string ReadStringWithLength(const u8* buffer, usize length) {
+        std::string ReadStringWithLength(const u8* buffer, usize length) const {
             return std::string((const char*)buffer, length);
         }
 

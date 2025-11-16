@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include "util/int.h"
+#include <util/int.h>
 
 struct PeHeader {
 	u32 mMagic; // PE\0\0
