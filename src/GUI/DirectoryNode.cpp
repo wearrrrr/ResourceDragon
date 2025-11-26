@@ -19,6 +19,7 @@
 #include "SDL3_mixer/SDL_mixer.h"
 #include <UIError.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #ifdef _WIN32
 #ifndef __MINGW32__
 #define NOMINMAX
