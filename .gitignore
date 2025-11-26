@@ -7,6 +7,8 @@ build-alpine/
 extracted/
 plugins/*.so
 plugins/*.dll
+plugins/nfa0/target/
+plugins/nfa0/Cargo.lock
 .vscode
 imgui.ini
 node_modules
