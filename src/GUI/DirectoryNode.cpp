@@ -35,10 +35,18 @@
 
 #include "icons.h"
 
+constexpr float ALIGN_LEFT = 0.0f;
+constexpr float ALIGN_CENTER = 0.5f;
+constexpr float ALIGN_RIGHT = 1.0f;
+
 namespace ImGui {
     void Text(std::string_view str) {
         ImGui::Text("%s", str.data());
     };
+
+    void TextAligned(float x_alignment, float y_alignment, std::string_view str) {
+        ImGui::TextAligned(x_alignment, y_alignment, str.data());
+    }
 }
 
 inline void TableTextCentered(const char* label) {
@@ -826,7 +834,7 @@ void DirectoryNode::Display(Node *node) {
     }
 
     ImGui::TableNextColumn();
-    ImGui::Text(node->FileSize);
+    ImGui::TextAligned(ALIGN_RIGHT, -FLT_MIN, node->FileSize);
 
     ImGui::TableNextColumn();
     ImGui::Text(node->LastModified);
