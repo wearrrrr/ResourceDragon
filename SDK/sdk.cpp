@@ -37,11 +37,11 @@ extern "C" {
 
 void sdk_init(struct sdk_ctx* ctx) {
     if (!ctx) return;
-    
+
     ctx->version = 1;
     ctx->logger = new Logger();
     ctx->archiveFormat = nullptr;
-    
+
     if (ctx->logger) {
         ctx->logger->log("SDK initialized");
     }
@@ -49,13 +49,13 @@ void sdk_init(struct sdk_ctx* ctx) {
 
 void sdk_deinit(struct sdk_ctx* ctx) {
     if (!ctx) return;
-    
+
     if (ctx->logger) {
         ctx->logger->log("SDK shutting down");
         delete ctx->logger;
         ctx->logger = nullptr;
     }
-    
+
     if (ctx->archiveFormat) {
         delete ctx->archiveFormat;
         ctx->archiveFormat = nullptr;

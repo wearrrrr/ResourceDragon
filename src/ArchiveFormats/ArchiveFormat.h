@@ -26,6 +26,10 @@ class ArchiveBase {
             return entries;
         }
         virtual ~ArchiveBase() = default;
+
+        virtual void ArchiveDestroy() {
+            // No-op, meant for plugin api.
+        }
 };
 
 class ArchiveFormat {

@@ -368,6 +368,7 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
 
 void UnloadArchive() {
     if (loaded_arc_base) {
+        loaded_arc_base->ArchiveDestroy();
         delete loaded_arc_base;
         loaded_arc_base = nullptr;
     }
@@ -626,6 +627,7 @@ void ProcessFileLoadingResult(const FileLoadingResult& result, ContentType typeO
 
     // Clean up previous archive if it exists
     if (loaded_arc_base) {
+        loaded_arc_base->ArchiveDestroy();
         delete loaded_arc_base;
         loaded_arc_base = nullptr;
     }

@@ -32,23 +32,28 @@ struct HostAPI {
 
 typedef void* ArchiveHandle;
 typedef void* ArchiveInstance;
+typedef struct ArchiveBaseVTable ArchiveBaseVTable;
+
+typedef struct {
+    ArchiveInstance inst;
+    const ArchiveBaseVTable* vtable;
+} ArchiveBaseHandle;
 
 struct ArchiveBaseVTable {
     usize (*GetEntryCount)(ArchiveInstance inst);
     const char* (*GetEntryName)(ArchiveInstance inst, usize index);
     usize (*GetEntrySize)(ArchiveInstance inst, usize index);
     u8* (*OpenStream)(ArchiveInstance inst, usize index, usize* out_size);
-};
-typedef struct {
-    ArchiveInstance inst;
-    const ArchiveBaseVTable* vtable;
-} ArchiveBaseHandle;
 
-typedef struct ArchiveFormatVTable {
+    void (*ArchiveDestroy)(ArchiveBaseHandle *handle);
+};
+
+
+typedef struct {
     ArchiveHandle (*New)(struct sdk_ctx* ctx);
 
     int  (*CanHandleFile)(ArchiveHandle inst, u8* buffer, u64 size, const char* ext);
-    ArchiveBaseHandle (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
+    ArchiveBaseHandle* (*TryOpen)(ArchiveHandle inst, u8* buffer, u64 size, const char* file_name);
 
     const char *(*GetTag)(ArchiveHandle inst);
     const char *(*GetDescription)(ArchiveHandle inst);
