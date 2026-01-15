@@ -1,6 +1,6 @@
 #include "plugins.h"
 #include "../state.h"
-#include <util/Logger.h>
+#include <util/Logger/Logger.h>
 #include "../SDK/sdk.h"
 #include "../SDK/ArchiveFormatWrapper.h"
 
@@ -73,7 +73,9 @@ void Plugins::LoadPlugins(const char* path) {
 
         LibHandle handle = LoadLib(entry.path().string().c_str());
         if (!handle) {
+            const char* error_msg = dlerror();
             Logger::error("Failed to load plugin: {}", entry.path().string());
+            Logger::error("Error: {}", error_msg);
             continue;
         }
 
@@ -103,7 +105,7 @@ void Plugins::LoadPlugins(const char* path) {
         plugin.getArchiveFormat = getArchiveFormat;
         plugin.ctx = global_ctx;
 
-        HostAPI host_api = {};
+        static HostAPI host_api = {};
         host_api.get_sdk_context = []() -> sdk_ctx* { return global_ctx; };
         host_api.log = [](sdk_ctx* ctx, const char* msg){
             if (ctx && ctx->logger) {
@@ -120,6 +122,7 @@ void Plugins::LoadPlugins(const char* path) {
                 ctx->logger->error(msg);
             }
         };
+        host_api.log_fmtv = rd_log_fmtv;
 
         if (!init(&host_api)) {
             Logger::error("Plugin {} failed to init", entry.path().string());

@@ -2,7 +2,7 @@ include(FetchContent)
 cmake_minimum_required(VERSION 3.10)
 project(ResourceDragon VERSION 0.1)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -29,13 +29,14 @@ elseif(MSVC OR USING_CLANG_CL)
     add_compile_options(-Wno-deprecated-declarations -Wno-unsafe-buffer-usage -Wno-reserved-identifier)
 endif()
 
+
+
 if(DEBUG)
     add_compile_definitions(DEBUG)
     if(MSVC OR USING_CLANG_CL)
         add_compile_options(/Zi)
     else()
         add_compile_options(-g)
-        add_link_options(-rdynamic)
     endif()
 else()
     if(MSVC OR USING_CLANG_CL)
@@ -243,7 +244,12 @@ add_executable(ResourceDragon
     src/main.cpp
     src/state.cpp
     ${PLUGIN_CPP}
+    src/util/Logger/Logger_host.cpp
     SDK/sdk.cpp
+)
+
+set_target_properties(ResourceDragon PROPERTIES
+    ENABLE_EXPORTS ON
 )
 
 target_compile_options(ResourceDragon PRIVATE

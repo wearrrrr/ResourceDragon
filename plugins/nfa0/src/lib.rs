@@ -6,9 +6,10 @@ use std::{
     io::{Cursor, Read, Seek},
 };
 
-use crate::api::{HOST_API, RdFormat};
+use crate::api::RdFormat;
 
 mod api;
+mod logging;
 
 struct NemeaEntry {
     pub name: CString,
@@ -22,7 +23,8 @@ struct NemeaArchive {
 
 impl<'a: 'static> RdFormat<'a> for NemeaArchive {
     fn plugin_init() -> bool {
-        HOST_API.log("[NFA0] Nemea NFA0 plugin initialized");
+        rd_log!("[NFA0] Plugin initialized!");
+        
         true
     }
     fn plugin_shutdown() {}
@@ -34,7 +36,7 @@ impl<'a: 'static> RdFormat<'a> for NemeaArchive {
         c"NFA0 format as seen in 不思議の幻想郷CHRONICLE -クロニクル-"
     }
 
-    fn try_open(buffer: &[u8], _file_name: &CStr) -> Option<Self> {
+    fn try_open(buffer: &[u8], file_name: &CStr) -> Option<Self> {
         let mut cur = Cursor::new(Vec::from(buffer));
 
         let mut magic = [0u8; 4];
@@ -84,6 +86,13 @@ impl<'a: 'static> RdFormat<'a> for NemeaArchive {
                 size,
             });
         }
+
+        rd_log!(
+            "[NFA0] Opened '{}' with {} entries ({} bytes total)",
+            file_name.to_str().unwrap(),
+            entries.len(),
+            buffer.len()
+        );
 
         Some(NemeaArchive { cur, entries })
     }

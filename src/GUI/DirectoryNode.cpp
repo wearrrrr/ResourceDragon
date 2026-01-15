@@ -313,11 +313,14 @@ bool DirectoryNode::AddNodes(Node *node, const fs::path &parentPath) {
             auto entries = loaded_arc_base->GetEntries();
 
             for (const auto& [_, entry] : entries) {
-                // Still not entirely sure if this is necessary?
 #if defined(__linux__) || defined(EMSCRIPTEN)
-                std::replace(entry->name.begin(), entry->name.end(), '\\', '/');
-#endif
+                // Create a copy with replaced separators instead of modifying in place
+                std::string entry_name = entry->name;
+                std::replace(entry_name.begin(), entry_name.end(), '\\', '/');
+                fs::path entryPath(entry_name);
+#else
                 fs::path entryPath(entry->name);
+#endif
                 Node *current = node;
 
                 for (auto it = entryPath.begin(); it != entryPath.end(); ++it) {
@@ -420,7 +423,10 @@ DirectoryNode::Node *DirectoryNode::CreateTreeFromPath(const std::string& rootPa
             .IsVirtualRoot = !is_dir,
         };
 
-        AddNodes(newRootNode, rootPath);
+        // Only populate nodes for directories, or for virtual roots if archive is already loaded
+        if (is_dir || (!is_dir && loaded_arc_base != nullptr)) {
+            AddNodes(newRootNode, rootPath);
+        }
 
         return newRootNode;
 #ifndef _WIN32

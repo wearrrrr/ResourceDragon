@@ -3,6 +3,7 @@ add_library(ArchiveFormats STATIC
     sha1.c
 
     HSP/hsp.cpp
+    Nexas/pac.cpp
     NitroPlus/npa.cpp
     NitroPlus/npk.cpp
     NitroPlus/mpk.cpp

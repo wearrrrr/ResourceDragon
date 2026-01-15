@@ -11,11 +11,119 @@ pub struct SdkCtx;
 pub type LogFn = extern "C" fn(ctx: *mut SdkCtx, fmt: *const i8);
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub enum RdLogLevel {
+    Info = 0,
+    Warn = 1,
+    Error = 2,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub enum RdLogArgType {
+    String = 0,
+    Bool = 1,
+    S64 = 2,
+    U64 = 3,
+    F64 = 4,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct RdLogStringArg {
+    pub data: *const u8,
+    pub size: usize,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union RdLogArgValue {
+    pub string: RdLogStringArg,
+    pub boolean: u8,
+    pub s64: i64,
+    pub u64: u64,
+    pub f64: f64,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct RdLogArg {
+    pub arg_type: RdLogArgType,
+    _padding: [u8; 4],
+    pub value: RdLogArgValue,
+}
+
+impl RdLogArg {
+    pub fn string(s: &str) -> Self {
+        Self {
+            arg_type: RdLogArgType::String,
+            _padding: [0; 4],
+            value: RdLogArgValue {
+                string: RdLogStringArg {
+                    data: s.as_ptr(),
+                    size: s.len(),
+                },
+            },
+        }
+    }
+
+    pub fn bool(b: bool) -> Self {
+        Self {
+            arg_type: RdLogArgType::Bool,
+            _padding: [0; 4],
+            value: RdLogArgValue {
+                boolean: b as u8,
+            },
+        }
+    }
+
+    pub fn i64(i: i64) -> Self {
+        Self {
+            arg_type: RdLogArgType::S64,
+            _padding: [0; 4],
+            value: RdLogArgValue { s64: i },
+        }
+    }
+
+    pub fn u64(u: u64) -> Self {
+        Self {
+            arg_type: RdLogArgType::U64,
+            _padding: [0; 4],
+            value: RdLogArgValue { u64: u },
+        }
+    }
+
+    pub fn f64(f: f64) -> Self {
+        Self {
+            arg_type: RdLogArgType::F64,
+            _padding: [0; 4],
+            value: RdLogArgValue { f64: f },
+        }
+    }
+
+    pub fn usize(u: usize) -> Self {
+        Self::u64(u as u64)
+    }
+
+    pub fn isize(i: isize) -> Self {
+        Self::i64(i as i64)
+    }
+}
+
+pub type LogFmtvFn = extern "C" fn(
+    level: RdLogLevel,
+    fmt: *const i8,
+    args: *const RdLogArg,
+    arg_count: usize,
+);
+
+#[repr(C)]
 pub struct HostApi {
     get_sdk_context: extern "C" fn() -> *mut SdkCtx,
     pub log: LogFn,
     pub warn: LogFn,
     pub error: LogFn,
+    pub log_fmtv: LogFmtvFn,
 }
 
 pub struct HostApiWrapper {
@@ -65,6 +173,38 @@ impl HostApiWrapper {
             self.log_base(api.error, message);
         }
     }
+
+    #[allow(dead_code)]
+    pub fn log_fmt(&self, fmt: &str, args: &[RdLogArg]) {
+        self.log_fmtv(RdLogLevel::Info, fmt, args);
+    }
+
+    #[allow(dead_code)]
+    pub fn warn_fmt(&self, fmt: &str, args: &[RdLogArg]) {
+        self.log_fmtv(RdLogLevel::Warn, fmt, args);
+    }
+
+    #[allow(dead_code)]
+    pub fn error_fmt(&self, fmt: &str, args: &[RdLogArg]) {
+        self.log_fmtv(RdLogLevel::Error, fmt, args);
+    }
+
+    fn log_fmtv(&self, level: RdLogLevel, fmt: &str, args: &[RdLogArg]) {
+        if let Some(api) = self.api.get() {
+            // SAFETY: hold the CString until after the FFI call completes
+            let fmt_c = match CString::new(fmt) {
+                Ok(s) => s,
+                Err(_) => return,
+            };
+        
+            (api.log_fmtv)(
+                level,
+                fmt_c.as_ptr(),
+                args.as_ptr(),
+                args.len(),
+            );
+        }
+    }
 }
 
 pub static HOST_API: HostApiWrapper = HostApiWrapper {
@@ -79,8 +219,7 @@ pub struct ArchiveBaseVTable {
     pub get_entry_count: extern "C" fn(inst: ArchiveInstance) -> usize,
     pub get_entry_name: extern "C" fn(inst: ArchiveInstance, index: usize) -> *const i8,
     pub get_entry_size: extern "C" fn(inst: ArchiveInstance, index: usize) -> usize,
-    pub open_stream:
-        extern "C" fn(inst: ArchiveInstance, index: usize, out_size: *mut usize) -> *const u8,
+    pub open_stream: extern "C" fn(inst: ArchiveInstance, index: usize, out_size: *mut usize) -> *const u8,
     pub destroy: extern "C" fn(inst: *mut ArchiveBaseHandle),
 }
 

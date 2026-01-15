@@ -5,7 +5,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <util/int.h>
-#include <util/Logger.h>
+#include <util/Logger/Logger.h>
 #include <util/Vector.h>
 #include "zero_templates.h"
 

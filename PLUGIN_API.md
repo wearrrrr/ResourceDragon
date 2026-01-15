@@ -43,6 +43,32 @@ struct HostAPI {
 - `warn(ctx, msg, ...)`: Log a warning message
 - `error(ctx, msg, ...)`: Log an error message
 
+For formatted output, call the C-friendly `rd_log_fmtv(level, fmt, args, arg_count)` helper. Build the `args` array with the provided helpers (e.g. `rd_log_make_cstring`, `rd_log_make_s64`, `rd_log_make_u64`, `rd_log_make_f64`, `rd_log_make_bool`) so the host can safely interpret each placeholder.
+
+C plugins (and any language using the C ABI) can include `SDK/util/rd_log_helpers.h` to avoid manually computing the argument count. That header provides macros such as:
+
+```cpp
+#include "SDK/util/rd_log_helpers.h"
+
+RD_LOG_INFO(
+    "Opened '{}' with {} entries",
+    rd_log_make_cstring(name),
+    rd_log_make_u64(entry_count)
+);
+```
+
+The macro builds the temporary `RD_LogArg[]`, calculates its length, and forwards everything to `rd_log_fmtv`. Use `RD_LOGF`, `RD_LOG_INFOF`, `RD_LOG_WARNF`, `RD_LOG_ERRORF`, or their `*F0` counterparts when you have no placeholders.
+
+If you prefer the manual steps (or are targeting another FFI), follow this flow instead:
+
+1. Populate an `RD_LogArg fmt_args[]` array using the helpers that match your value types.
+2. Pass `fmt_args` along with its element count to `rd_log_fmtv`.
+3. Let the host expand the format string and route the message through its logger.
+
+C++ plugins may include `SDK/util/Logger.h` and use the fmt-style overloads (`Logger::log`, `Logger::warn`, `Logger::error`) just like the native app code (e.g., `Logger::log("some float: {}", 3.14);`).
+
+
+
 ## SDK Context
 
 The `sdk_ctx` structure contains plugin runtime information:

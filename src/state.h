@@ -124,6 +124,7 @@ namespace DirectoryNode {
 }
 extern DirectoryNode::Node *rootNode;
 extern DirectoryNode::Node *fb__selectedItem;
+extern std::string initial_file_to_open;  // File to auto-open from command line
 
 inline TextEditor editor;
 inline MemoryEditor hex_editor;

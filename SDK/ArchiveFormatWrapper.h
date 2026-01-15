@@ -2,6 +2,7 @@
 
 #include "../src/ArchiveFormats/ArchiveFormat.h"
 #include "sdk.h"
+#include "util/rd_log.h"
 #include <cstring>
 
 class ArchiveBaseWrapper : public ArchiveBase {
@@ -16,7 +17,7 @@ public:
         EntryMapPtr entries;
 
         if (!handle || !handle->vtable) {
-            Logger_error(ctx, "function table is null! Something has gone very wrong.");
+            rd_log(RD_LOG_ERROR, "function table is null! Something has gone very wrong.", 55);
             return {};
         }
 

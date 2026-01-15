@@ -5,7 +5,7 @@
 #include "RDSquirrelLib.h"
 
 #include <cstdio>
-#include <util/Logger.h>
+#include <util/Logger/Logger.h>
 
 static void squirrel_print(HSQUIRRELVM vm, const SQChar *str, ...) {
   va_list va;

@@ -1,3 +1,4 @@
+#include "Nexas/pac.h"
 #include <SDL3/SDL.h>
 
 #include <ArchiveFormats/HSP/hsp.h>
@@ -98,9 +99,10 @@ int main(int argc, char** argv) {
     }
 
     RegisterFormat<HSPArchive>();
-    RegisterFormat<PFSFormat>();
+    RegisterFormat<PacFormat>();
     RegisterFormat<NitroPlus::NPK>();
     RegisterFormat<NitroPlus::MPK>();
+    RegisterFormat<PFSFormat>();
     RegisterFormat<SonicAdv::PAK>();
     RegisterFormat<PBGFormat>();
     RegisterFormat<XP3Format>();
@@ -128,6 +130,14 @@ int main(int argc, char** argv) {
     Plugins::LoadPlugins("plugins/");
 #endif
 
+    std::string canonical_path;
+    if (fs::exists(path)) {
+        canonical_path = fs::canonical(path).string();
+    } else {
+        Logger::error("Path does not exist: {}", path);
+        return -1;
+    }
+
 #ifdef __linux__
     // Clear temp dir on startup, this invalidates a file copied to the clipboard from a previous run, but that's fine i guess.
     fs::remove_all("/tmp/rd/");
@@ -140,7 +150,10 @@ int main(int argc, char** argv) {
         Logger::error("inotify_init() failed!");
         return -1;
     }
-    inotify_wd = inotify_add_watch(inotify_fd, path, INOTIFY_FLAGS);
+    
+    // Watch the parent directory if path is a file, otherwise watch the path itself
+    std::string watch_path = fs::is_directory(canonical_path) ? canonical_path : fs::path(canonical_path).parent_path().string();
+    inotify_wd = inotify_add_watch(inotify_fd, watch_path.c_str(), INOTIFY_FLAGS);
     if (inotify_wd < 0) {
         Logger::error("inotify_add_watch() failed!");
         close(inotify_fd);
@@ -179,10 +192,16 @@ int main(int argc, char** argv) {
 
     Audio::InitAudioSystem();
 
-    auto canonical_path = fs::canonical(path).string();
+    // If a file is passed, open its parent directory and mark the file for auto-opening
+    bool is_file = fs::exists(canonical_path) && !fs::is_directory(canonical_path);
+    std::string root_path = is_file ? fs::path(canonical_path).parent_path().string() : canonical_path;
+    
+    if (is_file) {
+        initial_file_to_open = canonical_path;
+    }
 
-    SetFilePath(canonical_path);
-    rootNode = DirectoryNode::CreateTreeFromPath(canonical_path);
+    SetFilePath(root_path);
+    rootNode = DirectoryNode::CreateTreeFromPath(root_path);
 
     if (GUI::InitRendering()) {
         GUI::StartRenderLoop();

@@ -149,25 +149,6 @@ struct Logger {
         puts(RESET);
     }
 
-    static void va_log(const char *fmt, va_list args) {
-        if (!args) return;
-        printf(LOG_PREFIX);
-        vprintf(fmt, args);
-        puts(RESET);
-    }
-    static void va_warn(const char *fmt, va_list args) {
-        if (!args) return;
-        printf(WARN_PREFIX);
-        vprintf(fmt, args);
-        puts(RESET);
-    }
-    static void va_error(const char *fmt, va_list args) {
-        if (!args) return;
-        printf(ERROR_PREFIX);
-        vprintf(fmt, args);
-        puts(RESET);
-    }
-
     // Arbitrary types
     template <typename... Args>
     static void log(const std::string_view &fmt, Args&&... args) {

@@ -1,5 +1,8 @@
 #include "example_plugin.h"
+#include "../SDK/util/Logger.hpp"
+#include "../SDK/util/rd_log_helpers.h"
 #include <cstring>
+#include <vector>
 
 // Aligns with variables marked as RD_EXPORT in example_plugin.h
 const char* RD_PluginName = "Demo Plugin";
@@ -37,7 +40,7 @@ static u8* OpenStream(ArchiveInstance inst, usize idx, usize* out_size) {
 }
 
 static void ArchiveDestroy(ArchiveBaseHandle *handle) {
-    Logger_log(g_ctx, "ArchiveDestroy called!");
+    RD_LOG_INFO("ArchiveDestroy called!");
     delete handle;
 }
 
@@ -69,6 +72,9 @@ static ArchiveBaseHandle* Example_TryOpen(ArchiveHandle /*inst*/, u8* buffer, u6
     ArchiveBaseHandle *h = new ArchiveBaseHandle();
     h->inst = arc;
     h->vtable = &g_baseVTable;
+    
+    Logger::log("Example plugin opened '{}' ({} bytes, {} entries)", filename, size, arc->entries.size());
+
     return h;
 }
 
@@ -87,13 +93,14 @@ static ArchiveFormatVTable g_formatTable = {
     .GetTag = Example_GetTag,
     .GetDescription = Example_GetDescription,
 };
+
 // -------------------- Plugin Interface --------------------
 extern "C" {
 
 bool RD_PluginInit(HostAPI *api) {
     if (!api) return false;
     sdk_ctx* ctx = api->get_sdk_context();
-    if (api->log && ctx) api->log(ctx, "Example plugin initialized");
+    Logger::log("Example plugin initialized");
     g_ctx = ctx;
 
     return true;
@@ -103,7 +110,7 @@ void RD_PluginShutdown() {
     // no global cleanup needed
 }
 
-const ArchiveFormatVTable* RD_GetArchiveFormat(sdk_ctx* /*ctx*/) {
+const ArchiveFormatVTable* RD_GetArchiveFormat(sdk_ctx*) {
     return &g_formatTable;
 }
 

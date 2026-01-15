@@ -23,11 +23,16 @@ using LogFn_t = void (__cdecl *)(struct sdk_ctx* ctx, const char *msg);
 using LogFn_t = void (*)(struct sdk_ctx* ctx, const char* fmt);
 #endif
 
+#include "util/rd_log.h"
+
+typedef void (*RD_LogFmtv_t)(RD_LogLevel level, const char* fmt, const RD_LogArg* args, size_t arg_count);
+
 struct HostAPI {
     sdk_ctx* (*get_sdk_context)();
     LogFn_t log;
     LogFn_t warn;
     LogFn_t error;
+    RD_LogFmtv_t log_fmtv;
 };
 
 typedef void* ArchiveHandle;

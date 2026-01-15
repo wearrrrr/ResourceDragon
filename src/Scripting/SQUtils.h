@@ -7,7 +7,7 @@
 
 #include "squirrel_all.h"
 #include <util/int.h>
-#include <util/Logger.h>
+#include <util/Logger/Logger.h>
 
 
 // idk what this macro stands for, but probably SQChar

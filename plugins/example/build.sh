@@ -29,9 +29,7 @@ fi
 ninja -j$(nproc)
 
 echo "Plugin built successfully!"
-echo "Plugin location: $(find ../../ -name "*.so" -o -name "*.dll" | head -1)"
 
-# Check if the plugin was built
 if [ -f "../../../plugins/example_plugin.so" ] || [ -f "../../../plugins/example_plugin.dll" ]; then
     echo "Plugin successfully installed to plugins directory"
 else

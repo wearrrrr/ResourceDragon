@@ -10,7 +10,7 @@
 #include "imgui/misc/freetype/imgui_freetype.h"
 #include "imgui_internal.h"
 #include "state.h"
-#include <util/Logger.h>
+#include <util/Logger/Logger.h>
 
 usize last_preview_index = -1;
 std::string pending_focus_tab_name;
@@ -315,6 +315,8 @@ bool GUI::InitRendering() {
     ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init();
 
+    // Logger::LogTest();
+
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -397,6 +399,19 @@ void GUI::StartRenderLoop() {
     ImGuiIO &io = ImGui::GetIO();
 
     ImGui::PushFont(font_registry.find("UIFont")->second);
+
+    // Auto-open file if passed as command-line argument
+    static bool initial_file_opened = false;
+    if (!initial_file_opened && !initial_file_to_open.empty() && rootNode) {
+        // Find the file node in the rootNode's children
+        for (auto* child : rootNode->Children) {
+            if (child->FullPath == initial_file_to_open) {
+                HandleFileClick(child, ContentType::UNKNOWN, preview_index);
+                initial_file_opened = true;
+                break;
+            }
+        }
+    }
 
     while (running) {
         SDL_Event event;

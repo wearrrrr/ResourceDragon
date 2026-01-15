@@ -35,6 +35,7 @@ Entry *selected_entry = nullptr;
 
 DirectoryNode::Node *rootNode = nullptr;
 DirectoryNode::Node *fb__selectedItem = nullptr;
+std::string initial_file_to_open = "";
 
 PImageView image_preview = {
     .zoom = 1.0f,
