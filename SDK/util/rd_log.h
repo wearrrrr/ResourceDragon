@@ -11,10 +11,6 @@ typedef enum RD_LogLevel {
     RD_LOG_LVL_INFO,
     RD_LOG_LVL_WARN,
     RD_LOG_LVL_ERROR,
-    /* Compatibility aliases */
-    RD_LOG_INFO = RD_LOG_LVL_INFO,
-    RD_LOG_WARN = RD_LOG_LVL_WARN,
-    RD_LOG_ERROR = RD_LOG_LVL_ERROR
 } RD_LogLevel;
 
 typedef enum RD_LogArgType {

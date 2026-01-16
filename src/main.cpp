@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
         Logger::error("inotify_init() failed!");
         return -1;
     }
-    
+
     // Watch the parent directory if path is a file, otherwise watch the path itself
     std::string watch_path = fs::is_directory(canonical_path) ? canonical_path : fs::path(canonical_path).parent_path().string();
     inotify_wd = inotify_add_watch(inotify_fd, watch_path.c_str(), INOTIFY_FLAGS);
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
     // If a file is passed, open its parent directory and mark the file for auto-opening
     bool is_file = fs::exists(canonical_path) && !fs::is_directory(canonical_path);
     std::string root_path = is_file ? fs::path(canonical_path).parent_path().string() : canonical_path;
-    
+
     if (is_file) {
         initial_file_to_open = canonical_path;
     }

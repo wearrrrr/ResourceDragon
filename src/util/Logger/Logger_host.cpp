@@ -14,9 +14,9 @@
 #define RESET  "\x1B[0;1m"
 
 #define PREFIX "[ResourceDragon] "
-#define LOG_PREFIX      LOG_COLOR PREFIX RESET
-#define WARN_PREFIX     WARN_COLOR PREFIX RESET
-#define ERROR_PREFIX    ERROR_COLOR PREFIX RESET
+#define LOG_PREFIX   LOG_COLOR PREFIX RESET
+#define WARN_PREFIX  WARN_COLOR PREFIX RESET
+#define ERROR_PREFIX ERROR_COLOR PREFIX RESET
 
 namespace {
     std::mutex g_log_mutex;
@@ -24,9 +24,9 @@ namespace {
     void write_with_prefix(RD_LogLevel level, std::string_view msg) {
         const char* prefix;
         switch (level) {
-            case RD_LOG_INFO:  prefix = LOG_PREFIX; break;
-            case RD_LOG_WARN:  prefix = WARN_PREFIX; break;
-            case RD_LOG_ERROR: prefix = ERROR_PREFIX; break;
+            case RD_LOG_LVL_INFO:  prefix = LOG_PREFIX; break;
+            case RD_LOG_LVL_WARN:  prefix = WARN_PREFIX; break;
+            case RD_LOG_LVL_ERROR: prefix = ERROR_PREFIX; break;
             default: prefix = PREFIX; break;
         }
         
@@ -156,17 +156,17 @@ extern "C" void rd_log_schema(
             fmt::format_to(std::back_inserter(buffer), "<empty>");
             return;
         }
-        const uint8_t* bytes = static_cast<const uint8_t*>(data);
+        const uint8_t* bytes = (uint8_t*)data;
         bool printable = true;
         for (size_t i = 0; i < size; ++i) {
             unsigned char ch = static_cast<unsigned char>(bytes[i]);
-            if (!std::isprint(ch)) {
+            if (!isprint(ch)) {
                 printable = false;
                 break;
             }
         }
         if (printable) {
-            std::string text(reinterpret_cast<const char*>(bytes), size);
+            std::string text((char*)bytes, size);
             fmt::format_to(std::back_inserter(buffer), "\"{}\"", text);
         } else {
             append_hex(bytes, size);
@@ -180,7 +180,7 @@ extern "C" void rd_log_schema(
             if (i > 0) {
                 fmt::format_to(std::back_inserter(buffer), ", ");
             }
-            const RD_LogField& field = fields[i];
+            const RD_LogField &field = fields[i];
             const char* name = field.name ? field.name : "<unnamed>";
             fmt::format_to(std::back_inserter(buffer), "{}=", name);
             append_value(field.data, field.size);

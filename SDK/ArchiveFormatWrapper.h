@@ -17,7 +17,7 @@ public:
         EntryMapPtr entries;
 
         if (!handle || !handle->vtable) {
-            rd_log(RD_LOG_ERROR, "function table is null! Something has gone very wrong.", 55);
+            rd_log(RD_LOG_LVL_ERROR, "function table is null! Something has gone very wrong.", 55);
             return {};
         }
 

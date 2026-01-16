@@ -24,19 +24,6 @@
 extern "C" {
 #endif
 
-typedef struct RD_LogArgSpan {
-    const RD_LogArg* data;
-    size_t count;
-} RD_LogArgSpan;
-
-/* Simple helper in case you want to pass spans around explicitly. */
-static inline RD_LogArgSpan rd_log_make_span(const RD_LogArg* data, size_t count) {
-    RD_LogArgSpan span;
-    span.data = data;
-    span.count = count;
-    return span;
-}
-
 #ifdef __cplusplus
 } // extern "C"
 #endif
@@ -45,11 +32,11 @@ static inline RD_LogArgSpan rd_log_make_span(const RD_LogArg* data, size_t count
  * C11 _Generic-based automatic type conversion
  *
  * Allows C code to use automatic type deduction similar to C++:
- *   RD_LOG_ARG(42)           -> automatically creates rd_log_make_s64(42)
- *   RD_LOG_ARG("string")     -> automatically creates rd_log_make_cstring("string")
- *   RD_LOG_ARG(size_var)     -> automatically creates rd_log_make_size(size_var)
+ *   RD_LOG_ARG(42)       -> rd_log_make_s64(42)
+ *   RD_LOG_ARG("string") -> rd_log_make_cstring("string")
+ *   RD_LOG_ARG(size_var) -> rd_log_make_size(size_var)
  *
- * This makes C logging much cleaner while maintaining full type safety.
+ * This makes C logging much cleaner, and should still be type-safe.
  * Note: This is C-only; C++ uses templates instead.
  */
 #if !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
