@@ -89,8 +89,8 @@ public:
 private:
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
         size_t total = size * nmemb;
-        std::string* s = reinterpret_cast<std::string*>(userp);
-        s->append(reinterpret_cast<char*>(contents), total);
+        std::string* s = (std::string*)userp;
+        s->append((char*)contents, total);
         return total;
     }
 

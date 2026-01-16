@@ -1,9 +1,6 @@
 #pragma once
 
-#include "SDK/util/Logger.hpp"
-#include <iomanip>
-#include <sstream>
-
+#include <SDK/util/Logger.hpp>
 #include <Entry.h>
 #include <BinaryReader.h>
 

@@ -22,7 +22,7 @@ public:
   }
 
   template <typename T>
-  T &read() {
+  T& read() {
     size_t offset = position;
     position += sizeof(T);
     return *(T *)&data[offset];

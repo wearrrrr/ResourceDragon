@@ -16,6 +16,8 @@
 usize last_preview_index = -1;
 std::string pending_focus_tab_name;
 
+#include <embedded/icons_font.h>
+
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -371,15 +373,10 @@ bool GUI::InitRendering() {
     }
 
     auto mono_font_path = FONT_PATH_BASE / "SpaceMono-Regular.ttf";
-    auto icon_font_path = FONT_PATH_BASE / "icons.ttf";
 
-    if (fs::exists(icon_font_path)) {
-        auto icons = io.Fonts->AddFontFromFileTTF(icon_font_path.string().c_str(), 20, &iconConfig, icon_ranges);
-        if (!icons) {
-            Logger::warn("Failed to load icons! This will cause some things to not render properly.");
-        }
-    } else {
-        Logger::warn("Failed to find icons.ttf, icons will not properly render...");
+    auto icons = io.Fonts->AddFontFromMemoryTTF((char*)icons_font, icons_font_len, 20, &iconConfig, icon_ranges);
+    if (!icons) {
+        Logger::warn("Icons failed to load! This will cause some things to not render properly.");
     }
 
     LoadFont(io, mono_font_path, "MonoFont", gr);

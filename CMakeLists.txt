@@ -1,4 +1,5 @@
 include(FetchContent)
+include(${CMAKE_SOURCE_DIR}/cmake/embed-file.cmake)
 cmake_minimum_required(VERSION 3.10)
 project(ResourceDragon VERSION 0.1)
 
@@ -24,12 +25,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-unused-parameter
         -Wno-missing-field-initializers
         -Wno-deprecated-declarations
+        -Wno-c23-extensions
     )
 elseif(MSVC OR USING_CLANG_CL)
     add_compile_options(-Wno-deprecated-declarations -Wno-unsafe-buffer-usage -Wno-reserved-identifier)
 endif()
-
-
 
 if(DEBUG)
     add_compile_definitions(DEBUG)
@@ -245,6 +245,16 @@ target_include_directories(SDK
         ${CMAKE_SOURCE_DIR}
 )
 
+embed_file(
+    "${CMAKE_SOURCE_DIR}/fonts/icons.ttf"
+    "${CMAKE_BINARY_DIR}/embedded/icons_font.h"
+    icons_font
+)
+
+add_custom_target(embed_fonts ALL
+    DEPENDS ${icons_font_HEADER}
+)
+
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     vendored/imgui_md/imgui_md.cpp
@@ -254,6 +264,10 @@ add_executable(ResourceDragon
     src/util/Logger/Logger_host.cpp
     SDK/sdk.cpp
 )
+add_dependencies(ResourceDragon embed_fonts)
+add_dependencies(GUI embed_fonts)
+
+target_include_directories(ResourceDragon PRIVATE "${CMAKE_BINARY_DIR}")
 
 set_target_properties(ResourceDragon PROPERTIES
     ENABLE_EXPORTS ON

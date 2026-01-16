@@ -30,8 +30,11 @@ add_library(GUI STATIC
     ../state.cpp
 )
 
-target_include_directories(GUI PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(GUI
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    PRIVATE
+        ${CMAKE_BINARY_DIR}
 )
 
 set(OPENGL GL)
