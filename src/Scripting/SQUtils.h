@@ -7,7 +7,7 @@
 
 #include "squirrel_all.h"
 #include <util/int.h>
-#include <util/Logger/Logger.h>
+#include <SDK/util/Logger.hpp>
 
 
 // idk what this macro stands for, but probably SQChar
@@ -216,7 +216,8 @@ struct SQUtils {
                 printf(val_type == _RT_CLASS ? "Class (%p type) " : "Instance (%p type) ", user_data.val_type_tag);
                 goto skip_size_check;
 
-            case _RT_TABLE: case _RT_ARRAY:
+            case _RT_TABLE:
+            case _RT_ARRAY:
                 if (sq_getsize(v, -1)) {
 
                 skip_size_check:

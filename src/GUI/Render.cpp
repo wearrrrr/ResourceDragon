@@ -10,7 +10,8 @@
 #include "imgui/misc/freetype/imgui_freetype.h"
 #include "imgui_internal.h"
 #include "state.h"
-#include <util/Logger/Logger.h>
+#include <fmt/core.h>
+#include <SDK/util/Logger.hpp>
 
 usize last_preview_index = -1;
 std::string pending_focus_tab_name;

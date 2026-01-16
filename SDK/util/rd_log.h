@@ -37,7 +37,7 @@ typedef struct RD_LogArg {
     } value;
 } RD_LogArg;
 
-void rd_log(RD_LogLevel level, const char* msg, size_t len);
+void rd_log(RD_LogLevel level, const char* msg, size_t len = 0);
 
 void rd_log_fmtv(RD_LogLevel level, const char* fmt, const RD_LogArg* args, size_t arg_count);
 

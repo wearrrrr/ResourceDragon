@@ -1,4 +1,3 @@
-#include "Logger.h"
 #include "../../../SDK/util/rd_log_schema.h"
 #include <mutex>
 #include <cstring>
@@ -20,7 +19,7 @@
 
 namespace {
     std::mutex g_log_mutex;
-    
+
     void write_with_prefix(RD_LogLevel level, std::string_view msg) {
         const char* prefix;
         switch (level) {
@@ -29,7 +28,7 @@ namespace {
             case RD_LOG_LVL_ERROR: prefix = ERROR_PREFIX; break;
             default: prefix = PREFIX; break;
         }
-        
+
         printf("%s", prefix);
         fwrite(msg.data(), 1, msg.size(), stdout);
         puts(RESET);

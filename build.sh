@@ -7,6 +7,7 @@ DEBUG=OFF
 MINGW=OFF
 EMSCRIPTEN=OFF
 ALPINE=OFF
+RERUN_CMAKE=false
 
 BUILD_DIR=build/release
 
@@ -18,6 +19,9 @@ for arg in "$@"; do
         printf "Building as debug...\n"
         DEBUG=ON
         BUILD_DIR=build/debug
+    elif [ "$arg" = "-cmake" ]; then
+        printf "Re-running cmake...\n"
+        RERUN_CMAKE=true
     elif [ "$arg" = "-mingw" ]; then
         printf "Building targeting Mingw...\n"
         MINGW=ON
@@ -38,12 +42,14 @@ rm build/ResourceDragon
 if [ "$MINGW" = "ON" ]; then
     build-scripts/build_mingw.sh "$@"
 else
-    rm ${BUILD_DIR}/ResourceDragon
-    if [ $EMSCRIPTEN = "ON" ]; then
-        emcmake cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DEMSCRIPTEN=${EMSCRIPTEN}
-    else
-        cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DALPINE=${ALPINE} -DCMAKE_C_COMPILER=${C} -DCMAKE_CXX_COMPILER=${CXX}
-    fi;
+    if [ "$RERUN_CMAKE" = "true" ]; then
+        rm ${BUILD_DIR}/ResourceDragon
+        if [ $EMSCRIPTEN = "ON" ]; then
+            emcmake cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DEMSCRIPTEN=${EMSCRIPTEN}
+        else
+            cmake -B ${BUILD_DIR} -G Ninja -DDEBUG=${DEBUG} -DALPINE=${ALPINE} -DCMAKE_C_COMPILER=${C} -DCMAKE_CXX_COMPILER=${CXX}
+        fi;
+    fi
 
     cd ${BUILD_DIR}
     ninja -j$NPROC

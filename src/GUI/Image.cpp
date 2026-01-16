@@ -1,6 +1,6 @@
 #include <Image.h>
 #include <Utils.h>
-#include <util/Logger/Logger.h>
+#include <SDK/util/Logger.hpp>
 #include <gles3/gl3.h>
 
 #include <string_view>

@@ -238,6 +238,13 @@ if (NOT EMSCRIPTEN)
 set(PLUGIN_CPP "${CMAKE_CURRENT_SOURCE_DIR}/src/Plugins/plugins.cpp")
 endif()
 
+add_library(SDK INTERFACE)
+
+target_include_directories(SDK
+    INTERFACE
+        ${CMAKE_SOURCE_DIR}
+)
+
 add_executable(ResourceDragon
     ${IMGUI_SRC}
     vendored/imgui_md/imgui_md.cpp
@@ -288,7 +295,7 @@ if (CURL_LIBRARIES)
     target_link_libraries(ResourceDragon PRIVATE ${CURL_LIBRARIES})
 endif()
 
-target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
+target_link_libraries(ResourceDragon PRIVATE ArchiveFormats GUI util Scripting SDK squirrel_static sqstdlib_static ${OPENGL} SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer thlib)
 
 if (LTO)
     set_target_properties(ResourceDragon PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)

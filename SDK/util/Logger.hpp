@@ -16,7 +16,7 @@
 namespace rd_log_cpp_detail {
 
 #if defined(__cpp_consteval) && __cpp_consteval >= 201811L
-/* Compile-time format string validation for C++20+ 
+/* Compile-time format string validation for C++20+
  * Note: This can only validate string literals, not runtime strings.
  * Use it manually if needed: validate_format_braces("my format {}")
  */
@@ -43,20 +43,26 @@ inline RD_LogArg make_arg_direct(const std::string& s) { return rd_log_make_stri
 inline RD_LogArg make_arg_direct(bool value) { return rd_log_make_bool(value ? 1u : 0u); }
 
 template <typename T>
+struct is_true_integral
+    : std::bool_constant<std::is_integral_v<std::remove_reference_t<T>> && !std::is_same_v<std::remove_reference_t<T>, bool>> {};
+
+template <typename T>
+inline constexpr bool is_true_integral_v = is_true_integral<T>::value;
+
+template <typename T>
 inline std::enable_if_t<
-    std::is_integral_v<std::remove_reference_t<T>> &&
-    std::is_signed_v<std::remove_reference_t<T>> &&
-    !std::is_same_v<std::remove_reference_t<T>, bool>,
-    RD_LogArg>
+    is_true_integral_v<std::remove_reference_t<T>> &&
+    std::is_signed_v<std::remove_reference_t<T>>,
+    RD_LogArg
+>
 make_arg_direct(T value) {
     return rd_log_make_s64(static_cast<long long>(value));
 }
 
 template <typename T>
 inline std::enable_if_t<
-    std::is_integral_v<std::remove_reference_t<T>> &&
-    std::is_unsigned_v<std::remove_reference_t<T>> &&
-    !std::is_same_v<std::remove_reference_t<T>, bool>,
+    is_true_integral_v<std::remove_reference_t<T>> &&
+    std::is_unsigned_v<std::remove_reference_t<T>>,
     RD_LogArg>
 make_arg_direct(T value) {
     return rd_log_make_u64(static_cast<unsigned long long>(value));
@@ -168,6 +174,11 @@ struct Logger {
 
     static void log(std::string_view s) {
         rd_log(RD_LOG_LVL_INFO, s.data(), s.size());
+    }
+
+    template <typename Fn>
+    static void log(Fn&& fn) {
+        std::forward<Fn>(fn)();
     }
 
     template <typename... Args>

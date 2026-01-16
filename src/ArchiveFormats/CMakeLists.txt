@@ -21,7 +21,7 @@ if (NOT EMSCRIPTEN)
 target_link_libraries(ArchiveFormats PRIVATE zlibstatic)
 endif()
 
-target_link_libraries(ArchiveFormats PRIVATE thlib util)
+target_link_libraries(ArchiveFormats PRIVATE thlib SDK util)
 
 install(TARGETS ArchiveFormats
     LIBRARY DESTINATION lib

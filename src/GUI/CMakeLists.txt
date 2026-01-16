@@ -54,7 +54,7 @@ if (CURL_LIBRARIES)
     target_link_libraries(GUI PRIVATE ${CURL_LIBRARIES})
 endif()
 
-target_link_libraries(GUI PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util ${OPENGL})
+target_link_libraries(GUI PRIVATE SDK SDL3::SDL3 SDL3_image::SDL3_image SDL3_mixer::SDL3_mixer freetype util ${OPENGL})
 
 install(TARGETS GUI
     LIBRARY DESTINATION lib

@@ -5,7 +5,7 @@
 #include "SDL3/SDL_opengl.h"
 #include "fmt/format.h"
 #include "lunasvg.h"
-#include "util/Logger/Logger.h"
+#include <SDK/util/Logger.hpp>
 
 #include <map>
 #include <vector>

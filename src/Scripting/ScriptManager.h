@@ -4,8 +4,9 @@
 #include "SquirrelArc.h"
 #include "RDSquirrelLib.h"
 
+#include <cstdarg>
 #include <cstdio>
-#include <util/Logger/Logger.h>
+#include <SDK/util/Logger.hpp>
 
 static void squirrel_print(HSQUIRRELVM vm, const SQChar *str, ...) {
   va_list va;

@@ -1,7 +1,6 @@
 #include "sdk.h"
 #include "ArchiveFormatWrapper.h"
-#include <string_view>
-#include <util/Logger/Logger.h>
+#include <SDK/util/Logger.hpp>
 
 ArchiveFormatWrapper* AddArchiveFormat(struct sdk_ctx* ctx, const ArchiveFormatVTable* vtable) {
     if (!ctx || !vtable) {

@@ -1,6 +1,7 @@
 #include "example_plugin.h"
 #include "../SDK/util/Logger.hpp"
 #include "../SDK/util/rd_log_helpers.h"
+#include "../SDK/util/rd_log.h"
 #include <cstring>
 #include <vector>
 
@@ -40,7 +41,7 @@ static u8* OpenStream(ArchiveInstance inst, usize idx, usize* out_size) {
 }
 
 static void ArchiveDestroy(ArchiveBaseHandle *handle) {
-    RD_LOG_INFO("ArchiveDestroy called!");
+    rd_log(RD_LOG_LVL_INFO, "ArchiveDestroy called!");
     delete handle;
 }
 
@@ -72,7 +73,7 @@ static ArchiveBaseHandle* Example_TryOpen(ArchiveHandle /*inst*/, u8* buffer, u6
     ArchiveBaseHandle *h = new ArchiveBaseHandle();
     h->inst = arc;
     h->vtable = &g_baseVTable;
-    
+
     Logger::log("Example plugin opened '{}' ({} bytes, {} entries)", filename, size, arc->entries.size());
 
     return h;
