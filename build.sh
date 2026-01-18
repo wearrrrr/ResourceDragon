@@ -37,7 +37,7 @@ for arg in "$@"; do
     fi
 done
 
-rm build/ResourceDragon
+rm build/debug/ResourceDragon
 
 if [ "$MINGW" = "ON" ]; then
     build-scripts/build_mingw.sh "$@"

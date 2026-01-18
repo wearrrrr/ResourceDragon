@@ -3,7 +3,7 @@
     "adapter": "CodeLLDB",
     "label": "Debug",
     "request": "launch",
-    "program": "build/ResourceDragon",
+    "program": "build/debug/ResourceDragon",
     "cwd": "$ZED_WORKTREE_ROOT",
     "build": {
       "command": "./build.sh",

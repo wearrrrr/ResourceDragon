@@ -73,7 +73,13 @@ void Plugins::LoadPlugins(const char* path) {
 
         LibHandle handle = LoadLib(entry.path().string().c_str());
         if (!handle) {
+#ifdef __linux__
             const char* error_msg = dlerror();
+#elif defined(_WIN32)
+            const char* error_msg = GetLastError();
+#else
+            const char* error_msg = "your platform shouldn't support plugins if you see this";
+#endif
             Logger::error("Failed to load plugin: {}", entry.path().string());
             Logger::error("Error: {}", error_msg);
             continue;

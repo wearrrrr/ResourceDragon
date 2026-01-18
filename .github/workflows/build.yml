@@ -48,7 +48,7 @@ jobs:
           libpipewire-0.3-0 libpipewire-0.3-dev libaudio2 libaudio-dev libcurl4-openssl-dev -y;
 
       - name: Build application
-        run: ./build.sh
+        run: ./build.sh -release
 
       - name: Deploy application
         run: ./deploy_linux.sh -i -c -p
