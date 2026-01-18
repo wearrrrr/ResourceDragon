@@ -142,8 +142,8 @@ void structured_c_logging() {
     // Manual approach
     RD_LogField fields[] = {
         RD_LOG_FIELD_CSTR("user", user),
-        RD_LOG_FIELD_INT(user_id, user_id),
-        { "bytes", &bytes_sent, sizeof(bytes_sent) }
+        RD_LOG_FIELD_INT("user_id", user_id),
+        RD_LOG_FIELD_DATA("bytes", &bytes_sent, sizeof(bytes_sent))
     };
     rd_log_schema(RD_LOG_INFO, "user_activity", fields, 3);
     
@@ -152,7 +152,7 @@ void structured_c_logging() {
         RD_LOG_INFO,
         "user_activity",
         RD_LOG_FIELD_CSTR("user", user),
-        RD_LOG_FIELD_INT(user_id, user_id),
+        RD_LOG_FIELD_INT("user_id", user_id),
         RD_LOG_FIELD_DATA("bytes", &bytes_sent, sizeof(bytes_sent))
     );
 }

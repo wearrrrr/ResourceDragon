@@ -141,21 +141,95 @@ extern "C" void rd_log_schema(
 ) {
     const char* safe_schema = schema_name ? schema_name : "<null>";
     fmt::memory_buffer buffer;
-    fmt::format_to(std::back_inserter(buffer), "[schema {}] ", safe_schema);
+    fmt::format_to(std::back_inserter(buffer), fmt::runtime("[schema {}] "), safe_schema);
 
     auto append_hex = [&](const uint8_t* bytes, size_t size) {
-        fmt::format_to(std::back_inserter(buffer), "0x");
+        fmt::format_to(std::back_inserter(buffer), fmt::runtime("0x"));
         for (size_t i = 0; i < size; ++i) {
-            fmt::format_to(std::back_inserter(buffer), "{:02x}", bytes[i]);
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime("{:02x}"), bytes[i]);
         }
     };
 
-    auto append_value = [&](const void* data, size_t size) {
+    auto append_value = [&](const RD_LogField& field) {
+        const void* data = field.data;
+        size_t size = field.size;
         if (!data || size == 0) {
-            fmt::format_to(std::back_inserter(buffer), "<empty>");
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime("<empty>"));
             return;
         }
-        const uint8_t* bytes = (uint8_t*)data;
+
+        auto print_string = [&](const char* ptr, size_t len) {
+            std::string text(ptr, len);
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime("\"{}\""), text);
+        };
+
+        auto print_binary = [&]() {
+            append_hex(static_cast<const uint8_t*>(data), size);
+        };
+
+        uint32_t flags = field.flags;
+
+        if (flags & RD_LOG_FIELD_FLAG_BOOLEAN) {
+            uint8_t temp = 0;
+            std::memcpy(&temp, data, size < sizeof(temp) ? size : sizeof(temp));
+            bool value = temp != 0;
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime(value ? "true" : "false"));
+            return;
+        }
+
+        if (flags & RD_LOG_FIELD_FLAG_FLOAT) {
+            double value = 0.0;
+            if (size == sizeof(float)) {
+                float temp;
+                std::memcpy(&temp, data, sizeof(float));
+                value = static_cast<double>(temp);
+            } else if (size == sizeof(double)) {
+                std::memcpy(&value, data, sizeof(double));
+            } else {
+                print_binary();
+                return;
+            }
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime("{}"), value);
+            return;
+        }
+
+        if (flags & RD_LOG_FIELD_FLAG_INTEGER) {
+            bool is_unsigned = (flags & RD_LOG_FIELD_FLAG_UNSIGNED) != 0;
+            if (is_unsigned) {
+                uint64_t value = 0;
+                switch (size) {
+                    case 1: { uint8_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 2: { uint16_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 4: { uint32_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 8: { uint64_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    default: print_binary(); return;
+                }
+                fmt::format_to(std::back_inserter(buffer), "{}", value);
+            } else {
+                int64_t value = 0;
+                switch (size) {
+                    case 1: { int8_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 2: { int16_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 4: { int32_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    case 8: { int64_t tmp; std::memcpy(&tmp, data, sizeof(tmp)); value = tmp; break; }
+                    default: print_binary(); return;
+                }
+                fmt::format_to(std::back_inserter(buffer), fmt::runtime("{}"), value);
+            }
+            return;
+        }
+
+        if (flags & RD_LOG_FIELD_FLAG_STRING) {
+            print_string(static_cast<const char*>(data), size);
+            return;
+        }
+
+        if (flags & RD_LOG_FIELD_FLAG_BINARY) {
+            print_binary();
+            return;
+        }
+
+        const uint8_t* bytes = static_cast<const uint8_t*>(data);
         bool printable = true;
         for (size_t i = 0; i < size; ++i) {
             unsigned char ch = static_cast<unsigned char>(bytes[i]);
@@ -165,28 +239,26 @@ extern "C" void rd_log_schema(
             }
         }
         if (printable) {
-            std::string text((char*)bytes, size);
-            fmt::format_to(std::back_inserter(buffer), "\"{}\"", text);
+            print_string(reinterpret_cast<const char*>(bytes), size);
         } else {
-            append_hex(bytes, size);
+            print_binary();
         }
     };
 
     if (!fields || field_count == 0) {
-        fmt::format_to(std::back_inserter(buffer), "<no fields>");
+        fmt::format_to(std::back_inserter(buffer), fmt::runtime("<no fields>"));
     } else {
         for (size_t i = 0; i < field_count; ++i) {
             if (i > 0) {
-                fmt::format_to(std::back_inserter(buffer), ", ");
+                fmt::format_to(std::back_inserter(buffer), fmt::runtime(", "));
             }
             const RD_LogField &field = fields[i];
             const char* name = field.name ? field.name : "<unnamed>";
-            fmt::format_to(std::back_inserter(buffer), "{}=", name);
-            append_value(field.data, field.size);
+            fmt::format_to(std::back_inserter(buffer), fmt::runtime("{}="), name);
+            append_value(field);
         }
     }
 
-    std::string message(buffer.data(), buffer.size());
-    std::string_view msg_view(message);
+    std::string_view msg_view(buffer.data(), buffer.size());
     write_with_prefix(level, msg_view);
 }

@@ -6,35 +6,16 @@
 
 #include "rd_log.h"
 #include "rd_log_schema.h"
+#include <functional>
 #include <string>
 #include <string_view>
+#include <cstring>
 #include <type_traits>
 #include <utility>
 #include <typeinfo>
 #include <vector>
 
 namespace rd_log_cpp_detail {
-
-#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
-/* Compile-time format string validation for C++20+
- * Note: This can only validate string literals, not runtime strings.
- * Use it manually if needed: validate_format_braces("my format {}")
- */
-consteval bool validate_format_braces(const char* fmt) {
-    int depth = 0;
-    for (const char* p = fmt; *p; ++p) {
-        if (*p == '{') {
-            if (*(p + 1) == '{') { ++p; continue; }  // escaped
-            ++depth;
-        } else if (*p == '}') {
-            if (*(p + 1) == '}') { ++p; continue; }  // escaped
-            --depth;
-        }
-        if (depth < 0) return false;  // unmatched closing brace
-    }
-    return depth == 0;  // all braces matched
-}
-#endif
 
 inline RD_LogArg make_arg_direct(const RD_LogArg& arg) { return arg; }
 inline RD_LogArg make_arg_direct(const char* str) { return rd_log_make_cstring(str); }
@@ -84,21 +65,21 @@ template <typename T, typename = void>
 struct has_to_string : std::false_type {};
 
 template <typename T>
-struct has_to_string<T, std::void_t<decltype(std::declval<const T&>().to_string())>> : std::true_type {};
+struct has_to_string<T, std::void_t<decltype(std::declval<std::remove_reference_t<T>&>().to_string())>> : std::true_type {};
+
+template <typename T, typename = void>
+struct has_const_to_string : std::false_type {};
+
+template <typename T>
+struct has_const_to_string<T, std::void_t<decltype(std::declval<const std::remove_reference_t<T>&>().to_string())>> : std::true_type {};
+
+
 
 template <typename T>
 struct is_std_vector : std::false_type {};
 
 template <typename T, typename Alloc>
 struct is_std_vector<std::vector<T, Alloc>> : std::true_type {};
-
-template <typename T, typename = void>
-struct is_stream_insertable : std::false_type {};
-
-template <typename T>
-struct is_stream_insertable<T, std::void_t<
-    decltype(std::declval<std::ostream&>() << std::declval<const std::remove_cvref_t<T>&>())
->> : std::true_type {};
 
 template <typename T>
 inline constexpr bool has_direct_arg_v = has_direct_arg<T>::value;
@@ -113,13 +94,34 @@ inline std::string quote_string(std::string_view value) {
 }
 
 template <typename T>
-inline std::string stringify_fallback(const T& value) {
+inline std::string invoke_to_string(T&& value) {
+    using RawT = std::remove_reference_t<T>;
+    using DecayedT = std::remove_cv_t<RawT>;
+    if constexpr (has_const_to_string<DecayedT>::value) {
+        return std::forward<T>(value).to_string();
+    } else if constexpr (has_to_string<DecayedT>::value) {
+        if constexpr (!std::is_const_v<RawT> && std::is_lvalue_reference_v<T&&>) {
+            return value.to_string();
+        } else if constexpr (std::is_move_constructible_v<DecayedT>) {
+            DecayedT temp(std::forward<T>(value));
+            return temp.to_string();
+        } else if constexpr (std::is_copy_constructible_v<DecayedT>) {
+            DecayedT temp(value);
+            return temp.to_string();
+        }
+    }
+    return typeid(DecayedT).name();
+}
+
+template <typename T>
+inline std::string stringify_fallback(T&& value) {
     using U = std::remove_cvref_t<T>;
     if constexpr (is_std_vector<U>::value) {
+        const auto& ref = value;
         std::string result = "{ ";
-        for (size_t i = 0; i < value.size(); ++i) {
-            result += stringify_fallback(value[i]);
-            if (i + 1 < value.size()) {
+        for (size_t i = 0; i < ref.size(); ++i) {
+            result += stringify_fallback(ref[i]);
+            if (i + 1 < ref.size()) {
                 result += ", ";
             }
         }
@@ -129,8 +131,8 @@ inline std::string stringify_fallback(const T& value) {
         return quote_string(std::string_view(value));
     } else if constexpr (std::is_same_v<U, const char*> || std::is_same_v<U, char*>) {
         return value ? quote_string(value) : "\"\"";
-    } else if constexpr (has_to_string<U>::value) {
-        return value.to_string();
+    } else if constexpr (has_const_to_string<U>::value || has_to_string<U>::value) {
+        return invoke_to_string(std::forward<T>(value));
     } else {
         return typeid(U).name();
     }
@@ -142,7 +144,7 @@ inline RD_LogArg make_arg_with_storage(T&& value, std::vector<std::string>& scra
     if constexpr (has_direct_arg_v<U>) {
         return make_arg_direct(std::forward<T>(value));
     } else {
-        scratch.emplace_back(stringify_fallback(value));
+        scratch.emplace_back(stringify_fallback(std::forward<T>(value)));
         const std::string& stored = scratch.back();
         return rd_log_make_string(stored.data(), stored.size());
     }
@@ -176,9 +178,19 @@ struct Logger {
         rd_log(RD_LOG_LVL_INFO, s.data(), s.size());
     }
 
+    template <typename T>
+    static std::enable_if_t<
+        !std::is_invocable_v<T> &&
+        !std::is_convertible_v<T, const char*> &&
+        !std::is_same_v<std::decay_t<T>, std::string_view>,
+    void>
+    log(T&& value) {
+        rd_log_cpp_detail::rd_log_format_cpp(RD_LOG_LVL_INFO, "{}", std::forward<T>(value));
+    }
+
     template <typename Fn>
-    static void log(Fn&& fn) {
-        std::forward<Fn>(fn)();
+    static std::enable_if_t<std::is_invocable_v<Fn>, void> log(Fn&& fn) {
+        std::invoke(std::forward<Fn>(fn));
     }
 
     template <typename... Args>
@@ -218,6 +230,20 @@ struct Logger {
             schema.data(),
             fields,
             count
+        );
+    }
+
+    template <typename Name, typename Value, typename... Rest>
+    static std::enable_if_t<
+        std::is_convertible_v<Name, const char*> &&
+        (sizeof...(Rest) % 2 == 0),
+    void> log_schema(std::string_view schema, Name&& name, Value&& value, Rest&&... rest) {
+        rd_log_cpp_detail::log_schema_auto(
+            RD_LOG_LVL_INFO,
+            schema.data(),
+            std::forward<Name>(name),
+            std::forward<Value>(value),
+            std::forward<Rest>(rest)...
         );
     }
 };

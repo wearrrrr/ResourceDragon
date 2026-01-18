@@ -132,7 +132,7 @@ void Plugins::LoadPlugins(const char* path) {
 
         plugins.push_back(plugin);
 
-        printf("Plugin %s (v%s) loaded\n", *name, *version);
+        Logger::log("Plugin {} (v{}) loaded", *name, *version);
 
         const ArchiveFormatVTable* vtable = getArchiveFormat(global_ctx);
         if (vtable) {

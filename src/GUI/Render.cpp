@@ -5,6 +5,8 @@
 #include <PreviewWindow.h>
 #include <Themes.h>
 #include <UIError.h>
+#include "SDK/util/rd_log.h"
+#include "SDK/util/rd_log_schema.h"
 #include "SDL3/SDL_video.h"
 #include "imgui.h"
 #include "imgui/misc/freetype/imgui_freetype.h"
