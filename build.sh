@@ -37,7 +37,12 @@ for arg in "$@"; do
     fi
 done
 
-rm build/debug/ResourceDragon
+# Check for the existence of the build dir, if it doesn't exist, we need to rerun cmake.
+if [ ! -d $BUILD_DIR ]; then
+    RERUN_CMAKE=true
+fi
+
+rm $BUILD_DIR/ResourceDragon
 
 if [ "$MINGW" = "ON" ]; then
     build-scripts/build_mingw.sh "$@"
