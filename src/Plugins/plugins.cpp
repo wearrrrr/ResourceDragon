@@ -73,15 +73,35 @@ void Plugins::LoadPlugins(const char* path) {
 
         LibHandle handle = LoadLib(entry.path().string().c_str());
         if (!handle) {
-#ifdef __linux__
+        #ifdef __linux__
             const char* error_msg = dlerror();
-#elif defined(_WIN32)
-            const char* error_msg = GetLastError();
-#else
-            const char* error_msg = "your platform shouldn't support plugins if you see this";
-#endif
             Logger::error("Failed to load plugin: {}", entry.path().string());
-            Logger::error("Error: {}", error_msg);
+            Logger::error("Error: {}", error_msg ? error_msg : "Unknown error");
+
+        #elif defined(_WIN32)
+            DWORD error_code = GetLastError();
+            LPSTR messageBuffer = nullptr;
+
+            FormatMessageA(
+                FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,
+                error_code,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPSTR)&messageBuffer,
+                0,
+                NULL
+            );
+
+            Logger::error("Failed to load plugin: {}", entry.path().string());
+            Logger::error("Error: {}", messageBuffer ? messageBuffer : "Unknown error");
+
+            if (messageBuffer)
+                LocalFree(messageBuffer);
+
+        #else
+            Logger::error("Failed to load plugin: {}", entry.path().string());
+            Logger::error("Error: your platform shouldn't support plugins if you see this");
+        #endif
             continue;
         }
 

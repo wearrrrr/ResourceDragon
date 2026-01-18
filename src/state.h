@@ -4,7 +4,7 @@
 #define APP_VERSION_MINOR "1"
 #define APP_VERSION APP_VERSION_MAJOR "." APP_VERSION_MINOR
 
-#include "Themes.h"
+#include "GUI/Themes.h"
 #include "imgui.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
